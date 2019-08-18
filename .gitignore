@@ -1,0 +1,23 @@
+#compile stuff
+build/
+*.a
+*.d
+*.o
+*.s
+*.so
+*.elf
+*.arm7
+*.arm9
+*.nds
+*.class
+*.jar
+.map
+*.map
+cmake*/
+.gradle/
+
+#ide stuff
+.idea/
+.clion/
+*.iml
+*.ipr
