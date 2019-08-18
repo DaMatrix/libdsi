@@ -1,5 +1,4 @@
 #include "main.h"
-#include <porklib/crypto/digest/sha1.h>
 
 void vblank() {
     Gui::CURRENT_FRAME++;
@@ -99,4 +98,12 @@ int max(int a, int b) {
 
 int clamp(int a, int min, int max) {
     return a < min ? min : a > max ? max : a;
+}
+
+const char* fmt(const char* format, ...) {
+    va_list args;
+    va_start(args, format);
+    char *result = new char[snprintf(nullptr, 0, format, args) + 1];
+    sprintf(result, format, args);
+    return result;
 }

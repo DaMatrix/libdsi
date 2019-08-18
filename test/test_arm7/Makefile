@@ -11,14 +11,14 @@ include $(DEVKITARM)/ds_rules
 # DATA is a list of directories containing binary files
 # all directories are relative to this makefile
 BUILD		?=	release
-SOURCES		:=	source ../common/source
-INCLUDES	:=	../include
+SOURCES		:=	source ../test_common/source
+INCLUDES	:=	../../common/include
 DATA		:=
  
 # options for code generation
 ARCH	:=	-mthumb-interwork
 
-CFLAGS	:=	-g -Wall -Os \
+CFLAGS	:=	-g -Wall -O2 \
 			-ffunction-sections -fdata-sections \
 			-mcpu=arm7tdmi -mtune=arm7tdmi -fomit-frame-pointer\
 			-ffast-math \
@@ -28,28 +28,22 @@ CFLAGS	+=	$(INCLUDE) -DARM7 -DNDS -DDSI
 CXXFLAGS	:=	$(CFLAGS) -fno-rtti
 ASFLAGS	:=	-g $(ARCH) -DARM7
 
-LDFLAGS	=	-specs=ds_arm7.specs -g $(ARCH) -Wl,-Map,$(notdir $*).map
+LDFLAGS	=	-specs=ds_arm7.specs -g $(ARCH) -Wl,--nmagic -Wl,-Map,$(notdir $*).map
 
-LIBS	:=
+LIBS	:=	-lnds7 -ldsiwifi7
 
 # list of directories containing libraries, this must be the top level containing
 # include and lib
-LIBDIRS	:=	$(LIBNDS)
+LIBDIRS	:=	$(LIBNDS) $(TOPDIR)
  
   
 # no real need to edit anything past this point unless you need to add additional
 # rules for different file extensions
 ifneq ($(BUILD),$(notdir $(CURDIR)))
  
-ifneq ($(BUILD),debug)
-export ARM7BIN	:=	$(TOPDIR)/lib/libdsiwifi7.a
-else
-export ARM7BIN	:=	$(TOPDIR)/lib/libdsiwifi7d.a
-CFLAGS	+=	-DSGIP_DEBUG
-CXXFLAGS	+=	-DSGIP_DEBUG
-endif
-
+export ARM7ELF	:=	$(CURDIR)/test_arm7.elf
 export DEPSDIR	:=	$(CURDIR)/$(BUILD)
+
 export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir))
  
 CFILES			:=	$(foreach dir,$(SOURCES),$(shell find -L $(dir) -type f -name '*.c'))
@@ -76,27 +70,25 @@ else
 endif
 
 .PHONY: $(BUILD) clean
-
+ 
 $(BUILD):
 	@[ -d $@ ] || mkdir -p $@
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
  
 clean:
 	@echo clean ...
-	@rm -fr debug release
-	@rm -f $(TOPDIR)/lib/libdsiwifi7*
-
-all: $(ARM7BIN)
-
+	@rm -fr $(BUILD) *.elf
+ 
+ 
 else
 
-DEPENDS	:=	$(OFILES:.o=.d)
+all: $(ARM7ELF)
  
 # main targets
-$(ARM7BIN)	:	$(OFILES)
-	@echo linking $(ARM7BIN)
-	@rm -f "$(ARM7BIN)"
-	@$(AR) rcs "$(ARM7BIN)" $(OFILES)
+$(ARM7ELF)	:	$(OFILES)
+	@echo linking $(notdir $@)
+	@$(LD)  $(LDFLAGS) $(OFILES) $(LIBPATHS) $(LIBS) -o $@
+
 
 # you need a rule like this for each extension you use as binary data
 %.bin.o	:	%.bin

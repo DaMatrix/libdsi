@@ -6,26 +6,18 @@ endif
 export TARGET	:=	$(shell basename $(CURDIR))
 export TOPDIR	:=	$(CURDIR)
 
-# These set the information text in the nds file
-GAME_TITLE     := dsiwifi (test)
-GAME_SUBTITLE1 := made by DaPorkchop_
-GAME_SUBTITLE2 := https://daporkchop.net
-
 export DSIWIFI_MAJOR	:= 0
 export DSIWIFI_MINOR	:= 0
 export DSIWIFI_REVISION	:= 0
 export DSIWIFI_SUFFIX	:= -SNAPSHOT
 VERSION	:=	$(DSIWIFI_MAJOR).$(DSIWIFI_MINOR).$(DSIWIFI_REVISION)$(DSIWIFI_SUFFIX)
 
-include $(DEVKITARM)/ds_rules
+.PHONY: release debug clean all
 
-.PHONY: checkarm7 checkarm9 clean
+all: include/dsiwifi/version.h release
 
-# main targets
-all: common/include/dsiwifi/version.h $(TARGET).nds
-
-common/include/dsiwifi/version.h : Makefile
-	@mkdir -p common/include/dsiwifi/
+include/dsiwifi/version.h : Makefile
+	@mkdir -p include/dsiwifi/
 	@echo "#ifndef DSIWIFI_VERSION_H" > $@
 	@echo "#define DSIWIFI_VERSION_H" >> $@
 	@echo >> $@
@@ -38,17 +30,22 @@ common/include/dsiwifi/version.h : Makefile
 	@echo >> $@
 	@echo "#endif // DSIWIFI_VERSION_H" >> $@
 
-checkarm7: common/include/dsiwifi/version.h
-	$(MAKE) -C arm7
+release: lib
+	@$(MAKE) -C arm9 BUILD=release
+	@$(MAKE) -C arm7 BUILD=release
+	@$(MAKE) -C test BUILD=release
 
-checkarm9: common/include/dsiwifi/version.h
-	$(MAKE) -C arm9
+debug: lib
+	@$(MAKE) -C arm9 BUILD=debug
+	@$(MAKE) -C arm7 BUILD=debug
+	@$(MAKE) -C test BUILD=debug
 
-$(TARGET).nds	: $(NITRO_FILES) checkarm7 checkarm9
-	ndstool	-c $(TARGET).nds -7 arm7/arm7.elf -9 arm9/arm9.elf \
-	-b $(GAME_ICON) "$(GAME_TITLE);$(GAME_SUBTITLE1);$(GAME_SUBTITLE2)"
+lib:
+	@mkdir lib
 
 clean:
-	$(MAKE) -C arm9 clean
-	$(MAKE) -C arm7 clean
-	rm -f $(TARGET).nds arm7/arm7.elf arm9/arm9.elf
+	@$(MAKE) -C arm9 clean
+	@$(MAKE) -C arm7 clean
+	@$(MAKE) -C test clean
+	@$(RM) -r include/dsiwifi/version.h lib
+

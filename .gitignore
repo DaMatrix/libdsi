@@ -1,5 +1,7 @@
 #compile stuff
 build/
+debug/
+release/
 *.a
 *.d
 *.o
@@ -21,3 +23,6 @@ cmake*/
 .clion/
 *.iml
 *.ipr
+
+#i have the old dswifi code in this subdirectory locally
+/old/

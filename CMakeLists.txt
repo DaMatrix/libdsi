@@ -24,6 +24,7 @@ include_directories(${LIBNDS_INCLUDE})
 link_directories(${LIBNDS_LINK})
 
 add_subdirectory(common)
-
 add_subdirectory(arm7)
 add_subdirectory(arm9)
+
+add_subdirectory(test)

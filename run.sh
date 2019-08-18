@@ -1,3 +1,3 @@
 #!/bin/bash
 
-make -j$( nproc ) && dslink ds_launcher.nds
+make -j$( nproc ) release && dslink test/dsiwifi_test.nds
