@@ -1,8 +1,8 @@
 #include "netutil.h"
 
-Socket Socket::INSTANCE;
+//Socket Socket::INSTANCE;
 
-const bool DEBUG_PACKETS = false;
+//const bool DEBUG_PACKETS = false;
 
 Message::~Message() {
     if (this->data != nullptr && !this->isConst) {
@@ -15,22 +15,22 @@ bool Message::hasContent() {
 }
 
 void Socket::open(const char *url, unsigned short port) {
-    ensureWifiStarted();
+    /*ensureWifiStarted();
     hostent *host = gethostbyname(url);
-    this->open(host, port);
+    this->open(host, port);*/
+    //TODO
 }
 
 size_t Socket::receive(char *buffer, size_t size) {
-    size_t total = 0, n = 0;
+    /*size_t total = 0, n = 0;
     while ((n = recv(this->socketId, buffer + total, size - total, 0)) > 0) {
         total += n;
     }
-    //Console::BOTTOM->printf(5, 95, "n=%d, total=%d, val=%d", n, total, buffer[0] & 0xFF);
-    //buffer[total] = 0;
-    return total;
+    return total;*/
+    return -1; //TODO
 }
 
-void Socket::open(hostent *host, unsigned short port) {
+/*void Socket::open(hostent *host, unsigned short port) {
     ensureWifiStarted();
     if (this->isConnected()) {
         throw "Already connected!";
@@ -56,17 +56,20 @@ void Socket::open(hostent *host, unsigned short port) {
             throw "Unable to connect to server!";
         }
     }
-}
+}*/
+//TODO
 
 void Socket::close() {
-    if (this->socketId != -1) {
+    /*if (this->socketId != -1) {
         closesocket(this->socketId);
         this->socketId = -1;
-    }
+    }*/
+    //TODO
 }
 
 bool Socket::isConnected() {
-    return this->socketId != -1 && isWifiConnected();
+    //return this->socketId != -1 && isWifiConnected();
+    return false; //TODO
 }
 
 Message *Socket::sendAndWaitForResponse(Message *message) {
@@ -74,8 +77,8 @@ Message *Socket::sendAndWaitForResponse(Message *message) {
 }
 
 Message *Socket::sendAndWaitForResponse(Message *message, bool delet) {
-    if (DEBUG_PACKETS) {
-        Console::TOP->printf("Sending request...");
+    /*if (DEBUG_PACKETS) {
+        Display::TOP->printf("Sending request...");
     }
     this->sendWithoutWaiting(message);
     if (delet) {
@@ -83,12 +86,12 @@ Message *Socket::sendAndWaitForResponse(Message *message, bool delet) {
     }
 
     if (DEBUG_PACKETS) {
-        Console::TOP->printf("Reading response...");
+        Display::TOP->printf("Reading response...");
     }
 
     char id = 0;
     if (DEBUG_PACKETS) {
-        Console::TOP->printf("Reading ID...");
+        Display::TOP->printf("Reading ID...");
     }
     if (this->receive(&id, 1) != 1) {
         throw "Couldn't read ID!";
@@ -96,19 +99,19 @@ Message *Socket::sendAndWaitForResponse(Message *message, bool delet) {
         throw "Couldn't read ID!";
     }
     if (DEBUG_PACKETS) {
-        Console::TOP->printf("ID: %d", id);
+        Display::TOP->printf("ID: %d", id);
     }
 
     int length = 0;
     if (DEBUG_PACKETS) {
-        Console::TOP->printf("Reading Length...");
+        Display::TOP->printf("Reading Length...");
     }
     if (this->receive((char *) &length, 4) != 4) {
         throw "Couldn't read length!";
     }
 
     if (DEBUG_PACKETS) {
-        Console::TOP->printf("Length: %d", length);
+        Display::TOP->printf("Length: %d", length);
         for (int i = 0; i < 120; i++) {
             swiWaitForVBlank();
         }
@@ -116,7 +119,7 @@ Message *Socket::sendAndWaitForResponse(Message *message, bool delet) {
 
     if (DEBUG_PACKETS) {
         auto text = fmt("Response length: %d\nResponse ID: %d", length, id & 0xFF);
-        Gui::drawText(SCREEN_WIDTH >> 1, 35, ARGB16(1, 0, 31, 0), TOP, text);
+        drawText(SCREEN_WIDTH >> 1, 35, ARGB16(1, 0, 31, 0), TOP, text);
         delete text;
     }
 
@@ -132,16 +135,17 @@ Message *Socket::sendAndWaitForResponse(Message *message, bool delet) {
 
     if (DEBUG_PACKETS) {
         auto text = fmt("Response ID: %d\nResponse length: %d\nResponse data: %s", response->id & 0xFF, response->len, response->hasContent() ? response->data : "null");
-        Gui::drawText(5, 5, ARGB16(1, 0, 31, 0), BOTTOM, text);
+        drawText(5, 5, ARGB16(1, 0, 31, 0), BOTTOM, text);
         delete text;
     }
 
     //DEBUG_PACKETS = true;
-    return response;
+    return response;*/
+    return nullptr; //TODO
 }
 
 Message *Socket::sendWithoutWaiting(Message *message) {
-    if (message->hasContent() > 0) {
+    /*if (message->hasContent() > 0) {
         int total = message->len + 4 + 1 + 1;
         char *temp = new char[total];
         temp[0] = message->id;
@@ -157,23 +161,25 @@ Message *Socket::sendWithoutWaiting(Message *message) {
         send(this->socketId, temp, 6, 0);
         delete temp;
     }
-    return message;
+    return message;*/
+    return nullptr; //TODO
 }
 
 void ensureWifiStarted() {
-    if (!wifiStarted || !isWifiConnected()) {
-        Console::TOP->print("Stopping wifi...");
+    /*if (!wifiStarted || !isWifiConnected()) {
+        Display::TOP->print("Stopping wifi...");
         Wifi_DisableWifi();
-        Console::TOP->print("Connecting to wifi...");
+        Display::TOP->print("Connecting to wifi...");
         if (Wifi_InitDefault(WFC_CONNECT)) {
-            Console::TOP->print("Connected.");
+            Display::TOP->print("Connected.");
             wifiStarted = true;
         } else {
             throw "Couldn't connect to WiFi!";
         }
-    }
+    }*/
+    //TODO
 }
 
 bool isWifiConnected() {
-    return Wifi_AssocStatus() == ASSOCSTATUS_ASSOCIATED;
+    return false; //TODO
 }

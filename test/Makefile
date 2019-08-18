@@ -17,7 +17,7 @@ all: release
 release:
 	@$(MAKE) -C test_arm9 BUILD=release
 	@$(MAKE) -C test_arm7 BUILD=release
-	ndstool	-c $(TARGET).nds -7 test_arm7/test_arm7.elf -9 test_arm9/test_arm9.elf \
+	ndstool	-c dsiwifi_test.nds -7 test_arm7/test_arm7.elf -9 test_arm9/test_arm9.elf \
 	-b $(GAME_ICON) "$(GAME_TITLE);$(GAME_SUBTITLE1);$(GAME_SUBTITLE2)"
 
 debug:

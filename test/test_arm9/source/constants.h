@@ -2,9 +2,9 @@
 #define TEMPLATE_CONSTANTS_H
 
 #include <nds.h>
-
 #include <cstdarg>
-#include <stdio.h>
+#include <cstdio>
+#include "console.h"
 
 const unsigned short SERVER_PORT = 8236;
 

@@ -3,7 +3,6 @@
 
 #include "constants.h"
 #include "netutil.h"
-#include "gui.h"
 
 #include <string>
 

@@ -37,7 +37,8 @@
 #include "main.h"
 
 void vblankHandler(void) {
-	Wifi_Update();
+	//Wifi_Update();
+	//TODO
 }
 
 void vcountHandler() {
@@ -70,7 +71,8 @@ int main() {
 
 	SetYtrigger(80);
 
-	installWifiFIFO();
+	//installWifiFIFO();
+	//TODO
 	installSoundFIFO();
 
 	installSystemFIFO();

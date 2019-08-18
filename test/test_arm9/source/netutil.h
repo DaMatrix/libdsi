@@ -2,19 +2,6 @@
 #define TEMPLATE_NETUTIL_H
 
 #include "constants.h"
-#include "game.h"
-#include "gui.h"
-
-#include <dswifi9.h>
-#include <fat.h>
-
-#include <netdb.h>
-#include <stdexcept>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <fcntl.h>
-
-static bool wifiStarted = false;
 
 class Message {
 public:
@@ -60,7 +47,7 @@ private:
     int socketId = -1;
 public:
     //static instance of socket that's used for communicating with the ds-store server
-    static Socket INSTANCE;
+    //static Socket INSTANCE;
 
     //functions
     /**
@@ -75,7 +62,8 @@ public:
      * @param host the host to connect to
      * @param port the port to connect on
      */
-    void open(hostent *host, uint16 port);
+    //void open(hostent *host, uint16 port);
+    //TODO
 
     /**
      * Reads a given number of bytes into a buffer
