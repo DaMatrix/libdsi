@@ -42,9 +42,9 @@ LIBDIRS	:=	$(LIBNDS)
 ifneq ($(BUILD),$(notdir $(CURDIR)))
 
 ifneq ($(BUILD),debug)
-export ARM9BIN	:=	$(TOPDIR)/lib/libdsiwifi9.a
+export ARM9BIN	:=	$(TOPDIR)/lib/liblibdsi9.a
 else
-export ARM9BIN	:=	$(TOPDIR)/lib/libdsiwifi9d.a
+export ARM9BIN	:=	$(TOPDIR)/lib/liblibdsi9d.a
 CFLAGS	+=	-DSGIP_DEBUG
 CXXFLAGS	+=	-DSGIP_DEBUG
 endif
@@ -86,7 +86,7 @@ $(BUILD):
 clean:
 	@echo clean ...
 	@rm -fr debug release
-	@rm -f $(TOPDIR)/lib/libdsiwifi9*
+	@rm -f $(TOPDIR)/lib/liblibdsi9*
 
 all: $(ARM9BIN)
 

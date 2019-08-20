@@ -17,7 +17,7 @@ release/
 *.map
 cmake*/
 .gradle/
-/include/dsiwifi/version.h
+/include/libdsi/version.h
 
 #ide stuff
 .idea/

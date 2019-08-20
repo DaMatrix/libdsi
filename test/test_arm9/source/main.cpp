@@ -41,12 +41,18 @@ int main() {
     if (true)   {
         if (!fifoInit()) Display::TOP->print("Unable to init FIFO!");
 
-        int* randomHeapPtr = new int;
+        /*for (int i = 1; true; i++)  {
+            for (int i = 0; i < 30; i++) swiWaitForVBlank();
+            new char[524288 << 1];
+            Display::TOP->printf("Allocated %d MB", i);
+        }*/ //there are >15mb ram, as there should be
+
+        /*int* randomHeapPtr = new int;
         Display::TOP->printf("Normal: %#010x", (int) randomHeapPtr);
         Display::TOP->printf("Cached: %#010x", (int) memCached(randomHeapPtr));
-        Display::TOP->printf("Uncached: %#010x", (int) memUncached(randomHeapPtr));
+        Display::TOP->printf("Uncached: %#010x", (int) memUncached(randomHeapPtr));*/
 
-        int iterations = 0;
+        /*int iterations = 0;
         Display::TOP->print("Waiting...");
         while (iterations++ != 120) swiWaitForVBlank();
 
@@ -58,7 +64,7 @@ int main() {
             Display::TOP->print("Data valid!");
         } else {
             Display::TOP->printf("Invalid! %d %d", i << 2, i);
-        }
+        }*/
 
         /*fifoInit();
         fifoSetValue32Handler(FIFO_USER_01, [](u32 value32, void* userdata) {
@@ -97,7 +103,7 @@ int main() {
         Display::TOP->printf(" limit: %d)", (int) getHeapLimit());
     }
 
-    Display::TOP->printf("NDS: %d, DSi: %d", sizeof(dsiwifi::WifiConnectionData), sizeof(dsiwifi::DSiWifiConnectionData));
+    Display::TOP->printf("NDS: %d, DSi: %d", sizeof(libdsi::WifiConnectionData), sizeof(libdsi::DSiWifiConnectionData));
 
     char* personal_data_ptr = (char*) PersonalData;
 
@@ -111,7 +117,7 @@ int main() {
         delete name;
     }
 
-    dsiwifi::DSiWifiConnectionData* wifi_ptr = (dsiwifi::DSiWifiConnectionData*) (personal_data_ptr - 0xA00);
+    libdsi::DSiWifiConnectionData* wifi_ptr = (libdsi::DSiWifiConnectionData*) (personal_data_ptr - 0xA00);
 
     Display::TOP->printf("SSID: %s", wifi_ptr[1].ssid);
 

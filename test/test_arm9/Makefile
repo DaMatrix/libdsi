@@ -29,7 +29,7 @@ ASFLAGS	:=	-g $(ARCH) -DARM9
 
 LDFLAGS	=	-specs=dsi_arm9.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:=	-lnds9 -ldsiwifi9
+LIBS	:=	-lnds9 -llibdsi9
 
 # list of directories containing libraries, this must be the top level containing
 # include and lib

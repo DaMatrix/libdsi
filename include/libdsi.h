@@ -1,26 +1,18 @@
-#ifndef DSIWIFI_LIBDSI_H
-#define DSIWIFI_LIBDSI_H
+#ifndef LIBDSI_H
+#define LIBDSI_H
 
-#include <cstdint>
+#include <libdsi/dsitypes.h>
+
+#ifdef ARM9
+#include <libdsi/libdsi9.h>
+#else
+#include <libdsi/libdsi7.h>
+#endif
 
 /**
  * libnds is too complicated so let's simplify things a bit
  */
-
 namespace libdsi {
-    typedef std::int8_t   i8;
-    typedef std::int8_t   s8;
-    typedef std::uint8_t  u8;
-    typedef std::int16_t  i16;
-    typedef std::int16_t  s16;
-    typedef std::uint16_t u16;
-    typedef std::int32_t  i32;
-    typedef std::int32_t  s32;
-    typedef std::uint32_t u32;
-    typedef std::int64_t  i64;
-    typedef std::int64_t  s64;
-    typedef std::uint64_t u64;
-
     /*constexpr u32* WRAM_MBK1 = (u32*) 0x04004040;
     constexpr u32* WRAM_MBK2 = (u32*) 0x04004044;
     constexpr u32* WRAM_MBK3 = (u32*) 0x04004048;
@@ -43,4 +35,4 @@ namespace libdsi {
 #endif*/
 }
 
-#endif //DSIWIFI_LIBDSI_H
+#endif //LIBDSI_H

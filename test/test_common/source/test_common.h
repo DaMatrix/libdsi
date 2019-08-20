@@ -1,6 +1,6 @@
-#ifndef DSIWIFI_TEST_COMMON_H
-#define DSIWIFI_TEST_COMMON_H
+#ifndef LIBDSI_TEST_COMMON_H
+#define LIBDSI_TEST_COMMON_H
 
-#include <libdsi/dsiwifi.h>
+#include <libdsi.h>
 
-#endif //DSIWIFI_TEST_COMMON_H
+#endif //LIBDSI_TEST_COMMON_H

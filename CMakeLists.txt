@@ -4,7 +4,7 @@
 cmake_minimum_required(VERSION 3.13)
 set(CMAKE_CXX_STANDARD 17)
 
-project(dsiwifi)
+project(libdsi)
 
 # Set up devkitPro variable stuff up
 set(DEVKITPRO $ENV{DEVKITPRO})
@@ -13,7 +13,7 @@ set(LIBNDS_INCLUDE ${LIBNDS}/include)
 set(LIBNDS_LINK ${LIBNDS}/lib)
 
 # Set C/C++ compiler flags
-set(CMAKE_C_FLAGS "-DNDS -DDSI")
+set(CMAKE_C_FLAGS "-DDSI")
 set(CMAKE_CXX_FLAGS ${CMAKE_C_FLAGS})
 
 # Include libnds

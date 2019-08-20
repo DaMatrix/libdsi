@@ -30,7 +30,7 @@ ASFLAGS	:=	-g $(ARCH) -DARM7
 
 LDFLAGS	=	-specs=ds_arm7.specs -g $(ARCH) -Wl,--nmagic -Wl,-Map,$(notdir $*).map
 
-LIBS	:=	-lnds7 -lmm7 -ldsiwifi7
+LIBS	:=	-lnds7 -lmm7 -llibdsi7
 
 # list of directories containing libraries, this must be the top level containing
 # include and lib
