@@ -1,4 +1,4 @@
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DARM9 -g -Wall -O2 -march=armv5te -mtune=arm946e-s -fomit-frame-pointer -ffast-math -mthumb -mthumb-interwork")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DARM9")
 set(CMAKE_CXX_FLAGS ${CMAKE_C_FLAGS})
 
 add_executable(arm9 "")

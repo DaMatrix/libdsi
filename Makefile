@@ -30,12 +30,12 @@ include/dsiwifi/version.h : Makefile
 	@echo >> $@
 	@echo "#endif // DSIWIFI_VERSION_H" >> $@
 
-release: lib
+release: lib include/dsiwifi/version.h
 	@$(MAKE) -C arm9 BUILD=release
 	@$(MAKE) -C arm7 BUILD=release
 	@$(MAKE) -C test BUILD=release
 
-debug: lib
+debug: lib include/dsiwifi/version.h
 	@$(MAKE) -C arm9 BUILD=debug
 	@$(MAKE) -C arm7 BUILD=debug
 	@$(MAKE) -C test BUILD=debug

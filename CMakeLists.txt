@@ -12,9 +12,6 @@ set(LIBNDS ${DEVKITPRO}/libnds)
 set(LIBNDS_INCLUDE ${LIBNDS}/include)
 set(LIBNDS_LINK ${LIBNDS}/lib)
 
-# Set C/C++ compiler
-set(CMAKE_C_COMPILER ${DEVKITPRO}/devkitARM/bin/arm-none-eabi-gcc CACHE PATH "" FORCE)
-set(CMAKE_CXX_COMPILER ${DEVKITPRO}/devkitARM/bin/arm-none-eabi-g++ CACHE PATH "" FORCE)
 # Set C/C++ compiler flags
 set(CMAKE_C_FLAGS "-DNDS -DDSI")
 set(CMAKE_CXX_FLAGS ${CMAKE_C_FLAGS})

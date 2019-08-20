@@ -27,9 +27,95 @@ typedef struct {
     u16 pixels[32 * 32];
 } Icon;
 
+inline int endlessWait()    {
+    while (true) {
+        swiWaitForVBlank();
+    }
+    return 0;
+}
+
 int main() {
     Font::init();
     irqSet(IRQ_VBLANK, vblank);
+
+    if (true)   {
+        if (!fifoInit()) Display::TOP->print("Unable to init FIFO!");
+
+        int* randomHeapPtr = new int;
+        Display::TOP->printf("Normal: %#010x", (int) randomHeapPtr);
+        Display::TOP->printf("Cached: %#010x", (int) memCached(randomHeapPtr));
+        Display::TOP->printf("Uncached: %#010x", (int) memUncached(randomHeapPtr));
+
+        int iterations = 0;
+        Display::TOP->print("Waiting...");
+        while (iterations++ != 120) swiWaitForVBlank();
+
+        Display::TOP->print("Checking data...");
+        auto ptr = (u32*) 0x03000000;
+        int i = 0;
+        while (ptr[i] == (0xBEEF0000 | i) && i != 8192) i++;
+        if (i == 8192)  {
+            Display::TOP->print("Data valid!");
+        } else {
+            Display::TOP->printf("Invalid! %d %d", i << 2, i);
+        }
+
+        /*fifoInit();
+        fifoSetValue32Handler(FIFO_USER_01, [](u32 value32, void* userdata) {
+            Display::TOP->printf("received data: %d", value32);
+            switch(value32 & 0xF) {
+                case 0:
+                    Display::TOP->print("ARM7 is writing data...");
+                    break;
+                case 1:
+                    Display::TOP->print("Checking data...");
+                    auto ptr = (u32*) (value32 >> 4);
+                    int i = 0;
+                    while (ptr[i++] != (0xBEEF0000 | i) && i != 8192);
+                    if (i == 8192)  {
+                        Display::TOP->print("Data valid!");
+                    } else {
+                        Display::TOP->printf("Invalid! %d %d", i << 2, i);
+                    }
+                    break;
+            }
+        }, nullptr);
+
+        Display::TOP->print("Waiting...");*/
+
+        return endlessWait();
+    }
+
+    if (!isDSiMode())   {
+        drawText(5, 5, ARGB16(1, 31, 0, 0), BOTTOM, "Must be used on DSi!");
+        return endlessWait();
+    } else {
+        setCpuClock(true);
+
+        Display::TOP->printf("Battery level: %d, heap is %d bytes", (int) getBatteryLevel(), (int) (getHeapEnd() - getHeapStart()));
+        Display::TOP->printf("(~%d MB) (from %d to %d,", (int) (getHeapEnd() - getHeapStart()) / (1024 * 1024), (int) getHeapStart());
+        Display::TOP->printf(" limit: %d)", (int) getHeapLimit());
+    }
+
+    Display::TOP->printf("NDS: %d, DSi: %d", sizeof(dsiwifi::WifiConnectionData), sizeof(dsiwifi::DSiWifiConnectionData));
+
+    char* personal_data_ptr = (char*) PersonalData;
+
+    {
+        auto name = new char[PersonalData->nameLen + 1];
+        name[PersonalData->nameLen] = 0;
+        for (size_t i = PersonalData->nameLen; i--;) {
+            name[i] = (u8) PersonalData->name[i];
+        }
+        Display::TOP->printf("Name: %s (%d chars)", name, (int) PersonalData->nameLen);
+        delete name;
+    }
+
+    dsiwifi::DSiWifiConnectionData* wifi_ptr = (dsiwifi::DSiWifiConnectionData*) (personal_data_ptr - 0xA00);
+
+    Display::TOP->printf("SSID: %s", wifi_ptr[1].ssid);
+
+    if (true) return endlessWait();
 
     /*Display::HANDLERS.push_back([](int keys, touchPosition *touch) -> void {
         if (keys & KEY_START) {
@@ -39,8 +125,8 @@ int main() {
         }
     });*/
 
-    Display::TOP->print("Waiting...");
-    while (Display::CURRENT_FRAME < 200) swiWaitForVBlank();
+    //Display::TOP->print("Waiting...");
+    //while (Display::CURRENT_FRAME < 200) swiWaitForVBlank();
 
     try {
         Display::TOP->print("Connecting to server...");
@@ -83,9 +169,7 @@ int main() {
         drawText(5, 5, ARGB16(1, 31, 0, 0), BOTTOM, "Exception");
     }
     //Socket::INSTANCE.close();
-    while (true) {
-        swiWaitForVBlank();
-    }
+    return endlessWait();
 }
 
 int min(int a, int b) {
@@ -103,7 +187,7 @@ int clamp(int a, int min, int max) {
 const char* fmt(const char* format, ...) {
     va_list args;
     va_start(args, format);
-    char *result = new char[snprintf(nullptr, 0, format, args) + 1];
-    sprintf(result, format, args);
+    char *result = new char[vsnprintf(nullptr, 0, format, args) + 1];
+    vsprintf(result, format, args);
     return result;
 }

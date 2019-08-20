@@ -1,4 +1,4 @@
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DARM7 -g -Wall -O2 -mcpu=arm7tdmi -mtune=arm7tdmi -fomit-frame-pointer -ffast-math -mthumb-interwork")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DARM7")
 set(CMAKE_CXX_FLAGS ${CMAKE_C_FLAGS})
 
 add_executable(arm7 "")

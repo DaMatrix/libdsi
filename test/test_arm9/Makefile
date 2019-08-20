@@ -12,7 +12,7 @@ include $(DEVKITARM)/ds_rules
 # all directories are relative to this makefile
 BUILD		?=	release
 SOURCES		:=	source ../test_common/source
-INCLUDES	:=	../../common/include
+INCLUDES	:=	../../common/include ../test_common/source
 DATA		:=
 
 # options for code generation
@@ -78,7 +78,6 @@ $(BUILD):
 clean:
 	@echo clean ...
 	@rm -fr $(BUILD) *.elf *.nds* *.bin
-
 
 else
 

@@ -37,59 +37,64 @@
 #include "main.h"
 
 void vblankHandler(void) {
-	//Wifi_Update();
-	//TODO
+    //Wifi_Update();
+    //TODO
 }
 
 void vcountHandler() {
-	inputGetAndSend();
+    inputGetAndSend();
 }
 
 volatile bool exitflag = false;
 
 void powerButtonCB() {
-	exitflag = true;
+    exitflag = true;
 }
 
 int main() {
-	// clear sound registers
-	dmaFillWords(0, (void*)0x04000400, 0x100);
+    // clear sound registers
+    dmaFillWords(0, (void*) 0x04000400, 0x100);
 
-	REG_SOUNDCNT |= SOUND_ENABLE;
-	writePowerManagement(PM_CONTROL_REG, ( readPowerManagement(PM_CONTROL_REG) & ~PM_SOUND_MUTE ) | PM_SOUND_AMP );
-	powerOn(POWER_SOUND);
+    REG_SOUNDCNT |= SOUND_ENABLE;
+    writePowerManagement(PM_CONTROL_REG, (readPowerManagement(PM_CONTROL_REG) & ~PM_SOUND_MUTE) | PM_SOUND_AMP);
+    powerOn(POWER_SOUND);
 
-	readUserSettings();
-	ledBlink(0);
+    readUserSettings();
+    ledBlink(0);
 
-	irqInit();
-	// Start the RTC tracking IRQ
-	initClockIRQ();
-	fifoInit();
+    irqInit();
+    // Start the RTC tracking IRQ
+    initClockIRQ();
+    fifoInit();
 
-	mmInstall(FIFO_MAXMOD);
+    mmInstall(FIFO_MAXMOD);
 
-	SetYtrigger(80);
+    SetYtrigger(80);
 
-	//installWifiFIFO();
-	//TODO
-	installSoundFIFO();
+    //installWifiFIFO();
+    //TODO
+    installSoundFIFO();
 
-	installSystemFIFO();
+    installSystemFIFO();
 
-	irqSet(IRQ_VCOUNT, vcountHandler);
-	irqSet(IRQ_VBLANK, vblankHandler);
+    irqSet(IRQ_VCOUNT, vcountHandler);
+    irqSet(IRQ_VBLANK, vblankHandler);
 
-	irqEnable( IRQ_VBLANK | IRQ_VCOUNT | IRQ_NETWORK);
+    irqEnable(IRQ_VBLANK | IRQ_VCOUNT | IRQ_NETWORK);
 
-	setPowerButtonCB(powerButtonCB);
+    setPowerButtonCB(powerButtonCB);
 
-	// Keep the ARM7 mostly idle
-	while (!exitflag) {
-		if ( 0 == (REG_KEYINPUT & (KEY_SELECT | KEY_START | KEY_L | KEY_R))) {
-			exitflag = true;
-		}
-		swiWaitForVBlank();
-	}
-	return 0;
+    /*auto ptr = (u32*) 0x03000000;
+    for (int i = 0; i < 8192; i++)  {
+        ptr[i] = 0xBEEF0000 | i;
+    }*/
+
+    // Keep the ARM7 mostly idle
+    while (!exitflag) {
+        if (0 == (REG_KEYINPUT & (KEY_SELECT | KEY_START | KEY_L | KEY_R))) {
+            exitflag = true;
+        }
+        swiWaitForVBlank();
+    }
+    return 0;
 }

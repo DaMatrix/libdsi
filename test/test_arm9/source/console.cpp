@@ -806,16 +806,16 @@ void Display::dprint(int x, int y, const char *text) {
 void Display::printf(int x, int y, const char *text, ...) {
     va_list args;
     va_start(args, text);
-    char *result = new char[snprintf(nullptr, 0, text, args) + 1];
-    sprintf(result, text, args);
+    char *result = new char[vsnprintf(nullptr, 0, text, args) + 1];
+    vsprintf(result, text, args);
     this->dprint(x, y, result);
 }
 
 void Display::dprintf(int x, int y, const char *text, ...) {
     va_list args;
     va_start(args, text);
-    char *result = new char[snprintf(nullptr, 0, text, args) + 1];
-    sprintf(result, text, args);
+    char *result = new char[vsnprintf(nullptr, 0, text, args) + 1];
+    vsprintf(result, text, args);
     this->dprint(x, y, result);
     delete text;
 }
@@ -827,8 +827,8 @@ void Display::print(const char *text) {
 void Display::printf(const char *text, ...) {
     va_list args;
     va_start(args, text);
-    char *result = new char[snprintf(nullptr, 0, text, args) + 1];
-    sprintf(result, text, args);
+    char *result = new char[vsnprintf(nullptr, 0, text, args) + 1];
+    vsprintf(result, text, args);
     this->print(5, (this->row++) * 10 + 5, result);
     delete result;
 }

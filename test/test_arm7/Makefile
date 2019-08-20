@@ -12,9 +12,9 @@ include $(DEVKITARM)/ds_rules
 # all directories are relative to this makefile
 BUILD		?=	release
 SOURCES		:=	source ../test_common/source
-INCLUDES	:=	../../common/include
+INCLUDES	:=	../../common/include ../test_common/source
 DATA		:=
- 
+
 # options for code generation
 ARCH	:=	-mthumb-interwork
 
@@ -35,32 +35,24 @@ LIBS	:=	-lnds7 -lmm7 -ldsiwifi7
 # list of directories containing libraries, this must be the top level containing
 # include and lib
 LIBDIRS	:=	$(LIBNDS) $(TOPDIR)
- 
-  
+
 # no real need to edit anything past this point unless you need to add additional
 # rules for different file extensions
 ifneq ($(BUILD),$(notdir $(CURDIR)))
- 
+
 export ARM7ELF	:=	$(CURDIR)/test_arm7.elf
 export DEPSDIR	:=	$(CURDIR)/$(BUILD)
 
-export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir))
- 
+export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
+					$(foreach dir,$(DATA),$(CURDIR)/$(dir)) .
+
 CFILES			:=	$(foreach dir,$(SOURCES),$(shell find -L $(dir) -type f -name '*.c'))
 CFILES_COMP		:=  $(subst /,_, $(subst ..,_,$(CFILES)))
 CPPFILES		:=	$(foreach dir,$(SOURCES),$(shell find -L $(dir) -type f -name '*.cpp'))
 CPPFILES_COMP	:=  $(subst /,_, $(subst ..,_,$(CPPFILES)))
 SFILES			:=	$(foreach dir,$(SOURCES),$(shell find -L $(dir) -type f -name '*.s'))
-BINFILES	:=	$(foreach dir,$(DATA),$(notdir $(wildcard $(dir)/*.*)))
- 
-export OFILES	:=	$(addsuffix .o,$(BINFILES)) \
-					$(CPPFILES_COMP:.cpp=.cpp.o) $(CFILES_COMP:.c=.c.o) $(SFILES_COMP:.s=.s.o)
- 
-export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
-			$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
-			-I$(CURDIR)/$(BUILD)
- 
-export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
+SFILES_COMP		:=  $(subst /,_, $(subst ..,_,$(SFILES)))
+BINFILES		:=	$(foreach dir,$(DATA),$(notdir $(wildcard $(dir)/*.*)))
 
 # use CXX for linking C++ projects, CC for standard C
 ifeq ($(strip $(CPPFILES)),)
@@ -69,26 +61,33 @@ else
 	export LD	:=	$(CXX)
 endif
 
+export OFILES	:=	$(addsuffix .o,$(BINFILES)) \
+					$(CPPFILES_COMP:.cpp=.cpp.o) $(CFILES_COMP:.c=.c.o) $(SFILES_COMP:.s=.s.o)
+
+export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
+			$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
+			-I$(CURDIR)/$(BUILD)
+
+export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
+
 .PHONY: $(BUILD) clean
- 
+
 $(BUILD):
 	@[ -d $@ ] || mkdir -p $@
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
- 
+
 clean:
 	@echo clean ...
-	@rm -fr $(BUILD) *.elf
- 
- 
+	@rm -fr $(BUILD) *.elf *.nds* *.bin
+
 else
 
 all: $(ARM7ELF)
- 
+
 # main targets
 $(ARM7ELF)	:	$(OFILES)
 	@echo linking $(notdir $@)
-	@$(LD)  $(LDFLAGS) $(OFILES) $(LIBPATHS) $(LIBS) -o $@
-
+	$(LD)  $(LDFLAGS) $(OFILES) $(LIBPATHS) $(LIBS) -o $@
 
 # you need a rule like this for each extension you use as binary data
 %.bin.o	:	%.bin
@@ -107,8 +106,8 @@ $(ARM7ELF)	:	$(OFILES)
 	@echo "$(notdir $<) -> $(notdir $@)"
 	$(CC) -MMD -MP -MF $(DEPSDIR)/$*.d -x assembler-with-cpp $(ASFLAGS) -c ../$(subst .s.o,.s,$(subst _,/,$(subst __,../,$@))) -o $@ $(ERROR_FILTER)
 
--include $(DEPENDS)
- 
+-include $(DEPSDIR)/*.d
+
 #---------------------------------------------------------------------------------------
 endif
 #---------------------------------------------------------------------------------------

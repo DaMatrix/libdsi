@@ -14,7 +14,7 @@ BUILD		?=	release
 SOURCES		:=	source ../common/source
 INCLUDES	:=	../include
 DATA		:=
- 
+
 # options for code generation
 ARCH	:=	-mthumb-interwork
 
@@ -28,7 +28,7 @@ CFLAGS	+=	$(INCLUDE) -DARM7 -DNDS -DDSI
 CXXFLAGS	:=	$(CFLAGS) -fno-rtti
 ASFLAGS	:=	-g $(ARCH) -DARM7
 
-LDFLAGS	=	-specs=ds_arm7.specs -g $(ARCH) -Wl,-Map,$(notdir $*).map
+LDFLAGS	=	-specs=ds_arm7.specs -g $(ARCH) -Wl,--nmagic -Wl,-Map,$(notdir $*).map
 
 LIBS	:=
 
@@ -50,23 +50,17 @@ CXXFLAGS	+=	-DSGIP_DEBUG
 endif
 
 export DEPSDIR	:=	$(CURDIR)/$(BUILD)
-export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir))
- 
+
+export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
+					$(foreach dir,$(DATA),$(CURDIR)/$(dir)) .
+
 CFILES			:=	$(foreach dir,$(SOURCES),$(shell find -L $(dir) -type f -name '*.c'))
 CFILES_COMP		:=  $(subst /,_, $(subst ..,_,$(CFILES)))
 CPPFILES		:=	$(foreach dir,$(SOURCES),$(shell find -L $(dir) -type f -name '*.cpp'))
 CPPFILES_COMP	:=  $(subst /,_, $(subst ..,_,$(CPPFILES)))
 SFILES			:=	$(foreach dir,$(SOURCES),$(shell find -L $(dir) -type f -name '*.s'))
-BINFILES	:=	$(foreach dir,$(DATA),$(notdir $(wildcard $(dir)/*.*)))
- 
-export OFILES	:=	$(addsuffix .o,$(BINFILES)) \
-					$(CPPFILES_COMP:.cpp=.cpp.o) $(CFILES_COMP:.c=.c.o) $(SFILES_COMP:.s=.s.o)
- 
-export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
-			$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
-			-I$(CURDIR)/$(BUILD)
- 
-export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
+SFILES_COMP		:=  $(subst /,_, $(subst ..,_,$(SFILES)))
+BINFILES		:=	$(foreach dir,$(DATA),$(notdir $(wildcard $(dir)/*.*)))
 
 # use CXX for linking C++ projects, CC for standard C
 ifeq ($(strip $(CPPFILES)),)
@@ -75,23 +69,31 @@ else
 	export LD	:=	$(CXX)
 endif
 
+export OFILES	:=	$(addsuffix .o,$(BINFILES)) \
+					$(CPPFILES_COMP:.cpp=.cpp.o) $(CFILES_COMP:.c=.c.o) $(SFILES_COMP:.s=.s.o)
+
+export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
+			$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
+			-I$(CURDIR)/$(BUILD)
+
+export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
+
 .PHONY: $(BUILD) clean
 
 $(BUILD):
 	@[ -d $@ ] || mkdir -p $@
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
- 
+
 clean:
 	@echo clean ...
-	@rm -fr debug release
-	@rm -f $(TOPDIR)/lib/libdsiwifi7*
+	@rm -rf debug release $(TOPDIR)/lib/libdsiwifi7*
 
 all: $(ARM7BIN)
 
 else
 
-DEPENDS	:=	$(OFILES:.o=.d)
- 
+all: $(ARM7BIN)
+
 # main targets
 $(ARM7BIN)	:	$(OFILES)
 	@echo linking $(ARM7BIN)
@@ -115,8 +117,8 @@ $(ARM7BIN)	:	$(OFILES)
 	@echo "$(notdir $<) -> $(notdir $@)"
 	$(CC) -MMD -MP -MF $(DEPSDIR)/$*.d -x assembler-with-cpp $(ASFLAGS) -c ../$(subst .s.o,.s,$(subst _,/,$(subst __,../,$@))) -o $@ $(ERROR_FILTER)
 
--include $(DEPENDS)
- 
+-include $(DEPSDIR)/*.d
+
 #---------------------------------------------------------------------------------------
 endif
 #---------------------------------------------------------------------------------------
