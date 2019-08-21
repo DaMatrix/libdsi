@@ -1,5 +1,7 @@
 #include "main.h"
 
+#include <libdsi/registers.h>
+
 void vblank() {
     Display::CURRENT_FRAME++;
 
@@ -41,6 +43,10 @@ int main() {
     if (true)   {
         if (!fifoInit()) Display::TOP->print("Unable to init FIFO!");
 
+        Display::TOP->printf("0x%#08x", (int) *libdsi::reg::KEYINPUT);
+        for (int i = 0; i < 120; i++) swiWaitForVBlank();
+        Display::TOP->printf("0x%#08x", (int) *libdsi::reg::KEYINPUT);
+
         /*for (int i = 1; true; i++)  {
             for (int i = 0; i < 30; i++) swiWaitForVBlank();
             new char[524288 << 1];
@@ -48,9 +54,9 @@ int main() {
         }*/ //there are >15mb ram, as there should be
 
         /*int* randomHeapPtr = new int;
-        Display::TOP->printf("Normal: %#010x", (int) randomHeapPtr);
-        Display::TOP->printf("Cached: %#010x", (int) memCached(randomHeapPtr));
-        Display::TOP->printf("Uncached: %#010x", (int) memUncached(randomHeapPtr));*/
+        Display::TOP->printf("Normal: 0x%#08x", (int) randomHeapPtr);
+        Display::TOP->printf("Cached: 0x%#08x", (int) memCached(randomHeapPtr));
+        Display::TOP->printf("Uncached: 0x%#08x", (int) memUncached(randomHeapPtr));*/
 
         /*int iterations = 0;
         Display::TOP->print("Waiting...");

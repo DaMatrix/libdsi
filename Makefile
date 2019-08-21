@@ -26,7 +26,7 @@ include/libdsi/version.h : Makefile
 	@echo "#define LIBDSI_REVISION $(LIBDSI_REVISION)" >> $@
 	@echo "#define LIBDSI_SUFFIX   $(LIBDSI_SUFFIX)" >> $@
 	@echo >> $@
-	@echo '#define DSWIFI_VERSION "'$(LIBDSI_MAJOR).$(LIBDSI_MINOR).$(LIBDSI_REVISION)$(LIBDSI_SUFFIX)'"' >> $@
+	@echo '#define LIBDSI_VERSION "'$(LIBDSI_MAJOR).$(LIBDSI_MINOR).$(LIBDSI_REVISION)$(LIBDSI_SUFFIX)'"' >> $@
 	@echo >> $@
 	@echo "#endif // LIBDSI_VERSION_H" >> $@
 
