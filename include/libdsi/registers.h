@@ -7,6 +7,10 @@
  * Definitions of all NDS registers, along with some basic documentation.
  *
  * Mostly copied from gbatek (https://problemkaputt.de/gbatek.htm), with some adaptations.
+ *
+ * I sincerely hope that copying so much stuff from gbatek won't cause issues, I just want to be able to see documentation of the registers directly
+ * in my IDE while I'm coding, without having to have multiple browser tabs open on a second screen to see register info. Martin Korth - if you want
+ * me to get rid of all the comments, just tell me.
  */
 namespace libdsi::reg {
     #define REG_R(ADDRESS, TYPE, NAME) constexpr TYPE NAME() { return *((TYPE* ) (ADDRESS)); }
@@ -383,10 +387,42 @@ namespace libdsi::reg {
      * In logical AND mode, an interrupt is requested when ALL of the selected buttons are pressed.
      */
     REG_RW(0x4000132, u16, KEYCNT)
+
+    #ifdef ARM7
+    /**
+     * Key X/Y Input
+     *
+     * Bit  Expl.
+     * 0      Button X     (0=Pressed, 1=Released)
+     * 1      Button Y     (0=Pressed, 1=Released)
+     * 3      DEBUG button (0=Pressed, 1=Released/None such)
+     * 6      Pen down     (0=Pressed, 1=Released/Disabled) (always 0 in DSi mode)
+     * 7      Hinge/folded (0=Open, 1=Closed)
+     * 2,4,5  Unknown / set
+     * 8..15  Unknown / zero
+     *
+     * The Hinge stuff is a magnetic sensor somewhere underneath of the Start/Select buttons (NDS) or between A/B/X/Y buttons (DSi), it will be
+     * triggered by the magnet field from the right speaker when the console is closed. The hinge generates an interrupt request (there seems to
+     * be no way to disable this, unlike as for all other IRQ sources), however, the interrupt execution can be disabled in IE register (as for
+     * other IRQ sources).
+     *
+     * The Pen Down is the /PENIRQ signal from the Touch Screen Controller (TSC), if it is enabled in the TSC control register, then it will
+     * notify the program when the screen pressed, the program should then read data from the TSC (if there's no /PENIRQ then doing unneccassary
+     * TSC reads would just waste CPU power). However, the user may release the screen before the program performs the TSC read, so treat the
+     * screen as not pressed if you get invalid TSC values (even if /PENIRQ was LOW).
+     *
+     * Not sure if the TSC /PENIRQ is actually triggering an IRQ in the NDS?
+     * The Debug Button should be connected to R03 and GND (on original NDS, R03 is the large soldering point between the SL1 jumper and the VR1
+     * potentiometer) (there is no R03 signal visible on the NDS-Lite board).
+     *
+     * Interrupts are reportedly not supported for X,Y buttons.
+     */
+    REG_R(0x4000136, u16, EXTKEYIN)
+    #endif
     #endif
 
-    // ARM9 IPC/ROM
-    #ifdef ARM9
+    // IPC/ROM
+    #if defined(ARM7) || defined(ARM9)
     /**
      * IPC Synchronize Register
      */
@@ -433,24 +469,8 @@ namespace libdsi::reg {
     REG_RW(0x40001BA, u16, GAMECARD_ENCRYPTION_SEED_1_UPPER)
     #endif
 
-    // ARM9 Memory and IRQ Control
+    // ARM9 Memory Control
     #ifdef ARM9
-    /**
-     * External Memory Control 
-     */
-    REG_RW(0x4000204, u16, EXMEMCNT)
-    /**
-     * Interrupt Master Enable 
-     */
-    REG_RW(0x4000208, u16, IME)
-    /**
-     * Interrupt Enable 
-     */
-    REG_RW(0x4000210, u16, IE)
-    /**
-     * Interrupt Request Flags 
-     */
-    REG_RW(0x4000214, u16, IF)
     /**
      * VRAM-A (128K) Bank Control 
      */
@@ -528,10 +548,6 @@ namespace libdsi::reg {
      */
     REG_RW(0x40002B8, u64, SQRT_PARAM)
     /**
-     * Undocumented
-     */
-    REG_R(0x4000300, u32, POSTFLG)
-    /**
      * Graphics Power Control Register 
      */
     REG_RW(0x4000304, u8, POWCNT1)
@@ -541,6 +557,268 @@ namespace libdsi::reg {
     #ifdef ARM9
     //TODO
     #endif
+
+    // ARM7 Misc Registers
+    #ifdef ARM7
+    /**
+     * Real Time Clock Register
+     *
+     * Bit  Expl.
+     * 0    Data I/O   (0=Low, 1=High)
+     * 1    Clock Out  (0=Low, 1=High)
+     * 2    Select Out (0=Low, 1=High/Select)
+     * 4    Data  Direction  (0=Read, 1=Write)
+     * 5    Clock Direction  (should be 1=Write)
+     * 6    Select Direction (should be 1=Write)
+     * 3,8-11   Unused I/O Lines
+     * 7,12-15  Direction for Bit3,8-11 (usually 0)
+     * 16-31    Not used
+     */
+    REG_RW(0x4000138, u32, RTC)
+
+    /**
+     * SPI Bus Control/Status Register
+     *
+     * Bit  Expl.
+     * 0-1   Baudrate (0=4MHz/Firmware, 1=2MHz/Touchscr, 2=1MHz/Powerman., 3=512KHz)
+     * 2-6   Not used            (Zero)
+     * 7     Busy Flag           (0=Ready, 1=Busy) (presumably Read-only)
+     * 8-9   Device Select       (0=Powerman., 1=Firmware, 2=Touchscr, 3=Reserved)
+     * 10    Transfer Size       (0=8bit/Normal, 1=16bit/Bugged)
+     * 11    Chipselect Hold     (0=Deselect after transfer, 1=Keep selected)
+     * 12-13 Not used            (Zero)
+     * 14    Interrupt Request   (0=Disable, 1=Enable)
+     * 15    SPI Bus Enable      (0=Disable, 1=Enable)
+     */
+    REG_RW(0x40001C0, u16, SPICNT)
+
+    /**
+     * SPI Bus Data/Strobe Register
+     *
+     * Bit  Expl.
+     * 0-7   Data
+     * 8-15  Not used (always zero, even in bugged-16bit mode)
+     *
+     * The SPI transfer is started on writing to this register, so one must <write> a dummy value (should be zero) even when intending to <read>
+     * from SPI bus.
+     *
+     * During transfer, the Busy flag in SPICNT is set, and the written SPIDATA value is transferred to the device (via output line),
+     * simultaneously data is received (via input line). Upon transfer completion, the Busy flag goes off (with optional IRQ), and the received
+     * value can be then read from SPIDATA, if desired.
+     */
+    REG_RW(0x40001C2, u16, SPIDATA)
+    #endif
+
+    // Memory and Interrupt control (ARM7 and ARM9)
+    #if defined(ARM7) || defined(ARM9)
+    /**
+     * External Memory Control/Status
+     *
+     * 0-1   32-pin GBA Slot SRAM Access Time    (0-3 = 10, 8, 6, 18 cycles)
+     * 2-3   32-pin GBA Slot ROM 1st Access Time (0-3 = 10, 8, 6, 18 cycles)
+     * 4     32-pin GBA Slot ROM 2nd Access Time (0-1 = 6, 4 cycles)
+     * 5-6   32-pin GBA Slot PHI-pin out   (0-3 = Low, 4.19MHz, 8.38MHz, 16.76MHz)
+     * 7     32-pin GBA Slot Access Rights     (0=ARM9, 1=ARM7)
+     * 8-10  Not used (always zero)
+     * 11    17-pin NDS Slot Access Rights     (0=ARM9, 1=ARM7)
+     * 12    Not used (always zero)
+     * 13    NDS:Always set?  ;set/tested by DSi bootcode: Main RAM enable, CE2 pin?
+     * 14    Main Memory Interface Mode Switch (0=Async/GBA/Reserved, 1=Synchronous)
+     * 15    Main Memory Access Priority       (0=ARM9 Priority, 1=ARM7 Priority)
+     *
+     * Bit0-6 can be changed by both NDS9 and NDS7, changing these bits affects the local EXMEM register only, not that of the other CPU.
+     * Bit7-15 can be changed by NDS9 only, changing these bits affects both EXMEM registers, ie. both NDS9 and NDS7 can read the current NDS9 setting.
+     * Bit14=0 is intended for GBA mode, however, writes to this bit appear to be ignored?
+     */
+    #ifdef ARM7
+    REG_RW(0x4000206, u16, EXMEMSTAT)
+    #else
+    REG_RW(0x4000206, u16, EXMEMCNT)
+    #endif
+    /**
+     * Interrupt Master Enable
+     */
+    REG_RW(0x4000208, u32, IME)
+    /**
+     * Interrupt Enable
+     */
+    REG_RW(0x4000210, u32, IE)
+    /**
+     * Interrupt Request Flags
+     */
+    REG_RW(0x4000214, u32, IF)
+    #ifdef ARM7
+    /**
+     * Interrupt Enable
+     * DSi only (additional ARM7 interrupt sources)
+     */
+    REG_RW(0x4000218, u32, IE2)
+    /**
+     * Interrupt Request Flags
+     * DSi only (additional ARM7 interrupt sources)
+     */
+    REG_RW(0x400021C, u32, IF2)
+    #endif
+    #endif
+
+    // ARM7 Memory and IRQ Control
+    #ifdef ARM7
+    /**
+     * Wifi Waitstate Control
+     *
+     * Bit   Expl.
+     * 0-2   Wifi WS0 Control (0-7) (Ports 4800000h-4807FFFh)
+     * 3-5   Wifi WS1 Control (0-7) (Ports 4808000h-480FFFFh)
+     * 4-15  Not used (zero)
+     *
+     * This register is initialized by firmware on power-up, don't change.
+     * Note: WIFIWAITCNT can be accessed only when enabled in POWCNT2.
+     */
+    REG_RW(0x4000206, u16, WIFIWAITCNT)
+
+    /**
+     * VRAM-C,D Bank Status
+     */
+    REG_R(0x4000240, u8, VRAMSTAT)
+
+    /**
+     * WRAM Bank Status
+     */
+    REG_R(0x4000241, u8, WRAMSTAT)
+
+    /**
+     * Low Power Mode Control
+     *
+     * Bit   Expl.
+     * 0-5   Not used (zero)
+     * 6-7   Power Down Mode  (0=No function, 1=Enter GBA Mode, 2=Halt, 3=Sleep)
+     *
+     * In Halt mode, the CPU is paused as long as (IE AND IF)=0.
+     * In Sleep mode, most of the hardware including sound and video are paused, this very-low-power mode could be used much like a screensaver.
+     * The HALTCNT register should not be accessed directly. Instead, the BIOS Halt, Sleep, CustomHalt, IntrWait, or VBlankIntrWait SWI functions
+     * should be used.
+     */
+    REG_RW(0x4000301, u8, HALTCNT)
+
+    /**
+     * Sound/Wifi Power Control Register
+     *
+     * Bit   Expl.
+     * 0     Sound Speakers (0=Disable, 1=Enable) (Initial setting = 1)
+     * 1     Wifi           (0=Disable, 1=Enable) (Initial setting = 0)
+     * 2-31  Not used
+     *
+     * Note: Bit0 disables the internal Speaker only, headphones are not disabled.
+     * Bit1 disables Port 4000206h, and Ports 4800000h-480FFFFh.
+     */
+    REG_RW(0x4000304, u16, POWCNT2)
+
+    /**
+     * Bios-data-read-protection address
+     *
+     * Opcodes at...      Can read from      Expl.
+     * 0..[BIOSPROT]-1    0..3FFFh           Double-protected (when BIOSPROT is set)
+     * [BIOSPROT]..3FFFh  [BIOSPROT]..3FFFh  Normal-protected (always active)
+     *
+     * Used to double-protect the first some KBytes of the NDS7 BIOS. The BIOS is split into two protection regions, one always active, one
+     * controlled by the BIOSPROT register. The overall idea is that only the BIOS can read from itself, any other attempts to read from that
+     * regions return FFh-bytes.
+     *
+     * The initial BIOSPROT setting on power-up is zero (disabled). Before starting the cartridge, the BIOS boot code sets the register to 1204h
+     * (actually 1205h, but the mis-aligned low-bit is ignored). Once when initialized, further writes to the register are ignored.
+     *
+     * The double-protected region contains the exception vectors, some bytes of code, and the cartridge KEY1 encryption seed (about 4KBytes). As
+     * far as I know, it is impossible to unlock the memory once when it is locked, however, with some trickery, it is possible execute code
+     * before it gets locked. Also, the two THUMB opcodes at 05ECh can be used to read all memory at 0..3FFFh,
+     *
+     * 05ECh  ldrb r3,[r3,12h]      ;requires incoming r3=src-12h
+     * 05EEh  pop  r2,r4,r6,r7,r15  ;requires dummy values & THUMB retadr on stack
+     *
+     * Additionally most BIOS functions (eg. CpuSet), include a software-based protection which rejects source addresses in the BIOS area (the
+     * only exception is GetCRC16, though it still cannot bypass the BIOSPROT setting).
+     */
+    REG_R(0x4000308, u32, BIOSPROT)
+    #endif
+
+    // ARM7 Sound Registers
+    #ifdef ARM9 //TODO
+
+    /**
+     * SOUNDxCNT - Sound Channel X Control Register
+     *
+     * SOUNDxSAD - Sound Channel X Data Source Register
+     *
+     * SOUNDxTMR - Sound Channel X Timer Register
+     *
+     * SOUNDxPNT - Sound Channel X Loopstart Register
+     *
+     * SOUNDxLEN - Sound Channel X Length Register
+     */
+    #define SOUNDCHANNEL(ID) REG_RW(0x4000400 + 0x10 * (ID), u32, SOUND##ID##CNT) \
+        REG_W(0x4000404 + 0x10 * (ID), u32, SOUND##ID##SAD) \
+        REG_W(0x4000408 + 0x10 * (ID), u16, SOUND##ID##TMR) \
+        REG_W(0x400040A + 0x10 * (ID), u16, SOUND##ID##PNT) \
+        REG_W(0x400040C + 0x10 * (ID), u32, SOUND##ID##LEN)
+    SOUNDCHANNEL(0)
+    SOUNDCHANNEL(1)
+    SOUNDCHANNEL(2)
+    SOUNDCHANNEL(3)
+    SOUNDCHANNEL(4)
+    SOUNDCHANNEL(5)
+    SOUNDCHANNEL(6)
+    SOUNDCHANNEL(7)
+    SOUNDCHANNEL(8)
+    SOUNDCHANNEL(9)
+    SOUNDCHANNEL(10)
+    SOUNDCHANNEL(11)
+    SOUNDCHANNEL(12)
+    SOUNDCHANNEL(13)
+    SOUNDCHANNEL(14)
+    SOUNDCHANNEL(15)
+    #undef SOUNDCHANNEL
+    
+    /**
+     * Sound Control Register
+     */
+    REG_RW(0x4000500, u16, SOUNDCNT)
+
+    /**
+     * Sound Bias Register
+     */
+    REG_RW(0x4000504, u16, SOUNDBIAS)
+
+    /**
+     * Sound Capture 0 Control Register
+     */
+    REG_RW(0x4000508, u8, SNDCAP0CNT)
+
+    /**
+     * Sound Capture 1 Control Register
+     */
+    REG_RW(0x4000509, u8, SNDCAP1CNT)
+
+    /**
+     * Sound Capture 0 Destination Address
+     */
+    REG_RW(0x4000510, u32, SNDCAP0DAD)
+
+    /**
+     * Sound Capture 0 Length
+     */
+    REG_W(0x4000514, u16, SNDCAP0LEN)
+
+    /**
+     * Sound Capture 1 Destination Address
+     */
+    REG_RW(0x4000518, u32, SNDCAP1DAD)
+
+    /**
+     * Sound Capture 1 Length
+     */
+    REG_W(0x400051C, u16, SNDCAP1LEN)
+    #endif
+
+    //TODO: there are a LOT more registers that need adding, and more documentation that should be put into the comments for the registers that are already there
 
     #undef REG_RW
     #undef REG_W

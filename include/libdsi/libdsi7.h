@@ -5,7 +5,8 @@
 #error Must be used for ARM7!
 #endif
 
-#include <libdsi/dsitypes.h>
+#include <libdsi/registers.h>
+#include <libdsi/dsibios.h>
 
 #include <libdsi/arm7/dsiwifi7.h>
 

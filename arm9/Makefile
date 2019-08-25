@@ -42,9 +42,9 @@ LIBDIRS	:=	$(LIBNDS)
 ifneq ($(BUILD),$(notdir $(CURDIR)))
 
 ifneq ($(BUILD),debug)
-export ARM9BIN	:=	$(TOPDIR)/lib/liblibdsi9.a
+export ARM9BIN	:=	$(TOPDIR)/lib/libdsi9.a
 else
-export ARM9BIN	:=	$(TOPDIR)/lib/liblibdsi9d.a
+export ARM9BIN	:=	$(TOPDIR)/lib/libdsi9d.a
 CFLAGS	+=	-DSGIP_DEBUG
 CXXFLAGS	+=	-DSGIP_DEBUG
 endif

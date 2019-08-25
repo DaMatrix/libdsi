@@ -41,11 +41,20 @@ int main() {
     irqSet(IRQ_VBLANK, vblank);
 
     if (true)   {
+        int i = 0;
         if (!fifoInit()) Display::TOP->print("Unable to init FIFO!");
+        else i++;
 
-        Display::TOP->printf("0x%08x", libdsi::reg::KEYINPUT());
-        for (int i = 0; i < 120; i++) swiWaitForVBlank();
-        Display::TOP->printf("0x%08x", libdsi::reg::KEYINPUT());
+        Display::TOP->printf("%d", 12 / 3);
+        Display::TOP->printf("Done! %d", i++);
+        //Display::TOP->print("Done! 1");
+        Display::TOP->printf("%d", libdsi::bios::div(12, 3));
+        Display::TOP->printf("Done! %d", i);
+        //Display::TOP->print("Done! 2");
+
+        //Display::TOP->printf("0x%08x", libdsi::reg::KEYINPUT());
+        //for (int i = 0; i < 120; i++) swiWaitForVBlank();
+        //Display::TOP->printf("0x%08x", libdsi::reg::KEYINPUT());
 
         /*for (int i = 1; true; i++)  {
             for (int i = 0; i < 30; i++) swiWaitForVBlank();
