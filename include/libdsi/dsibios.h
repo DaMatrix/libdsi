@@ -26,7 +26,7 @@ namespace libdsi::bios {
      * Note: The NDS9 and DSi9 additionally support hardware division, by math coprocessor, accessed via I/O Ports, however, the SWI function is
      * a raw software division.
      */
-    i32 div(i32 numerator, i32 denominator);
+    extern "C" i32 div(i32 numerator, i32 denominator);
 
     /**
      * Calculate square root.
