@@ -84,7 +84,7 @@ else
 all: $(ARM9ELF)
 
 # main targets
-$(ARM9ELF)	:	$(OFILES)
+$(ARM9ELF)	:	$(OFILES) .FORCE
 	@echo linking $(notdir $@)
 	$(LD)  $(LDFLAGS) $(OFILES) $(LIBPATHS) $(LIBS) -o $@
 
@@ -104,6 +104,8 @@ $(ARM9ELF)	:	$(OFILES)
 %.s.o: $(SFILES)
 	@echo "$(notdir $<) -> $(notdir $@)"
 	$(CC) -MMD -MP -MF $(DEPSDIR)/$*.d -x assembler-with-cpp $(ASFLAGS) -c ../$(subst .s.o,.s,$(subst _,/,$(subst __,../,$@))) -o $@ $(ERROR_FILTER)
+
+.FORCE:
 
 -include $(DEPSDIR)/*.d
 

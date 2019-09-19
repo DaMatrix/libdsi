@@ -48,7 +48,7 @@ int main() {
         Display::TOP->printf("%d", 12 / 3);
         Display::TOP->printf("Done! %d", i++);
         //Display::TOP->print("Done! 1");
-        Display::TOP->printf("%d", libdsi::bios::div(12, 3));
+        Display::TOP->printf("%d", div(12, 3));
         Display::TOP->printf("Done! %d", i);
         //Display::TOP->print("Done! 2");
 
