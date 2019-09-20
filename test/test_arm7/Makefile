@@ -18,7 +18,7 @@ DATA		:=
 # options for code generation
 ARCH	:=	-mthumb-interwork
 
-CFLAGS	:=	-g -Wall -O2 \
+CFLAGS	:=	-Wall -O2 \
 			-ffunction-sections -fdata-sections \
 			-mcpu=arm7tdmi -mtune=arm7tdmi -fomit-frame-pointer\
 			-ffast-math \
@@ -26,9 +26,9 @@ CFLAGS	:=	-g -Wall -O2 \
 
 CFLAGS	+=	$(INCLUDE) -DARM7 -DNDS -DDSI
 CXXFLAGS	:=	$(CFLAGS) -fno-rtti
-ASFLAGS	:=	-g $(ARCH) -DARM7
+ASFLAGS	:=	$(ARCH) -DARM7
 
-LDFLAGS	=	-specs=ds_arm7.specs -g $(ARCH) -Wl,--nmagic -Wl,-Map,$(notdir $*).map
+LDFLAGS	=	-specs=ds_arm7.specs $(ARCH) -Wl,--nmagic -Wl,-Map,$(notdir $*).map
 
 LIBS	:=	-lnds7 -lmm7 -ldsi7
 
@@ -96,10 +96,12 @@ $(ARM7ELF)	:	$(OFILES) .FORCE
 
 %.c.o: $(CFILES)
 	@echo "$(notdir $<) -> $(notdir $@)"
+	$(CC) -MMD -MP -MF $(DEPSDIR)/$*.d $(CFLAGS) -c ../$(subst .c.o,.c,$(subst _,/,$(subst __,../,$@))) -S -o $@.s $(ERROR_FILTER)
 	$(CC) -MMD -MP -MF $(DEPSDIR)/$*.d $(CFLAGS) -c ../$(subst .c.o,.c,$(subst _,/,$(subst __,../,$@))) -o $@ $(ERROR_FILTER)
 
 %.cpp.o: $(CPPFILES)
 	@echo "$(notdir $<) -> $(notdir $@)"
+	$(CXX) -MMD -MP -MF $(DEPSDIR)/$*.d $(CXXFLAGS) -c ../$(subst .cpp.o,.cpp,$(subst _,/,$(subst __,../,$@))) -S -o $@.s $(ERROR_FILTER)
 	$(CXX) -MMD -MP -MF $(DEPSDIR)/$*.d $(CXXFLAGS) -c ../$(subst .cpp.o,.cpp,$(subst _,/,$(subst __,../,$@))) -o $@ $(ERROR_FILTER)
 
 %.s.o: $(SFILES)

@@ -18,16 +18,16 @@ DATA		:=
 # options for code generation
 ARCH	:=	-mthumb -mthumb-interwork
 
-CFLAGS	:=	-g -Wall -O2 \
+CFLAGS	:=	-Wall -O2 \
 			-march=armv5te -mtune=arm946e-s -fomit-frame-pointer\
 			-ffast-math \
 			$(ARCH)
 
 CFLAGS	+=	$(INCLUDE) -DARM9 -DNDS -DDSI
 CXXFLAGS	:= $(CFLAGS) -fno-rtti
-ASFLAGS	:=	-g $(ARCH) -DARM9
+ASFLAGS	:=	$(ARCH) -DARM9
 
-LDFLAGS	=	-specs=dsi_arm9.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
+LDFLAGS	=	-specs=dsi_arm9.specs $(ARCH) -Wl,-Map,$(notdir $*.map)
 
 LIBS	:=	-lnds9 -ldsi9
 
@@ -95,10 +95,12 @@ $(ARM9ELF)	:	$(OFILES) .FORCE
 
 %.c.o: $(CFILES)
 	@echo "$(notdir $<) -> $(notdir $@)"
+	$(CC) -MMD -MP -MF $(DEPSDIR)/$*.d $(CFLAGS) -c ../$(subst .c.o,.c,$(subst _,/,$(subst __,../,$@))) -S -o $@.s $(ERROR_FILTER)
 	$(CC) -MMD -MP -MF $(DEPSDIR)/$*.d $(CFLAGS) -c ../$(subst .c.o,.c,$(subst _,/,$(subst __,../,$@))) -o $@ $(ERROR_FILTER)
 
 %.cpp.o: $(CPPFILES)
 	@echo "$(notdir $<) -> $(notdir $@)"
+	$(CXX) -MMD -MP -MF $(DEPSDIR)/$*.d $(CXXFLAGS) -c ../$(subst .cpp.o,.cpp,$(subst _,/,$(subst __,../,$@))) -S -o $@.s $(ERROR_FILTER)
 	$(CXX) -MMD -MP -MF $(DEPSDIR)/$*.d $(CXXFLAGS) -c ../$(subst .cpp.o,.cpp,$(subst _,/,$(subst __,../,$@))) -o $@ $(ERROR_FILTER)
 
 %.s.o: $(SFILES)
