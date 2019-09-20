@@ -4,6 +4,10 @@
 #include <libdsi/dsitypes.h>
 
 namespace libdsi::bios {
+    namespace _internal {
+        extern "C" i32 _asm_div(i32 numerator, i32 denominator);
+    }
+
     /**
      * Signed Division, r0/r1.
      *
@@ -21,7 +25,8 @@ namespace libdsi::bios {
      * Note: The NDS9 and DSi9 additionally support hardware division, by math coprocessor, accessed via I/O Ports, however, the SWI function is
      * a raw software division.
      */
-    __attribute__((naked,target("thumb"))) i32 div(i32 numerator, i32 denominator) { asm("swi 0x09"); asm("bx lr"); }
+    //__attribute__((naked,target("thumb"))) i32 div(i32 numerator, i32 denominator) { asm("swi 0x09"); asm("bx lr"); }
+    inline i32 div(i32 numerator, i32 denominator) { return _internal::_asm_div(numerator, denominator); }
 
     /**
      * Calculate square root.
@@ -38,7 +43,7 @@ namespace libdsi::bios {
      * Note: The NDS9 and DSi9 additionally support hardware square root calculation, by math coprocessor, accessed via I/O Ports, however, the
      * SWI function is a raw software calculation.
      */
-    __attribute__((naked,target("thumb"))) u16 sqrt(u32 number) { asm("swi 0x0D"); asm("bx lr"); }
+    //__attribute__((naked,target("thumb"))) u16 sqrt(u32 number) { asm("swi 0x0D"); asm("bx lr"); }
 
     enum BitUnPackInformationSourceWidth: u8 {
         Source_1bit = 1,
@@ -83,11 +88,11 @@ namespace libdsi::bios {
      * The Data Offset is always added to all non-zero source units.
      * If the Zero Data Flag was set, it is also added to zero units.
      */
-    __attribute__((naked,target("thumb"))) void bitUnPack(void* source, void* destination, BitUnPackInformation* information) { asm("swi 0x10"); asm("bx lr"); }
-    void bitUnPack(void* source, void* destination, u16 sourceLength, BitUnPackInformationSourceWidth sourceWidth, BitUnPackInformationDestinationWidth destinationWidth, u32 dataOffset, bool zeroDataFlag)    {
+    //__attribute__((naked,target("thumb"))) void bitUnPack(void* source, void* destination, BitUnPackInformation* information) { asm("swi 0x10"); asm("bx lr"); }
+    /*void bitUnPack(void* source, void* destination, u16 sourceLength, BitUnPackInformationSourceWidth sourceWidth, BitUnPackInformationDestinationWidth destinationWidth, u32 dataOffset, bool zeroDataFlag)    {
         BitUnPackInformation information(sourceLength, sourceWidth, destinationWidth, dataOffset, zeroDataFlag);
         bitUnPack(source, destination, &information);
-    }
+    }*/
 
     #ifdef ARM9
     /**
@@ -115,12 +120,12 @@ namespace libdsi::bios {
      *
      * Return: No return value, Data written to destination address.
      */
-    __attribute__((naked,target("thumb"))) void diff8bitUnFilterWrite8bit(void* source, void* destination) { asm("swi 0x16"); asm("bx lr"); }
+    //__attribute__((naked,target("thumb"))) void diff8bitUnFilterWrite8bit(void* source, void* destination) { asm("swi 0x16"); asm("bx lr"); }
 
     /**
      * {@link #diff8bitUnFilterWrite8bit(void*, void*)}
      */
-    __attribute__((naked,target("thumb"))) void diff16bitUnFilter(void* source, void* destination) { asm("swi 0x18"); asm("bx lr"); }
+    //__attribute__((naked,target("thumb"))) void diff16bitUnFilter(void* source, void* destination) { asm("swi 0x18"); asm("bx lr"); }
     #endif
 
     /**
@@ -194,7 +199,7 @@ namespace libdsi::bios {
      *
      * Return: No return value, Data written to destination address.
      */
-    __attribute__((naked,target("thumb"))) void huffUnCompReadByCallback(void* source, void* destination) { asm("swi 0x13"); asm("bx lr"); }
+    //__attribute__((naked,target("thumb"))) void huffUnCompReadByCallback(void* source, void* destination) { asm("swi 0x13"); asm("bx lr"); }
 
     /**
      * Expands LZ77-compressed data. The Wram function is faster, and writes in units of 8bits. For the Vram function the destination must be
@@ -224,17 +229,17 @@ namespace libdsi::bios {
      *
      * Return: No return value.
      */
-    __attribute__((naked,target("thumb"))) void lz77UnCompReadNormalWrite8bit(void* source, void* destination) {asm("swi 0x11"); asm("bx lr"); }
+    //__attribute__((naked,target("thumb"))) void lz77UnCompReadNormalWrite8bit(void* source, void* destination) {asm("swi 0x11"); asm("bx lr"); }
 
     /**
      * {@link #lz77UnCompReadNormalWrite8bit(void*, void*)}
      */
-    __attribute__((naked,target("thumb"))) void lz77UnCompReadByCallbackWrite8bit(void* source, void* destination, u32 userParam, DecompressionCallbacks* callbacks) {asm("swi 0x01"); asm("bx lr"); }
+    //__attribute__((naked,target("thumb"))) void lz77UnCompReadByCallbackWrite8bit(void* source, void* destination, u32 userParam, DecompressionCallbacks* callbacks) {asm("swi 0x01"); asm("bx lr"); }
 
     /**
      * {@link #lz77UnCompReadNormalWrite8bit(void*, void*)}
      */
-    __attribute__((naked,target("thumb"))) void lz77UnCompReadByCallbackWrite16bit(void* source, void* destination, u32 userParam, DecompressionCallbacks* callbacks) {asm("swi 0x02"); asm("bx lr"); }
+    //__attribute__((naked,target("thumb"))) void lz77UnCompReadByCallbackWrite16bit(void* source, void* destination, u32 userParam, DecompressionCallbacks* callbacks) {asm("swi 0x02"); asm("bx lr"); }
 
     /**
      * Expands run-length compressed data. The Wram function is faster, and writes in units of 8bits. For the Vram function the destination must be
@@ -258,12 +263,12 @@ namespace libdsi::bios {
      *
      * Return: No return value, Data written to destination address.
      */
-    __attribute__((naked,target("thumb"))) void rlUnCompReadNormalWrite8bit(void* source, void* destination) {asm("swi 0x14"); asm("bx lr"); }
+    //__attribute__((naked,target("thumb"))) void rlUnCompReadNormalWrite8bit(void* source, void* destination) {asm("swi 0x14"); asm("bx lr"); }
 
     /**
      * {@link #rlUnCompReadNormalWrite8bit(void*, void*)}
      */
-    __attribute__((naked,target("thumb"))) void rlUnCompReadByCallbackWrite16bit(void* source, void* destination, u32 userParam, DecompressionCallbacks* callbacks) {asm("swi 0x15"); asm("bx lr"); }
+    //__attribute__((naked,target("thumb"))) void rlUnCompReadByCallbackWrite16bit(void* source, void* destination, u32 userParam, DecompressionCallbacks* callbacks) {asm("swi 0x15"); asm("bx lr"); }
 
     /**
      * Memory copy/fill in units of 32 bytes. Memcopy is implemented as repeated LDMIA/STMIA [Rb]!,r2-r9 instructions. Memfill as single LDR
@@ -283,9 +288,9 @@ namespace libdsi::bios {
      *
      * Return: No return value, Data written to destination address.
      */
-    __attribute__((naked,target("thumb"))) void cpuFastSet(void* source, void* destination, u32 length_mode) {asm("swi 0x0C"); asm("bx lr"); }
+    //__attribute__((naked,target("thumb"))) void cpuFastSet(void* source, void* destination, u32 length_mode) {asm("swi 0x0C"); asm("bx lr"); }
 
-    void CpuSet(); //0x0B
+    //void CpuSet(); //0x0B
 }
 
 #endif //LIBDSI_DSIBIOS_H
