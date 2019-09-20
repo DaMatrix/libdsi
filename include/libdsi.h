@@ -26,7 +26,7 @@ namespace libdsi {
 #endif
 
 #ifdef ARM7
-    /**
+    /
      * Prepares for setting up WRAM regions on the ARM9 by allowing ARM9 write access to all WRAM slot allocation registers.
      /
     inline void wram_prepare()  {
