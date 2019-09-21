@@ -19,14 +19,13 @@ DATA		:=
 ARCH	:=	-mthumb-interwork
 
 CFLAGS	:=	-Wall -Os \
-			-ffunction-sections -fdata-sections \
-			-mcpu=arm7tdmi -mtune=arm7tdmi -fomit-frame-pointer\
-			-ffast-math \
+			-ffunction-sections -fdata-sections -fomit-frame-pointer -ffast-math \
+			-march=armv4t -mcpu=arm7tdmi -mtune=arm7tdmi \
 			$(ARCH)
 
 CFLAGS	+=	$(INCLUDE) -DARM7 -DNDS -DDSI
 CXXFLAGS	:=	$(CFLAGS) -fno-rtti
-ASFLAGS	:=	$(ARCH) -DARM7
+ASFLAGS	:=	$(INCLUDE) $(ARCH) -DARM7
 
 LDFLAGS	=	-specs=ds_arm7.specs $(ARCH) -Wl,--nmagic -Wl,-Map,$(notdir $*).map
 
@@ -58,7 +57,7 @@ CFILES			:=	$(foreach dir,$(SOURCES),$(shell find -L $(dir) -type f -name '*.c')
 CFILES_COMP		:=  $(subst /,_, $(subst ..,_,$(CFILES)))
 CPPFILES		:=	$(foreach dir,$(SOURCES),$(shell find -L $(dir) -type f -name '*.cpp'))
 CPPFILES_COMP	:=  $(subst /,_, $(subst ..,_,$(CPPFILES)))
-SFILES			:=	$(foreach dir,$(SOURCES),$(shell find -L $(dir) -type f -name '*.s'))
+SFILES			:=	$(foreach dir,$(SOURCES),$(shell find -L $(dir) -type f -name '*.S'))
 SFILES_COMP		:=  $(subst /,_, $(subst ..,_,$(SFILES)))
 BINFILES		:=	$(foreach dir,$(DATA),$(notdir $(wildcard $(dir)/*.*)))
 
@@ -70,7 +69,7 @@ else
 endif
 
 export OFILES	:=	$(addsuffix .o,$(BINFILES)) \
-					$(CPPFILES_COMP:.cpp=.cpp.o) $(CFILES_COMP:.c=.c.o) $(SFILES_COMP:.s=.s.o)
+					$(CPPFILES_COMP:.cpp=.cpp.o) $(CFILES_COMP:.c=.c.o) $(SFILES_COMP:.S=.S.o)
 
 export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
 			$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
@@ -107,17 +106,17 @@ $(ARM7BIN)	:	$(OFILES)
 
 %.c.o: $(CFILES)
 	@echo "$(notdir $<) -> $(notdir $@)"
-	$(CC) -MMD -MP -MF $(DEPSDIR)/$*.d $(CFLAGS) -c ../$(subst .c.o,.c,$(subst _,/,$(subst __,../,$@))) -S -o $@.s $(ERROR_FILTER)
+	$(CC) -MMD -MP -MF $(DEPSDIR)/$*.d $(CFLAGS) -c ../$(subst .c.o,.c,$(subst _,/,$(subst __,../,$@))) -S -o $@.S $(ERROR_FILTER)
 	$(CC) -MMD -MP -MF $(DEPSDIR)/$*.d $(CFLAGS) -c ../$(subst .c.o,.c,$(subst _,/,$(subst __,../,$@))) -o $@ $(ERROR_FILTER)
 
 %.cpp.o: $(CPPFILES)
 	@echo "$(notdir $<) -> $(notdir $@)"
-	$(CXX) -MMD -MP -MF $(DEPSDIR)/$*.d $(CXXFLAGS) -c ../$(subst .cpp.o,.cpp,$(subst _,/,$(subst __,../,$@))) -S -o $@.s $(ERROR_FILTER)
+	$(CXX) -MMD -MP -MF $(DEPSDIR)/$*.d $(CXXFLAGS) -c ../$(subst .cpp.o,.cpp,$(subst _,/,$(subst __,../,$@))) -S -o $@.S $(ERROR_FILTER)
 	$(CXX) -MMD -MP -MF $(DEPSDIR)/$*.d $(CXXFLAGS) -c ../$(subst .cpp.o,.cpp,$(subst _,/,$(subst __,../,$@))) -o $@ $(ERROR_FILTER)
 
-%.s.o: $(SFILES)
+%.S.o: $(SFILES)
 	@echo "$(notdir $<) -> $(notdir $@)"
-	$(CC) -MMD -MP -MF $(DEPSDIR)/$*.d -x assembler-with-cpp $(ASFLAGS) -c ../$(subst .s.o,.s,$(subst _,/,$(subst __,../,$@))) -o $@ $(ERROR_FILTER)
+	$(CC) -MMD -MP -MF $(DEPSDIR)/$*.d $(ASFLAGS) -c ../$(subst .S.o,.S,$(subst _,/,$(subst __,../,$@))) -o $@ $(ERROR_FILTER)
 
 -include $(DEPSDIR)/*.d
 

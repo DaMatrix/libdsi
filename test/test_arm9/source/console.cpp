@@ -1,8 +1,5 @@
 #include "console.h"
 
-#include <stdarg.h>
-#include <stdio.h>
-
 unsigned int* Font::LETTERS = new unsigned int[256];
 unsigned int* Font::SIZES = new unsigned int[256];
 
