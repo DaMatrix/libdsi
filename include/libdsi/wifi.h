@@ -1,9 +1,9 @@
 #ifndef LIBDSI_DSIWIFI_H
 #define LIBDSI_DSIWIFI_H
 
-#include <libdsi/dsitypes.h>
+#include <libdsi/types.h>
 
-namespace libdsi {
+namespace dsi::wifi {
     /**
      * Struct defining the format of the Wifi connection data in memory. (used for connections 1-3)
      * <p>

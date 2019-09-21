@@ -1,18 +1,18 @@
 #ifndef LIBDSI_H
 #define LIBDSI_H
 
-#include <libdsi/dsitypes.h>
+#include <libdsi/types.h>
 
 #ifdef ARM9
-#include <libdsi/libdsi9.h>
+#include <libdsi/arm9/dsi9.h>
 #else
-#include <libdsi/libdsi7.h>
+#include <libdsi/arm7/dsi7.h>
 #endif
 
 /**
  * libnds is too complicated so let's simplify things a bit
  */
-namespace libdsi {
+namespace dsi {
     /*constexpr u32* WRAM_MBK1 = (u32*) 0x04004040;
     constexpr u32* WRAM_MBK2 = (u32*) 0x04004044;
     constexpr u32* WRAM_MBK3 = (u32*) 0x04004048;

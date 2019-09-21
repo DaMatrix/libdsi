@@ -5,8 +5,8 @@
 #error Must be used for ARM9!
 #endif
 
-#include <libdsi/dsitypes.h>
+#include <libdsi/types.h>
 
-#include <libdsi/dsiwifi.h>
+#include <libdsi/wifi.h>
 
 #endif //LIBDSI_ARM9_DSIWIFI9_H

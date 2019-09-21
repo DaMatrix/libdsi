@@ -1,7 +1,7 @@
 #ifndef LIBDSI_REGISTERS_H
 #define LIBDSI_REGISTERS_H
 
-#include <libdsi/dsitypes.h>
+#include <libdsi/types.h>
 
 /**
  * Definitions of all NDS registers, along with some basic documentation.
@@ -12,7 +12,7 @@
  * in my IDE while I'm coding, without having to have multiple browser tabs open on a second screen to see register info. Martin Korth - if you want
  * me to get rid of all the comments, just tell me.
  */
-namespace libdsi::reg {
+namespace dsi::reg {
     #define REG_R(ADDRESS, TYPE, NAME) constexpr TYPE NAME() { return *((TYPE* ) (ADDRESS)); }
     #define REG_W(ADDRESS, TYPE, NAME) constexpr TYPE NAME(TYPE value) { return *((TYPE* ) (ADDRESS)) = value; }
     #define REG_RW(ADDRESS, TYPE, NAME) REG_R(ADDRESS, TYPE, NAME) REG_W(ADDRESS, TYPE, NAME)

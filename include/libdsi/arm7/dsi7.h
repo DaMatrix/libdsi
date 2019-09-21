@@ -6,8 +6,9 @@
 #endif
 
 #include <libdsi/registers.h>
-#include <libdsi/dsibios.h>
+#include <libdsi/bios.h>
+#include <libdsi/core.h>
 
-#include <libdsi/arm7/dsiwifi7.h>
+#include <libdsi/arm7/wifi7.h>
 
 #endif //LIBDSI_LIBDSI7_H

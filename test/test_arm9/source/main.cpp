@@ -42,28 +42,27 @@ int main() {
 
     if (true) {
         for (u32 i = 0; i <= 10; i++) {
-            Display::TOP->printf("%d, %d, %d, %d, %d", libdsi::bios::div(i, 1), libdsi::bios::div(i, 2), libdsi::bios::div(i, 3), libdsi::bios::div(i, 4), libdsi::bios::div(i, 5));
+            Display::TOP->printf("%d, %d, %d, %d, %d", dsi::bios::div(i, 1), dsi::bios::div(i, 2), dsi::bios::div(i, 3), dsi::bios::div(i, 4), dsi::bios::div(i, 5));
         }
         Display::TOP->print("Done!");
         //Display::TOP->print("Done! 2");
 
         {
-            u32                       digest[5];
-            libdsi::bios::SHA1Context context;
+            u32 digest[5];
 
-            libdsi::bios::sha1_init_update_finish(digest, nullptr, 0);
+            dsi::bios::sha1_init_update_finish(digest, nullptr, 0);
             for (size_t i = 5; i--;) { swapByteOrder(digest[i]); }
             Display::TOP->printf("%08x%08x%08x%08x%08x", digest[0], digest[1], digest[2], digest[3], digest[4]);
 
             const char* text = "The quick brown fox jumps over the lazy dog";
-            libdsi::bios::sha1_init_update_finish(digest, text, strlen(text));
+            dsi::bios::sha1_init_update_finish(digest, text, strlen(text));
             for (size_t i = 5; i--;) { swapByteOrder(digest[i]); }
             Display::TOP->printf("%08x%08x%08x%08x%08x", digest[0], digest[1], digest[2], digest[3], digest[4]);
         }
 
-        //Display::TOP->printf("0x%08x", libdsi::reg::KEYINPUT());
+        //Display::TOP->printf("0x%08x", dsi::reg::KEYINPUT());
         //for (int i = 0; i < 120; i++) swiWaitForVBlank();
-        //Display::TOP->printf("0x%08x", libdsi::reg::KEYINPUT());
+        //Display::TOP->printf("0x%08x", dsi::reg::KEYINPUT());
 
         /*for (int i = 1; true; i++)  {
             for (int i = 0; i < 30; i++) swiWaitForVBlank();
@@ -127,7 +126,7 @@ int main() {
         Display::TOP->printf(" limit: %d)", (int) getHeapLimit());
     }
 
-    Display::TOP->printf("NDS: %d, DSi: %d", sizeof(libdsi::WifiConnectionData), sizeof(libdsi::DSiWifiConnectionData));
+    Display::TOP->printf("NDS: %d, DSi: %d", sizeof(dsi::wifi::WifiConnectionData), sizeof(dsi::wifi::DSiWifiConnectionData));
 
     char* personal_data_ptr = (char*) PersonalData;
 
@@ -141,7 +140,7 @@ int main() {
         delete name;
     }
 
-    libdsi::DSiWifiConnectionData* wifi_ptr = (libdsi::DSiWifiConnectionData*) (personal_data_ptr - 0xA00);
+    dsi::wifi::DSiWifiConnectionData* wifi_ptr = (dsi::wifi::DSiWifiConnectionData*) (personal_data_ptr - 0xA00);
 
     Display::TOP->printf("SSID: %s", wifi_ptr[1].ssid);
 

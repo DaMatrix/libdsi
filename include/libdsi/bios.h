@@ -1,9 +1,9 @@
 #ifndef LIBDSI_DSIBIOS_H
 #define LIBDSI_DSIBIOS_H
 
-#include <libdsi/dsitypes.h>
+#include <libdsi/types.h>
 
-namespace libdsi::bios {
+namespace dsi::bios {
     namespace bitunpack {
         enum SourceWidth: u8 {
             Source_1bit = 1,
@@ -59,25 +59,25 @@ namespace libdsi::bios {
      * decompressed data, or the signed errorcode from the Open/Close functions.
      */
     struct UnCompCallbacks {
-            using Callback = i32 (*)(void* sourceAddress, void* initialDestinationAddress, u32 userParam);
+            template<typename T> using Callback = T (*)(void* sourceAddress, void* initialDestinationAddress, u32 userParam);
 
         public:
-            Callback open_and_get_32bit;
-            Callback close;
-            Callback get_8bit;
+            Callback<i32> open_and_get_32bit;
+            Callback<i32> close;
+            Callback<u8> get_8bit;
         private:
-            Callback get_16bit; //never used
+            Callback<u16> get_16bit; //never used
         public:
-            Callback get_32bit; //only used by huffman
+            Callback<u32> get_32bit; //only used by huffman
 
-            UnCompCallbacks(Callback open_and_get_32bit, Callback get_8bit, Callback get_32bit):
+            UnCompCallbacks(Callback<i32> open_and_get_32bit, Callback<u8> get_8bit, Callback<u32> get_32bit):
                     open_and_get_32bit(open_and_get_32bit),
                     close(nullptr),
                     get_8bit(get_8bit),
                     get_16bit(nullptr),
                     get_32bit(get_32bit) {}
 
-            UnCompCallbacks(Callback open_and_get_32bit, Callback close, Callback get_8bit, Callback get_32bit):
+            UnCompCallbacks(Callback<i32> open_and_get_32bit, Callback<i32> close, Callback<u8> get_8bit, Callback<u32> get_32bit):
                     open_and_get_32bit(open_and_get_32bit),
                     close(close),
                     get_8bit(get_8bit),

@@ -6,8 +6,9 @@
 #endif
 
 #include <libdsi/registers.h>
-#include <libdsi/dsibios.h>
+#include <libdsi/bios.h>
+#include <libdsi/core.h>
 
-#include <libdsi/arm9/dsiwifi9.h>
+#include <libdsi/arm9/wifi9.h>
 
 #endif //LIBDSI_LIBDSI9_H

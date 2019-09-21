@@ -20,7 +20,7 @@
 #include <cstdint>
 #include <libdsi/version.h>
 
-namespace libdsi {
+namespace dsi {
     typedef std::int8_t   i8;
     typedef std::int8_t   s8;
     typedef std::uint8_t  u8;
