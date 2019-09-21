@@ -1,7 +1,5 @@
 #include "main.h"
 
-#include <libdsi/registers.h>
-
 void vblank() {
     Display::CURRENT_FRAME++;
 
@@ -29,23 +27,39 @@ typedef struct {
     u16 pixels[32 * 32];
 } Icon;
 
-inline int endlessWait()    {
+inline int endlessWait() {
     while (true) {
         swiWaitForVBlank();
     }
     return 0;
 }
 
+void swapByteOrder(u32& ui) { ui = (ui >> 24) | ((ui << 8) & 0x00FF0000) | ((ui >> 8) & 0x0000FF00) | (ui << 24); }
+
 int main() {
     Font::init();
     irqSet(IRQ_VBLANK, vblank);
 
-    if (true)   {
-        for (u32 i = 0; i <= 10; i++)    {
+    if (true) {
+        for (u32 i = 0; i <= 10; i++) {
             Display::TOP->printf("%d, %d, %d, %d, %d", libdsi::bios::div(i, 1), libdsi::bios::div(i, 2), libdsi::bios::div(i, 3), libdsi::bios::div(i, 4), libdsi::bios::div(i, 5));
         }
         Display::TOP->print("Done!");
         //Display::TOP->print("Done! 2");
+
+        {
+            u32                       digest[5];
+            libdsi::bios::SHA1Context context;
+
+            libdsi::bios::sha1_init_update_finish(digest, nullptr, 0);
+            for (size_t i = 5; i--;) { swapByteOrder(digest[i]); }
+            Display::TOP->printf("%08x%08x%08x%08x%08x", digest[0], digest[1], digest[2], digest[3], digest[4]);
+
+            const char* text = "The quick brown fox jumps over the lazy dog";
+            libdsi::bios::sha1_init_update_finish(digest, text, strlen(text));
+            for (size_t i = 5; i--;) { swapByteOrder(digest[i]); }
+            Display::TOP->printf("%08x%08x%08x%08x%08x", digest[0], digest[1], digest[2], digest[3], digest[4]);
+        }
 
         //Display::TOP->printf("0x%08x", libdsi::reg::KEYINPUT());
         //for (int i = 0; i < 120; i++) swiWaitForVBlank();
@@ -102,7 +116,7 @@ int main() {
         return endlessWait();
     }
 
-    if (!isDSiMode())   {
+    if (!isDSiMode()) {
         drawText(5, 5, ARGB16(1, 31, 0, 0), BOTTOM, "Must be used on DSi!");
         return endlessWait();
     } else {
@@ -131,7 +145,7 @@ int main() {
 
     Display::TOP->printf("SSID: %s", wifi_ptr[1].ssid);
 
-    if (true) return endlessWait();
+    if (true) { return endlessWait(); }
 
     /*Display::HANDLERS.push_back([](int keys, touchPosition *touch) -> void {
         if (keys & KEY_START) {
@@ -179,9 +193,9 @@ int main() {
                 break;
             }
         }
-    } catch (const char *e) {
+    } catch (const char* e) {
         drawText(5, 5, ARGB16(1, 31, 0, 0), BOTTOM, e);
-    } catch (void *e) {
+    } catch (void* e) {
         drawText(5, 5, ARGB16(1, 31, 0, 0), BOTTOM, "Exception");
     }
     //Socket::INSTANCE.close();
@@ -203,7 +217,7 @@ int clamp(int a, int min, int max) {
 const char* fmt(const char* format, ...) {
     va_list args;
     va_start(args, format);
-    char *result = new char[vsnprintf(nullptr, 0, format, args) + 1];
+    char* result = new char[vsnprintf(nullptr, 0, format, args) + 1];
     vsprintf(result, format, args);
     return result;
 }
