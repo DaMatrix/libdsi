@@ -4,10 +4,6 @@
 #include <libdsi/dsitypes.h>
 
 namespace libdsi::bios {
-    namespace _internal {
-        extern "C" i32 _asm_div(i32 numerator, i32 denominator);
-    }
-
     /**
      * Signed Division, r0/r1.
      *
@@ -26,7 +22,8 @@ namespace libdsi::bios {
      * a raw software division.
      */
     //__attribute__((naked,target("thumb"))) i32 div(i32 numerator, i32 denominator) { asm("swi 0x09"); asm("bx lr"); }
-    inline i32 div(i32 numerator, i32 denominator) { return _internal::_asm_div(numerator, denominator); }
+    //inline i32 div(i32 numerator, i32 denominator) { return _internal::_asm_div(numerator, denominator); }
+    i32 div(i32 numerator, i32 denominator);
 
     /**
      * Calculate square root.

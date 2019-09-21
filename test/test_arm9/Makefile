@@ -18,7 +18,7 @@ DATA		:=
 # options for code generation
 ARCH	:=	-mthumb -mthumb-interwork
 
-CFLAGS	:=	-Wall -O2 \
+CFLAGS	:=	-Wall -Ofast \
 			-march=armv5te -mtune=arm946e-s -fomit-frame-pointer\
 			-ffast-math \
 			$(ARCH)

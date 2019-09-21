@@ -18,7 +18,7 @@ DATA		:=
 # options for code generation
 ARCH	:=	-mthumb-interwork
 
-CFLAGS	:=	-Wall -O2 \
+CFLAGS	:=	-Wall -Ofast \
 			-ffunction-sections -fdata-sections \
 			-mcpu=arm7tdmi -mtune=arm7tdmi -fomit-frame-pointer\
 			-ffast-math \
