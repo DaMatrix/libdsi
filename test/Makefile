@@ -15,16 +15,16 @@ GAME_SUBTITLE2 := https://daporkchop.net
 all: release
 
 release:
-	@$(MAKE) -C test_arm9 BUILD=release
-	@$(MAKE) -C test_arm7 BUILD=release
-	ndstool	-c libdsi_test.nds -7 test_arm7/test_arm7.elf -9 test_arm9/test_arm9.elf \
-	-b $(GAME_ICON) "$(GAME_TITLE);$(GAME_SUBTITLE1);$(GAME_SUBTITLE2)"
+	@$(MAKE) --no-print-directory -C test_arm9 BUILD=release
+	@$(MAKE) --no-print-directory -C test_arm7 BUILD=release
+	@echo "Building .nds ROM..."
+	@ndstool	-c libdsi_test.nds -7 test_arm7/test_arm7.elf -9 test_arm9/test_arm9.elf -b $(GAME_ICON) "$(GAME_TITLE);$(GAME_SUBTITLE1);$(GAME_SUBTITLE2)"
 
 debug:
-	@$(MAKE) -C test_arm9 BUILD=debug
-	@$(MAKE) -C test_arm7 BUILD=debug
+	@$(MAKE) --no-print-directory -C test_arm9 BUILD=debug
+	@$(MAKE) --no-print-directory -C test_arm7 BUILD=debug
 
 clean:
-	@$(MAKE) -C test_arm9 clean
-	@$(MAKE) -C test_arm7 clean
+	@$(MAKE) --no-print-directory -C test_arm9 clean
+	@$(MAKE) --no-print-directory -C test_arm7 clean
 	@$(RM) libdsi_test.nds test_arm7.elf test_arm9.elf

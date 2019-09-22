@@ -62,6 +62,10 @@ int main() {
             Display::TOP->printf("%08x%08x%08x%08x%08x", digest[0], digest[1], digest[2], digest[3], digest[4]);
         }
 
+        dsi::reg::WRAMCNT(dsi::reg::SharedWRAMMode::ARM9_32K_ARM7_0K);
+        dsi::reg::WRAMCNT((dsi::reg::SharedWRAMMode) 10);
+        dsi::reg::WRAMCNT(static_cast<dsi::reg::SharedWRAMMode>(7));
+
         //Display::TOP->printf("0x%08x", dsi::reg::KEYINPUT());
         //for (int i = 0; i < 120; i++) swiWaitForVBlank();
         //Display::TOP->printf("0x%08x", dsi::reg::KEYINPUT());

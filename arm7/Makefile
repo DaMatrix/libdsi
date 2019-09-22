@@ -61,15 +61,10 @@ SFILES			:=	$(foreach dir,$(SOURCES),$(shell find -L $(dir) -type f -name '*.S')
 SFILES_COMP		:=  $(subst /,_, $(subst ..,_,$(SFILES)))
 BINFILES		:=	$(foreach dir,$(DATA),$(notdir $(wildcard $(dir)/*.*)))
 
-# use CXX for linking C++ projects, CC for standard C
-ifeq ($(strip $(CPPFILES)),)
-	export LD	:=	$(CC)
-else
-	export LD	:=	$(CXX)
-endif
+export LD	:=	$(CXX)
 
-export OFILES	:=	$(addsuffix .o,$(BINFILES)) \
-					$(CPPFILES_COMP:.cpp=.cpp.o) $(CFILES_COMP:.c=.c.o) $(SFILES_COMP:.S=.S.o)
+export OFILES	:=	$(addsuffix .o,$(BINFILES)) $(CPPFILES_COMP:.cpp=.cpp.o) $(CFILES_COMP:.c=.c.o) $(SFILES_COMP:.S=.S.o)
+export DFILES	:=	$(CPPFILES_COMP:.cpp=.d) $(CFILES_COMP:.c=.d) $(SFILES_COMP:.S=.d)
 
 export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
 			$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
@@ -84,12 +79,11 @@ $(BUILD):
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
 
 clean:
-	@echo clean ...
 	@rm -rf debug release $(TOPDIR)/lib/liblibdsi7*
 
-all: $(ARM7BIN)
-
 else
+
+-include $(DFILES) $(DEPSDIR)/*.d
 
 all: $(ARM7BIN)
 
@@ -99,26 +93,21 @@ $(ARM7BIN)	:	$(OFILES)
 	@rm -f "$(ARM7BIN)"
 	@$(AR) rcs "$(ARM7BIN)" $(OFILES)
 
-# you need a rule like this for each extension you use as binary data
 %.bin.o	:	%.bin
-	@echo $(notdir $<)
 	@$(bin2o)
 
 %.c.o: $(CFILES)
-	@echo "$(notdir $<) -> $(notdir $@)"
 	$(CC) -MMD -MP -MF $(DEPSDIR)/$*.d $(CFLAGS) -c ../$(subst .c.o,.c,$(subst _,/,$(subst __,../,$@))) -S -o $@.S $(ERROR_FILTER)
 	$(CC) -MMD -MP -MF $(DEPSDIR)/$*.d $(CFLAGS) -c ../$(subst .c.o,.c,$(subst _,/,$(subst __,../,$@))) -o $@ $(ERROR_FILTER)
 
 %.cpp.o: $(CPPFILES)
-	@echo "$(notdir $<) -> $(notdir $@)"
 	$(CXX) -MMD -MP -MF $(DEPSDIR)/$*.d $(CXXFLAGS) -c ../$(subst .cpp.o,.cpp,$(subst _,/,$(subst __,../,$@))) -S -o $@.S $(ERROR_FILTER)
 	$(CXX) -MMD -MP -MF $(DEPSDIR)/$*.d $(CXXFLAGS) -c ../$(subst .cpp.o,.cpp,$(subst _,/,$(subst __,../,$@))) -o $@ $(ERROR_FILTER)
 
 %.S.o: $(SFILES)
-	@echo "$(notdir $<) -> $(notdir $@)"
 	$(CC) -MMD -MP -MF $(DEPSDIR)/$*.d $(ASFLAGS) -c ../$(subst .S.o,.S,$(subst _,/,$(subst __,../,$@))) -o $@ $(ERROR_FILTER)
 
--include $(DEPSDIR)/*.d
+.FORCE:
 
 #---------------------------------------------------------------------------------------
 endif

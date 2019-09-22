@@ -469,50 +469,6 @@ namespace dsi::reg {
     REG_RW(0x40001BA, u16, GAMECARD_ENCRYPTION_SEED_1_UPPER)
     #endif
 
-    // ARM9 Memory Control
-    #ifdef ARM9
-    /**
-     * VRAM-A (128K) Bank Control 
-     */
-    REG_W(0x4000240, u8, VRAMCNT_A)
-    /**
-     * VRAM-B (128K) Bank Control 
-     */
-    REG_W(0x4000241, u8, VRAMCNT_B)
-    /**
-     * VRAM-C (128K) Bank Control 
-     */
-    REG_W(0x4000242, u8, VRAMCNT_C)
-    /**
-     * VRAM-D (128K) Bank Control 
-     */
-    REG_W(0x4000243, u8, VRAMCNT_D)
-    /**
-     * VRAM-E (64K) Bank Control 
-     */
-    REG_W(0x4000244, u8, VRAMCNT_E)
-    /**
-     * VRAM-F (16K) Bank Control 
-     */
-    REG_W(0x4000245, u8, VRAMCNT_F)
-    /**
-     * VRAM-G (16K) Bank Control 
-     */
-    REG_W(0x4000246, u8, VRAMCNT_G)
-    /**
-     * WRAM Bank Control 
-     */
-    REG_W(0x4000247, u8, WRAMCNT)
-    /**
-     * VRAM-H (32K) Bank Control 
-     */
-    REG_W(0x4000248, u8, VRAMCNT_H)
-    /**
-     * VRAM-I (16K) Bank Control 
-     */
-    REG_W(0x4000249, u8, VRAMCNT_I)
-    #endif
-
     // ARM9 Math
     #ifdef ARM9
     /**
@@ -677,16 +633,6 @@ namespace dsi::reg {
     REG_RW(0x4000206, u16, WIFIWAITCNT)
 
     /**
-     * VRAM-C,D Bank Status
-     */
-    REG_R(0x4000240, u8, VRAMSTAT)
-
-    /**
-     * WRAM Bank Status
-     */
-    REG_R(0x4000241, u8, WRAMSTAT)
-
-    /**
      * Low Power Mode Control
      *
      * Bit   Expl.
@@ -817,6 +763,205 @@ namespace dsi::reg {
      */
     REG_W(0x400051C, u16, SNDCAP1LEN)
     #endif
+
+    //NDS 32K shared WRAM
+    /**
+     * The different ways that the 32K NDS shared-WRAM can be mapped between the ARM9 and ARM7 processors.
+     */
+    enum SharedWRAMMode: u8 {
+        /**
+         * ARM9 area contains all 32K of shared-WRAM (plus mirrors).
+         * ARM7 area contains mirrors of ARM7-WRAM.
+         */
+        ARM9_32K_ARM7_0K = 0,
+        /**
+         * ARM9 area contains the 2nd 16K of shared-WRAM (plus mirrors).
+         * ARM7 area contains the 1st 16K of shared-WRAM (plus mirrors).
+         */
+        ARM9_16K_2_ARM7_16K_1 = 1,
+        /**
+         * ARM9 area contains the 1st 16K of shared-WRAM (plus mirrors).
+         * ARM7 area contains the 2nd 16K of shared-WRAM (plus mirrors).
+         */
+        ARM9_16K_1_ARM7_16K_2 = 2,
+        /**
+         * ARM9 area contains undefined data.
+         * ARM7 area contains all 32K of shared-WRAM (plus mirrors).
+         */
+        ARM9_0K_ARM7_32K = 3,
+
+        //internal fields
+        __SharedWRAMMode_MIN = 0,
+        __SharedWRAMMode_MAX = 3
+    };
+
+    /**
+     * NDS9 - WRAMCNT - 8bit - WRAM Bank Control
+     * NDS7 - WRAMSTAT - 8bit - WRAM Bank Status
+     *
+     * Should not be changed when using Nintendo's API.
+     *
+     *   0-1   ARM9/ARM7 (0-3 = 32K/0K, 2nd 16K/1st 16K, 1st 16K/2nd 16K, 0K/32K)
+     *   2-7   Not used
+     *
+     * The ARM9 WRAM area is 3000000h-3FFFFFFh (16MB range).
+     * The ARM7 WRAM area is 3000000h-37FFFFFh (8MB range).
+     * The allocated 16K or 32K are mirrored everywhere in the above areas.
+     * De-allocation (0K) is a special case: At the ARM9-side, the WRAM area is then empty (containing undefined data). At the ARM7-side, the WRAM
+     * area is then containing mirrors of the 64KB ARM7-WRAM (the memory at 3800000h and up).
+     */
+    #ifdef ARM9
+    REG_RW(0x4000247, SharedWRAMMode, WRAMCNT)
+    #else
+    REG_RW(0x4000241, SharedWRAMMode, WRAMSTAT)
+    #endif
+
+    //DSi WRAM registers
+    /**
+     * MBK9, WRAM-A/B/C Slot Write Protect
+     *
+     *   0-3   WRAM-A, Port 4004040h-4004043h Write (0=Writeable by ARM9, 1=Read-only)
+     *   4-7   Unknown/Unused (0)
+     *   8-15  WRAM-B, Port 4004044h-400404Bh Write (0=Writeable by ARM9, 1=Read-only)
+     *   16-23 WRAM-C, Port 400404Ch-4004053h Write (0=Writeable by ARM9, 1=Read-only)
+     *   24-31 Unknown/Unused (0)   ;but, carthdr has nonzero data for it?
+     *
+     * Selects whether ARM9 may write to WRAM slot registers at 4004040h-4004053h (in Read-only mode neither ARM7 nor ARM9 can write to those
+     * registers; that applies only to that registers, ie. the memory itself isn't write-protected).
+     */
+    #ifdef ARM9
+    REG_R(0x4004060, u32, MKB9)
+    #else
+    REG_RW(0x4004060, u32, MKB9)
+    #endif
+
+    /**
+     * MKB1.(0-3), WRAM-A(0-3) - 64K, mappable to ARM7, or ARM9.
+     *
+     * Read-only on ARM7, read-only or read-write on ARM9 depending on current setting of MKB9.
+     *
+     *   0    Master (0=ARM9, 1=ARM7)
+     *   1    Not used
+     *   2-3  Offset (0..3) (slot 0..3) (LSB of address in 64Kbyte units)
+     *   4-6  Not used
+     *   7    Enable (0=Disable, 1=Enable)
+     */
+    #ifdef ARM9
+    REG_RW(0x4004040, u8, MKB1_0)
+    REG_RW(0x4004041, u8, MKB1_1)
+    REG_RW(0x4004042, u8, MKB1_2)
+    REG_RW(0x4004043, u8, MKB1_3)
+    #else
+    REG_R(0x4004040, u8, MKB1_0)
+    REG_R(0x4004041, u8, MKB1_1)
+    REG_R(0x4004042, u8, MKB1_2)
+    REG_R(0x4004043, u8, MKB1_3)
+    #endif
+
+    /**
+     * MKB(2-3).(0-3), WRAM-B(0-7) - 32K, mappable to ARM7, ARM9, or DSP/code.
+     *
+     * Read-only on ARM7, read-only or read-write on ARM9 depending on current setting of MKB9.
+     *
+     *   0-1  Master (0=ARM9, 1=ARM7, 2 or 3=DSP/code)
+     *   2-4  Offset (0..7) (slot 0..7) (LSB of address in 32Kbyte units)
+     *   5-6  Not used (0)
+     *   7    Enable (0=Disable, 1=Enable)
+     */
+    #ifdef ARM9
+    REG_RW(0x4004044, u8, MKB2_0)
+    REG_RW(0x4004045, u8, MKB2_1)
+    REG_RW(0x4004046, u8, MKB2_2)
+    REG_RW(0x4004047, u8, MKB2_3)
+    REG_RW(0x4004048, u8, MKB3_0)
+    REG_RW(0x4004049, u8, MKB3_1)
+    REG_RW(0x400404A, u8, MKB3_2)
+    REG_RW(0x400404B, u8, MKB3_3)
+    #else
+    REG_R(0x4004044, u8, MKB2_0)
+    REG_R(0x4004045, u8, MKB2_1)
+    REG_R(0x4004046, u8, MKB2_2)
+    REG_R(0x4004047, u8, MKB2_3)
+    REG_R(0x4004048, u8, MKB3_0)
+    REG_R(0x4004049, u8, MKB3_1)
+    REG_R(0x400404A, u8, MKB3_2)
+    REG_R(0x400404B, u8, MKB3_3)
+    #endif
+
+    /**
+     * MKB(4-5).(0-3), WRAM-C(0-7) - 32K, mappable to ARM7, ARM9, or DSP/data.
+     *
+     * Read-only on ARM7, read-only or read-write on ARM9 depending on current setting of MKB9.
+     *
+     *   0-1  Master (0=ARM9, 1=ARM7, 2 or 3=DSP/data)
+     *   2-4  Offset (0..7) (slot 0..7) (LSB of address in 32Kbyte units)
+     *   5-6  Not used (0)
+     *   7    Enable (0=Disable, 1=Enable)
+     */
+    #ifdef ARM9
+    REG_RW(0x400404C, u8, MKB4_0)
+    REG_RW(0x400404D, u8, MKB4_1)
+    REG_RW(0x400404E, u8, MKB4_2)
+    REG_RW(0x400404F, u8, MKB4_3)
+    REG_RW(0x4004050, u8, MKB5_0)
+    REG_RW(0x4004051, u8, MKB5_1)
+    REG_RW(0x4004052, u8, MKB5_2)
+    REG_RW(0x4004053, u8, MKB5_3)
+    #else
+    REG_R(0x400404C, u8, MKB4_0)
+    REG_R(0x400404D, u8, MKB4_1)
+    REG_R(0x400404E, u8, MKB4_2)
+    REG_R(0x400404F, u8, MKB4_3)
+    REG_R(0x4004050, u8, MKB5_0)
+    REG_R(0x4004051, u8, MKB5_1)
+    REG_R(0x4004052, u8, MKB5_2)
+    REG_R(0x4004053, u8, MKB5_3)
+    #endif
+
+    /**
+     * MBK6, WRAM-A, 64K..256K mapping.
+     *
+     * The ARM7 register is separate from the ARM9 register.
+     * > MBK6-8 exist as separate READ/WRITE-ABLE registers on ARM7 and ARM9 side (making it six registers in total).
+     *
+     *   0-3   Not used (0)
+     *   4-11  Start Address (3000000h+N*10000h)     ;=3000000h..3FF0000h
+     *   12-13 Image Size (0 or 1=64KB/Slot0, 2=128KB/Slot0+1+2??, 3=256KB/Slot0..3)
+     *   14-19 Not used (0)
+     *   20-28 End Address   (3000000h+N*10000h-1)   ;=2FFFFFFh..4FEFFFFh
+     *   29-31 Not used (0)
+     */
+    REG_RW(0x4004054, u32, MKB6)
+
+    /**
+     * MBK7, WRAM-B.
+     *
+     * The ARM7 register is separate from the ARM9 register.
+     * > MBK6-8 exist as separate READ/WRITE-ABLE registers on ARM7 and ARM9 side (making it six registers in total).
+     *
+     *   0-2   Not used (0)
+     *   3-11  Start Address (3000000h+N*8000h)      ;=3000000h..3FF8000h
+     *   12-13 Image Size (0=32K/Slot0,1=64KB/Slot0-1,2=128KB/Slot0-3,3=256KB/Slot0-7)
+     *   14-18 Not used (0)
+     *   19-28 End Address   (3000000h+N*8000h-1)    ;=2FFFFFFh..4FF7FFFh
+     *   29-31 Not used (0)
+     */
+    REG_RW(0x4004058, u32, MKB7)
+
+    /**
+     * MBK8, WRAM-C.
+     *
+     * The ARM7 register is separate from the ARM9 register.
+     * > MBK6-8 exist as separate READ/WRITE-ABLE registers on ARM7 and ARM9 side (making it six registers in total).
+     *
+     *   0-2   Not used (0)
+     *   3-11  Start Address (3000000h+N*8000h)      ;=3000000h..3FF8000h
+     *   12-13 Image Size (0=32K/Slot0,1=64KB/Slot0-1,2=128KB/Slot0-3,3=256KB/Slot0-7)
+     *   14-18 Not used (0)
+     *   19-28 End Address   (3000000h+N*8000h-1)    ;=2FFFFFFh..4FF7FFFh
+     *   29-31 Not used (0)
+     */
+    REG_RW(0x400405C, u32, MKB8)
 
     //TODO: there are a LOT more registers that need adding, and more documentation that should be put into the comments for the registers that are already there
 
