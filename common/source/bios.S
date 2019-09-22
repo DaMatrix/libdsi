@@ -62,14 +62,6 @@ ASM_FUNC _asm_halt
     swi 0x06
     bx lr
 
-ASM_FUNC _asm_intrWait
-    swi 0x04
-    bx lr
-
-ASM_FUNC _asm_vBlankIntrWait
-    swi 0x05
-    bx lr
-
 #ifdef ARM7
 ASM_FUNC _asm_sleep
     swi 0x07

@@ -29,7 +29,7 @@ typedef struct {
 
 inline int endlessWait() {
     while (true) {
-        swiWaitForVBlank();
+        dsi::bios::vBlankIntrWait();
     }
     return 0;
 }
@@ -46,6 +46,8 @@ int main() {
         }
         Display::TOP->print("Done!");
         //Display::TOP->print("Done! 2");
+
+        for (int i = 0; i < 120; i++) dsi::bios::vBlankIntrWait();
 
         {
             u32 digest[5];
