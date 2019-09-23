@@ -764,11 +764,125 @@ namespace dsi::reg {
     REG_W(0x400051C, u16, SNDCAP1LEN)
     #endif
 
-    //NDS 32K shared WRAM
+    // NDS VRAM
+    #ifdef ARM7
+    /**
+     * The possible values for VRAMSTAT.
+     *
+     * These indicate which VRAM banks are accessible to the ARM7.
+     */
+    enum VRAMSTAT_Value: u8 {
+        NONE = 0,
+        C = 1,
+        D = 2,
+        C_D = 3
+    };
+
+    /**
+     * VRAMSTAT - 8bit - VRAM Bank Status (R)
+     *
+     *   0     VRAM C enabled and allocated to NDS7  (0=No, 1=Yes)
+     *   1     VRAM D enabled and allocated to NDS7  (0=No, 1=Yes)
+     *   2-7   Not used (always zero)
+     *
+     * The register indicates if VRAM C/D are allocated to NDS7 (as Work RAM), ie. if VRAMCNT_C/D are enabled (Bit7=1), with MST=2 (Bit0-2). However,
+     * it does not reflect the OFS value.
+     */
+    REG_R(0x4000240, VRAMSTAT_Value, VRAMSTAT)
+    #endif
+
+    #ifdef ARM9
+    /**
+     *   0-2   VRAM MST              ;Bit2 not used by VRAM-A,B,H,I
+     *   3-4   VRAM Offset (0-3)     ;Offset not used by VRAM-E,H,I
+     *   5-6   Not used
+     *   7     VRAM Enable (0=Disable, 1=Enable)
+     *
+     * There is a total of 656KB of VRAM in Blocks A-I.
+     * Table below shows the possible configurations.
+     *
+     *   VRAM    SIZE  MST  OFS   ARM9, Plain ARM9-CPU Access (so-called LCDC mode)
+     *   A       128K  0    -     6800000h-681FFFFh
+     *   B       128K  0    -     6820000h-683FFFFh
+     *   C       128K  0    -     6840000h-685FFFFh
+     *   D       128K  0    -     6860000h-687FFFFh
+     *   E       64K   0    -     6880000h-688FFFFh
+     *   F       16K   0    -     6890000h-6893FFFh
+     *   G       16K   0    -     6894000h-6897FFFh
+     *   H       32K   0    -     6898000h-689FFFFh
+     *   I       16K   0    -     68A0000h-68A3FFFh
+     *   VRAM    SIZE  MST  OFS   ARM9, 2D Graphics Engine A, BG-VRAM (max 512K)
+     *   A,B,C,D 128K  1    0..3  6000000h+(20000h*OFS)
+     *   E       64K   1    -     6000000h
+     *   F,G     16K   1    0..3  6000000h+(4000h*OFS.0)+(10000h*OFS.1)
+     *   VRAM    SIZE  MST  OFS   ARM9, 2D Graphics Engine A, OBJ-VRAM (max 256K)
+     *   A,B     128K  2    0..1  6400000h+(20000h*OFS.0)  ;(OFS.1 must be zero)
+     *   E       64K   2    -     6400000h
+     *   F,G     16K   2    0..3  6400000h+(4000h*OFS.0)+(10000h*OFS.1)
+     *   VRAM    SIZE  MST  OFS   2D Graphics Engine A, BG Extended Palette
+     *   E       64K   4    -     Slot 0-3  ;only lower 32K used
+     *   F,G     16K   4    0..1  Slot 0-1 (OFS=0), Slot 2-3 (OFS=1)
+     *   VRAM    SIZE  MST  OFS   2D Graphics Engine A, OBJ Extended Palette
+     *   F,G     16K   5    -     Slot 0  ;16K each (only lower 8K used)
+     *   VRAM    SIZE  MST  OFS   Texture/Rear-plane Image
+     *   A,B,C,D 128K  3    0..3  Slot OFS(0-3)   ;(Slot2-3: Texture, or Rear-plane)
+     *   VRAM    SIZE  MST  OFS   Texture Palette
+     *   E       64K   3    -     Slots 0-3                 ;OFS=don't care
+     *   F,G     16K   3    0..3  Slot (OFS.0*1)+(OFS.1*4)  ;ie. Slot 0, 1, 4, or 5
+     *   VRAM    SIZE  MST  OFS   ARM9, 2D Graphics Engine B, BG-VRAM (max 128K)
+     *   C       128K  4    -     6200000h
+     *   H       32K   1    -     6200000h
+     *   I       16K   1    -     6208000h
+     *   VRAM    SIZE  MST  OFS   ARM9, 2D Graphics Engine B, OBJ-VRAM (max 128K)
+     *   D       128K  4    -     6600000h
+     *   I       16K   2    -     6600000h
+     *   VRAM    SIZE  MST  OFS   2D Graphics Engine B, BG Extended Palette
+     *   H       32K   2    -     Slot 0-3
+     *   VRAM    SIZE  MST  OFS   2D Graphics Engine B, OBJ Extended Palette
+     *   I       16K   3    -     Slot 0  ;(only lower 8K used)
+     *   VRAM    SIZE  MST  OFS   <ARM7>, Plain <ARM7>-CPU Access
+     *   C,D     128K  2    0..1  6000000h+(20000h*OFS.0)  ;OFS.1 must be zero
+     *
+     * Notes
+     * In Plain-CPU modes, VRAM can be accessed only by the CPU (and by the Capture Unit, and by VRAM Display mode). In "Plain <ARM7>-CPU Access"
+     * mode, the VRAM blocks are allocated as Work RAM to the NDS7 CPU.
+     * In BG/OBJ VRAM modes, VRAM can be accessed by the CPU at specified addresses, and by the display controller.
+     * In Extended Palette and Texture Image/Palette modes, VRAM is not mapped to CPU address space, and can be accessed only by the display
+     * controller (so, to initialize or change the memory, it should be temporarily switched to Plain-CPU mode).
+     * All VRAM (and Palette, and OAM) can be written to only in 16bit and 32bit units (STRH, STR opcodes), 8bit writes are ignored (by STRB
+     * opcode). The only exception is "Plain <ARM7>-CPU Access" mode: The ARM7 CPU can use STRB to write to VRAM (the reason for this special
+     * feature is that, in GBA mode, two 128K VRAM blocks are used to emulate the GBA's 256K Work RAM).
+     *
+     * Other Video RAM
+     * Aside from the map-able VRAM blocks, there are also some video-related memory regions at fixed addresses:
+     *
+     *   5000000h Engine A Standard BG Palette (512 bytes)
+     *   5000200h Engine A Standard OBJ Palette (512 bytes)
+     *   5000400h Engine B Standard BG Palette (512 bytes)
+     *   5000600h Engine B Standard OBJ Palette (512 bytes)
+     *   7000000h Engine A OAM (1024 bytes)
+     *   7000400h Engine B OAM (1024 bytes)
+     */
+    REG_W(0x4000240, u8, VRAMCNT_A)
+    REG_W(0x4000241, u8, VRAMCNT_B)
+    REG_W(0x4000242, u8, VRAMCNT_C)
+    REG_W(0x4000243, u8, VRAMCNT_D)
+    REG_W(0x4000244, u8, VRAMCNT_E)
+    REG_W(0x4000245, u8, VRAMCNT_F)
+    REG_W(0x4000246, u8, VRAMCNT_G)
+    REG_W(0x4000248, u8, VRAMCNT_H)
+    REG_W(0x4000249, u8, VRAMCNT_I)
+    #endif
+
+    // NDS 32K shared WRAM
     /**
      * The different ways that the 32K NDS shared-WRAM can be mapped between the ARM9 and ARM7 processors.
      */
-    enum SharedWRAMMode: u8 {
+    #ifdef ARM9
+    enum WRAMCNT_Value: u8 {
+    #else
+    enum WRAMSTAT_Value: u8 {
+    #endif
         /**
          * ARM9 area contains all 32K of shared-WRAM (plus mirrors).
          * ARM7 area contains mirrors of ARM7-WRAM.
@@ -788,11 +902,7 @@ namespace dsi::reg {
          * ARM9 area contains undefined data.
          * ARM7 area contains all 32K of shared-WRAM (plus mirrors).
          */
-        ARM9_0K_ARM7_32K = 3,
-
-        //internal fields
-        __SharedWRAMMode_MIN = 0,
-        __SharedWRAMMode_MAX = 3
+        ARM9_0K_ARM7_32K = 3
     };
 
     /**
@@ -811,12 +921,12 @@ namespace dsi::reg {
      * area is then containing mirrors of the 64KB ARM7-WRAM (the memory at 3800000h and up).
      */
     #ifdef ARM9
-    REG_RW(0x4000247, SharedWRAMMode, WRAMCNT)
+    REG_RW(0x4000247, WRAMCNT_Value, WRAMCNT)
     #else
-    REG_RW(0x4000241, SharedWRAMMode, WRAMSTAT)
+    REG_RW(0x4000241, WRAMSTAT_Value, WRAMSTAT)
     #endif
 
-    //DSi WRAM registers
+    // DSi WRAM registers
     /**
      * MBK9, WRAM-A/B/C Slot Write Protect
      *
