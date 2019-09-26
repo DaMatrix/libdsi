@@ -16,7 +16,7 @@ release/
 *.map
 cmake*/
 .gradle/
-/include/libdsi/version.h
+/dsi/include/libdsi/version.h
 
 #ide stuff
 .idea/
@@ -25,4 +25,5 @@ cmake*/
 *.ipr
 
 #i have the old dswifi code in this subdirectory locally
-/old/
+/dsi/old/
+
