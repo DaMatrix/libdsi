@@ -4,4 +4,5 @@ set(CMAKE_CXX_STANDARD 17)
 project(libdsi-root)
 
 add_subdirectory(dsi)
+add_subdirectory(link)
 add_subdirectory(tool)
