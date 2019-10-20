@@ -1,6 +1,7 @@
 # libdsi
 
-My feeble attempts at making a libnds clone that works with the DSi's better hardware, without attempting to
-mantain backwards compatibility with the older DS/DS Lite.
+please disregard the project name, i can't make up my mind as to what i actually am trying to do with this repository
 
-go easy on me, i really only started C/C++ programming like a week ago lol
+## (Functional) Subprojects
+
+- [dsilink](https://github.com/DaMatrix/libdsi/tree/master/dsilink)
