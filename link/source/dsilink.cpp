@@ -106,14 +106,14 @@ int main(int argc, char* args[]) {
                 return 1;
             }
 
-            printf(
+            /*printf(
                     "%-10s %-8s %c%s%c\n",
                     curr->ifa_name,
                     curr->ifa_addr->sa_family == AF_INET ? "AF_INET" : "AF_INET6",
                     curr->ifa_addr->sa_family == AF_INET ? '<' : '[',
                     host,
                     curr->ifa_addr->sa_family == AF_INET ? '>' : ']'
-            );
+            );*/
 
             if (curr->ifa_addr->sa_family == AF_INET && curr->ifa_flags & IFF_BROADCAST) {
                 auto interface = new NetInterface();
@@ -184,22 +184,25 @@ int main(int argc, char* args[]) {
             sockets->forEach([&](BcastSocket* sock) {
                 //printf("Checking %s...\n", sock->interface->name);
 
-                int available;
-                if (ioctl(sock->recvSocket, FIONREAD, &available) < 0)  {
-                    perror("ioctl");
-                    return;
+                {
+                    int available;
+                    if (ioctl(sock->recvSocket, FIONREAD, &available) < 0) {
+                        perror("ioctl");
+                        return;
+                    }
+
+                    if (!available) return; //skip if no bytes available
                 }
 
-                //printf("%d bytes available.\n", available);
-                if (available < 6) return;
-
-                char rbuf[7] = {};
+                char rbuf[256] = {};
                 socklen_t len = sizeof(sockaddr_in);
-                if (recvfrom(sock->recvSocket, rbuf, 6, 0, (sockaddr*) &sock->recvAddr, &len) < 0) {
-                    perror("recv");
+                ssize_t cnt = recvfrom(sock->recvSocket, rbuf, sizeof(rbuf), 0, (sockaddr*) &sock->recvAddr, &len);
+                printf("recvfrom returned %d on interface %s\n", cnt, sock->interface->name);
+                if (cnt != 6)   {
+                    if (cnt < 0) perror("recv");
                     return;
                 }
-                printf("Received: \"%s\"\n", rbuf);
+                //printf("Received: \"%s\"\n", rbuf);
                 if (strncmp("bootds", rbuf, 6) == 0)   {
                     ds = sock->recvAddr.sin_addr.s_addr;
                     dsSocket = sock;
