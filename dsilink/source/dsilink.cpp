@@ -4,12 +4,8 @@
 #include <ifaddrs.h>
 #include <netdb.h>
 #include <net/if.h>
-#include <netinet/in.h>
 #include <sys/ioctl.h>
-#include <sys/socket.h>
 
-#include <cstdlib>
-#include <cstdio>
 #include <cstring>
 
 #include <unistd.h>
@@ -31,11 +27,11 @@ struct NetInterface {
     } ifu;
 };
 
-struct BcastSocket  {
+struct BcastSocket {
     NetInterface* interface;
-    int bcastSocket;
+    int         bcastSocket;
     sockaddr_in bcastAddr;
-    int recvSocket;
+    int         recvSocket;
     sockaddr_in recvAddr;
 };
 
@@ -50,9 +46,9 @@ auto interfaces = new ArrayList<NetInterface*, lambda::noop, lambda::add<u_size,
 
 	From http://www.gnu.org/software/libtool/manual/libc/Elapsed-Time.html
 ---------------------------------------------------------------------------------*/
-int timeval_subtract (struct timeval *result, struct timeval *x, struct timeval *y) {
+int timeval_subtract(struct timeval* result, struct timeval* x, struct timeval* y) {
     struct timeval tmp;
-    tmp.tv_sec = y->tv_sec;
+    tmp.tv_sec  = y->tv_sec;
     tmp.tv_usec = y->tv_usec;
 
     if (x->tv_usec < tmp.tv_usec) {
@@ -67,41 +63,43 @@ int timeval_subtract (struct timeval *result, struct timeval *x, struct timeval 
         tmp.tv_sec -= nsec;
     }
 
-    result->tv_sec = x->tv_sec - tmp.tv_sec;
+    result->tv_sec  = x->tv_sec - tmp.tv_sec;
     result->tv_usec = x->tv_usec - tmp.tv_usec;
 
     return x->tv_sec < tmp.tv_sec;
 }
 
-void timeval_add (struct timeval *result, struct timeval *x, struct timeval *y) {
-    result->tv_sec = x->tv_sec + y->tv_sec;
+void timeval_add(struct timeval* result, struct timeval* x, struct timeval* y) {
+    result->tv_sec  = x->tv_sec + y->tv_sec;
     result->tv_usec = x->tv_usec + y->tv_usec;
 
-    if ( result->tv_usec > 1000000) {
+    if (result->tv_usec > 1000000) {
         result->tv_sec += result->tv_usec / 1000000;
         result->tv_usec = result->tv_usec % 1000000;
     }
 }
 
 int main(int argc, char* args[]) {
-    if (argc != 2)  {
+    printf("dsilink copyright (c) 2019 DaPorkchop_\nhttps://daporkchop.net\n");
+
+    if (argc != 2) {
         printf("Usage: dsilink <nds file>\n");
         return 1;
     }
 
     { //get list of interfaces
         ifaddrs* ifaddr;
-        if (getifaddrs(&ifaddr))  {
+        if (getifaddrs(&ifaddr)) {
             perror("getifaddrs");
             return 1;
         }
 
-        for (ifaddrs* curr = ifaddr; curr; curr = curr->ifa_next)   {
-            if (!curr->ifa_addr || (curr->ifa_addr->sa_family != AF_INET && curr->ifa_addr->sa_family != AF_INET6)) continue;
+        for (ifaddrs* curr = ifaddr; curr; curr = curr->ifa_next) {
+            if (!curr->ifa_addr || (curr->ifa_addr->sa_family != AF_INET && curr->ifa_addr->sa_family != AF_INET6)) { continue; }
 
             char host[NI_MAXHOST];
 
-            if (getnameinfo(curr->ifa_addr, curr->ifa_addr->sa_family == AF_INET ? sizeof(sockaddr_in) : sizeof(sockaddr_in6), host, NI_MAXHOST, nullptr, 0, NI_NUMERICHOST))   {
+            if (getnameinfo(curr->ifa_addr, curr->ifa_addr->sa_family == AF_INET ? sizeof(sockaddr_in) : sizeof(sockaddr_in6), host, NI_MAXHOST, nullptr, 0, NI_NUMERICHOST)) {
                 perror("getnameinfo");
                 return 1;
             }
@@ -117,12 +115,12 @@ int main(int argc, char* args[]) {
 
             if (curr->ifa_addr->sa_family == AF_INET && curr->ifa_flags & IFF_BROADCAST) {
                 auto interface = new NetInterface();
-                interface->name = strCopy(curr->ifa_name);
-                interface->flags = curr->ifa_flags;
-                interface->addr = (sockaddr_in*) curr->ifa_addr;
-                interface->netmask = (sockaddr_in*) curr->ifa_netmask;
+                interface->name          = strCopy(curr->ifa_name);
+                interface->flags         = curr->ifa_flags;
+                interface->addr          = (sockaddr_in*) curr->ifa_addr;
+                interface->netmask       = (sockaddr_in*) curr->ifa_netmask;
                 interface->ifu.bcastAddr = (sockaddr_in*) curr->ifa_ifu.ifu_broadaddr;
-                interface->ifu.dstAddr = (sockaddr_in*) curr->ifa_ifu.ifu_dstaddr;
+                interface->ifu.dstAddr   = (sockaddr_in*) curr->ifa_ifu.ifu_dstaddr;
                 interfaces->add(interface);
             }
         }
@@ -137,16 +135,16 @@ int main(int argc, char* args[]) {
             auto sock = new BcastSocket();
             sock->interface = interface;
             memset(&sock->bcastAddr, 0, sizeof(sockaddr_in));
-            sock->bcastAddr.sin_family = AF_INET;
+            sock->bcastAddr.sin_family      = AF_INET;
             sock->bcastAddr.sin_addr.s_addr = interface->ifu.bcastAddr->sin_addr.s_addr;
-            sock->bcastAddr.sin_port = htons(DSILINK_PORT);
+            sock->bcastAddr.sin_port        = htons(DSILINK_PORT);
             memset(&sock->recvAddr, 0, sizeof(sockaddr_in));
-            sock->recvAddr.sin_family = AF_INET;
+            sock->recvAddr.sin_family      = AF_INET;
             sock->recvAddr.sin_addr.s_addr = interface->addr->sin_addr.s_addr;
-            sock->recvAddr.sin_port = htons(DSILINK_PORT);
+            sock->recvAddr.sin_port        = htons(DSILINK_PORT);
 
-            if ((sock->bcastSocket = socket(AF_INET, SOCK_DGRAM, 0)) < 0) exit(3);
-            if ((sock->recvSocket = socket(AF_INET, SOCK_DGRAM, 0)) < 0) exit(3);
+            if ((sock->bcastSocket = socket(AF_INET, SOCK_DGRAM, 0)) < 0) { exit(3); }
+            if ((sock->recvSocket  = socket(AF_INET, SOCK_DGRAM, 0)) < 0) { exit(3); }
 
             int one = 1;
             setsockopt(sock->bcastSocket, SOL_SOCKET, SO_BROADCAST, &one, sizeof(one));
@@ -168,13 +166,13 @@ int main(int argc, char* args[]) {
         int timeout = 10;
         do {
             gettimeofday(&now, nullptr);
-            if (timeval_subtract(&result, &wanted, &now))   {
+            if (timeval_subtract(&result, &wanted, &now)) {
                 //broadcast to each interface
 
                 sockets->forEach([](BcastSocket* sock) {
-                    if (sendto(sock->bcastSocket, "dsboot", 6, 0, (sockaddr*) &sock->bcastAddr, sizeof(sockaddr_in)) < 0) perror("sendto");
+                    if (sendto(sock->bcastSocket, "dsboot", 6, 0, (sockaddr*) &sock->bcastAddr, sizeof(sockaddr_in)) < 0) { perror("sendto"); }
                 });
-                result.tv_sec = 0;
+                result.tv_sec  = 0;
                 result.tv_usec = 150000;
                 timeval_add(&wanted, &now, &result);
                 timeout--;
@@ -191,20 +189,19 @@ int main(int argc, char* args[]) {
                         return;
                     }
 
-                    if (!available) return; //skip if no bytes available
+                    if (!available) { return; } //skip if no bytes available
                 }
 
-                char rbuf[256] = {};
-                socklen_t len = sizeof(sockaddr_in);
-                ssize_t cnt = recvfrom(sock->recvSocket, rbuf, sizeof(rbuf), 0, (sockaddr*) &sock->recvAddr, &len);
-                printf("recvfrom returned %d on interface %s\n", cnt, sock->interface->name);
-                if (cnt != 6)   {
-                    if (cnt < 0) perror("recv");
+                char      rbuf[256] = {};
+                socklen_t len       = sizeof(sockaddr_in);
+                ssize_t   cnt       = recvfrom(sock->recvSocket, rbuf, sizeof(rbuf), 0, (sockaddr*) &sock->recvAddr, &len);
+                if (cnt != 6) {
+                    if (cnt < 0) { perror("recv"); }
                     return;
                 }
                 //printf("Received: \"%s\"\n", rbuf);
-                if (strncmp("bootds", rbuf, 6) == 0)   {
-                    ds = sock->recvAddr.sin_addr.s_addr;
+                if (strncmp("bootds", rbuf, 6) == 0) {
+                    ds       = sock->recvAddr.sin_addr.s_addr;
                     dsSocket = sock;
                 }
             });
@@ -212,12 +209,12 @@ int main(int argc, char* args[]) {
 
         //close all sockets
         sockets->forEach([&](BcastSocket* sock) {
-            if (close(sock->bcastSocket) < 0) perror("close");
-            if (close(sock->recvSocket) < 0) perror("close");
+            if (close(sock->bcastSocket) < 0) { perror("close"); }
+            if (close(sock->recvSocket) < 0) { perror("close"); }
         });
     }
 
-    if (ds == INADDR_NONE)  {
+    if (ds == INADDR_NONE) {
         printf("No DS found!\n");
         return 1;
     }
@@ -225,7 +222,7 @@ int main(int argc, char* args[]) {
     printf("DS with IP <%s> found on interface %s!\n", inet_ntoa(dsSocket->bcastAddr.sin_addr), dsSocket->interface->name);
 
     FILE* file = fopen(args[1], "ro");
-    if (!file)  {
+    if (!file) {
         fprintf(stderr, "Invalid file: \"%s\"\n", args[1]);
         return 1;
     }
@@ -235,7 +232,7 @@ int main(int argc, char* args[]) {
     fseek(file, 0, SEEK_SET);
 
     auto buffer = new u8[size];
-    if (fread(buffer, 1, size, file) != size)   {
+    if (fread(buffer, 1, size, file) != size) {
         fprintf(stderr, "Failed to read file\n");
         fclose(file);
         return 1;
@@ -245,15 +242,15 @@ int main(int argc, char* args[]) {
     auto header = (ndsHeader*) buffer;
 
     int sock = socket(AF_INET, SOCK_STREAM, 0);
-    if (sock < 0)   {
+    if (sock < 0) {
         perror("socket");
         return 1;
     }
 
     sockaddr_in addr;
     memset(&addr, 0, sizeof(addr));
-    addr.sin_family = AF_INET;
-    addr.sin_port = htons(DSILINK_PORT);
+    addr.sin_family      = AF_INET;
+    addr.sin_port        = htons(DSILINK_PORT);
     addr.sin_addr.s_addr = ds;
 
     if (connect(sock, (sockaddr*) &addr, sizeof(addr)) < 0) {
@@ -273,13 +270,13 @@ int main(int argc, char* args[]) {
     {
         u32 errorcode = response & 0x0f;
 
-        if(errorcode) {
-            switch(errorcode) {
+        if (errorcode) {
+            switch (errorcode) {
                 case 1:
-                    fprintf(stderr,"Invalid ARM9 address/length\n");
+                    fprintf(stderr, "Invalid ARM9 address/length\n");
                     break;
                 case 2:
-                    fprintf(stderr,"Invalid ARM7 address/length\n");
+                    fprintf(stderr, "Invalid ARM7 address/length\n");
                     break;
             }
 

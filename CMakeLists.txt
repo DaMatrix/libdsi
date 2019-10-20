@@ -6,5 +6,5 @@ add_subdirectory(lib/PorkLib_cpp)
 project(libdsi-root)
 
 add_subdirectory(dsi)
-add_subdirectory(link)
+add_subdirectory(dsilink)
 add_subdirectory(tool)
