@@ -1,19 +1,5 @@
-.SUFFIXES:
-ifeq ($(strip $(DEVKITARM)),)
-$(error "Please set DEVKITARM in your environment. export DEVKITARM=<path to>devkitARM")
-endif
-
-include $(DEVKITARM)/ds_rules
-
-# BUILD is the directory where object files & intermediate files will be placed
-# SOURCES is a list of directories containing source code
-# INCLUDES is a list of directories containing extra header files
-# DATA is a list of directories containing binary files
-# all directories are relative to this makefile
-BUILD		?=	release
 SOURCES		:=	source ../common/source
 INCLUDES	:=	../include
-DATA		:=
 
 # options for code generation
 ARCH	:=	-mthumb-interwork

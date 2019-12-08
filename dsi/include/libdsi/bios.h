@@ -3,6 +3,7 @@
 
 #include <libdsi/types.h>
 
+
 namespace dsi::bios {
     namespace bitunpack {
         enum SourceWidth: u8 {

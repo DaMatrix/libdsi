@@ -84,16 +84,12 @@ int main() {
 
     setPowerButtonCB(powerButtonCB);
 
-    auto ptr = (u32*) 0xCF00000;
-    ptr[0] = 0;
-
     // Keep the ARM7 mostly idle
     while (!exitflag) {
         if (0 == (REG_KEYINPUT & (KEY_SELECT | KEY_START | KEY_L | KEY_R))) {
             exitflag = true;
         }
         swiWaitForVBlank();
-        ptr[0]++;
     }
     return 0;
 }

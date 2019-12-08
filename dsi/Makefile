@@ -1,8 +1,3 @@
-.SUFFIXES:
-ifeq ($(strip $(DEVKITARM)),)
-$(error "Please set DEVKITARM in your environment. export DEVKITARM=<path to>devkitARM")
-endif
-
 export TARGET	:=	$(shell basename $(CURDIR))
 export TOPDIR	:=	$(CURDIR)
 
@@ -12,11 +7,26 @@ export LIBDSI_REVISION	:= 0
 export LIBDSI_SUFFIX	:= -SNAPSHOT
 VERSION	:=	$(LIBDSI_MAJOR).$(LIBDSI_MINOR).$(LIBDSI_REVISION)$(LIBDSI_SUFFIX)
 
-.PHONY: release debug clean all
+export CFLAGS		:=	-mthumb -mthumb-interwork -Wall -ffunction-sections -fdata-sections -fomit-frame-pointer -ffast-math -DNDS -DDSI
+export CXXFLAGS		:=	-fno-rtti
+export ASFLAGS		:=
+export LDFLAGS		:=	-Wl,--nmagic -Wl,-Map,$(notdir $*).map
 
-all: include/libdsi/version.h release
+export CFLAGS_7		:=	-DARM7 -march=armv4t -mcpu=arm7tdmi -mtune=arm7tdmi
+export LDFLAGS_7	:=	-specs=ds_arm7.specs
+export CFLAGS_9		:=	-DARM9 -march=armv5te -mcpu=arm946e-s+nofp -mtune=arm946e-s
+export LDFLAGS_9	:=	-specs=ds_arm9.specs
 
-include/libdsi/version.h : Makefile
+export AR	:=	/opt/devkitpro/devkitARM/bin/arm-none-eabi-gcc-ar
+export CC	:=	/opt/devkitpro/devkitARM/bin/arm-none-eabi-gcc
+export CXX	:=	/opt/devkitpro/devkitARM/bin/arm-none-eabi-g++
+export LD	:=	/opt/devkitpro/devkitARM/bin/arm-none-eabi-ld
+
+.PHONY: clean all
+
+all: include/libdsi/version.h arm7 arm9 test
+
+include/libdsi/version.h: Makefile
 	@mkdir -p include/libdsi/
 	@echo "#ifndef LIBDSI_VERSION_H" > $@
 	@echo "#define LIBDSI_VERSION_H" >> $@
@@ -32,22 +42,22 @@ include/libdsi/version.h : Makefile
 	@echo >> $@
 	@echo "#endif // LIBDSI_VERSION_H" >> $@
 
-release: lib include/libdsi/version.h
-	@$(MAKE) --no-print-directory -C arm9 BUILD=release
-	@$(MAKE) --no-print-directory -C arm7 BUILD=release
-	@$(MAKE) --no-print-directory -C test BUILD=release
+arm7: lib include/libdsi/version.h .FORCE
+	@$(MAKE) --no-print-directory -C arm7
 
-debug: lib include/libdsi/version.h
-	@$(MAKE) --no-print-directory -C arm9 BUILD=debug
-	@$(MAKE) --no-print-directory -C arm7 BUILD=debug
-	@$(MAKE) --no-print-directory -C test BUILD=debug
+arm9: lib include/libdsi/version.h .FORCE
+	@$(MAKE) --no-print-directory -C arm9
+
+test: lib include/libdsi/version.h .FORCE
+	@$(MAKE) --no-print-directory -C test
 
 lib:
 	@mkdir lib
 
 clean:
-	@$(MAKE) --no-print-directory -C arm9 clean
 	@$(MAKE) --no-print-directory -C arm7 clean
+	@$(MAKE) --no-print-directory -C arm9 clean
 	@$(MAKE) --no-print-directory -C test clean
-	@$(RM) -r include/libdsi/version.h lib
+	@$(RM) -rf include/libdsi/version.h lib/
 
+.FORCE:
