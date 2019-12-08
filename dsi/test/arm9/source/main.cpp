@@ -1,5 +1,7 @@
 #include "main.h"
 
+static void* src = nullptr;
+
 void vblank() {
     Display::CURRENT_FRAME++;
 
@@ -12,8 +14,8 @@ void vblank() {
     }*/
 
     if (Display::QUEUED_REDRAW || !(Display::CURRENT_FRAME & 0xF)) {
-        memcpy(Display::DISPLAY_TOP, Display::TEMP_DISPLAY_TOP, 256 * 256 * sizeof(u16));
-        memcpy(Display::DISPLAY_BOTTOM, Display::TEMP_DISPLAY_BOTTOM, 256 * 256 * sizeof(u16));
+        dsi::memory::copyChunks32(Display::TEMP_DISPLAY_TOP, Display::DISPLAY_TOP, (SCREEN_WIDTH * SCREEN_HEIGHT * 2) >> 5);
+        dsi::memory::copyChunks32(src == nullptr ? Display::TEMP_DISPLAY_BOTTOM : src, Display::DISPLAY_BOTTOM, (SCREEN_WIDTH * SCREEN_HEIGHT * 2) >> 5);
 
         //GuiExitCode exitCode = Gui::MENU_STACK.back()(keys);
 
@@ -21,13 +23,7 @@ void vblank() {
     }
 }
 
-typedef struct {
-    int w;
-    int h;
-    u16 pixels[32 * 32];
-} Icon;
-
-inline int endlessWait() {
+int endlessWait() {
     while (true) {
         dsi::bios::vBlankIntrWait();
     }
@@ -36,31 +32,55 @@ inline int endlessWait() {
 
 void swapByteOrder(u32& ui) { ui = (ui >> 24) | ((ui << 8) & 0x00FF0000) | ((ui >> 8) & 0x0000FF00) | (ui << 24); }
 
+extern "C" u32 jeff(void* framebuffer, u32 seed, u32 remaining);
+
 int main() {
     Font::init();
     irqSet(IRQ_VBLANK, vblank);
 
     if (true)   {
-        u32 size = 64 << 3;
-        auto a = new u32[size];
-        auto b = new u32[size];
-        for (u32 i = 0; i < size; i++)  {
-            a[i] = i + 1;
+        for (int i = 0; i < 15; i++) swiWaitForVBlank();
+
+        u16 size = (SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(u16)) / sizeof(u32);
+        Display::TOP->printf("Allocating %d word buffer...", size);
+        auto img = new u32[size];
+
+        Display::TOP->printf("Configuring DMA channel");
+        if (false) {
+            dsi::dma::Channel* channel = dsi::dma::channel(3);
+            channel->src     = img;
+            channel->dst     = Display::TEMP_DISPLAY_BOTTOM;
+            channel->size    = size * 2;
+            channel->control = dsi::dma::ENABLE | dsi::dma::REPEAT | dsi::dma::SRC_FIX | dsi::dma::DST_FIX | dsi::dma::START_VBL;
+        } else {
+            DMA2_SRC = (u32) img;
+            DMA2_DEST = (u32) Display::TEMP_DISPLAY_BOTTOM;
+            //DMA2_CR = DMA_ENABLE | DMA_REPEAT | DMA_SRC_FIX | DMA_DST_FIX | DMA_START_VBL | DMA_32_BIT;
         }
-        Display::TOP->printf("%d %d %d %d %d", a[0], a[1], a[2], a[3], a[4]);
-        Display::TOP->printf("%d %d %d %d %d", b[0], b[1], b[2], b[3], b[4]);
-        dsi::memory::copyChunks32(a, b, size >> 3);
-        Display::TOP->printf("%d %d %d %d %d", a[0], a[1], a[2], a[3], a[4]);
-        Display::TOP->printf("%d %d %d %d %d", b[0], b[1], b[2], b[3], b[4]);
-        for (u32 i = 0; i < size; i++)  {
-            if (a[i] != b[i])   {
-                Display::TOP->printf("%d: %d != %d", i, a[i], b[i]);
-                goto COPY_TEST_END;
+
+        u32 x = 1;
+        while (true)    {
+            for (auto i = size; i--;) {
+                x ^= x << 13;
+                x ^= x >> 17;
+                x ^= x << 5;
+                //((u32*) Display::TEMP_DISPLAY_BOTTOM)[i] = x | 0x80008000;
+                img[i] = x | 0x80008000;
             }
+            swiWaitForVBlank();
+            src = img;
+
+            /*if (!(DMA2_CR & DMA_ENABLE))    {
+                Display::TOP->print("DMA channel was completed!");
+                endlessWait();
+            }*/
+            /*Display::TOP->printf("%x %x %d", channel->src, channel->dst, channel->size);
+            channel->control = dsi::dma::ENABLE | dsi::dma::START_VBL | dsi::dma::IS_32BIT;
+            while (channel->running());
+            Display::TOP->printf("%x %x %d", channel->src, channel->dst, channel->size);
+            endlessWait();*/
         }
-        Display::TOP->printf("Copy test succeeded!");
     }
-    COPY_TEST_END:
 
     if (true) {
         for (u32 i = 0; false && i <= 10; i++) {
@@ -84,58 +104,6 @@ int main() {
             Display::TOP->printf("%08x%08x%08x%08x%08x", digest[0], digest[1], digest[2], digest[3], digest[4]);
         }
 
-        //Display::TOP->printf("0x%08x", dsi::reg::KEYINPUT());
-        //for (int i = 0; i < 120; i++) swiWaitForVBlank();
-        //Display::TOP->printf("0x%08x", dsi::reg::KEYINPUT());
-
-        /*for (int i = 1; true; i++)  {
-            for (int i = 0; i < 30; i++) swiWaitForVBlank();
-            new char[524288 << 1];
-            Display::TOP->printf("Allocated %d MB", i);
-        }*/ //there are >15mb ram, as there should be
-
-        /*int* randomHeapPtr = new int;
-        Display::TOP->printf("Normal: 0x%08x", (int) randomHeapPtr);
-        Display::TOP->printf("Cached: 0x%08x", (int) memCached(randomHeapPtr));
-        Display::TOP->printf("Uncached: 0x%08x", (int) memUncached(randomHeapPtr));*/
-
-        /*int iterations = 0;
-        Display::TOP->print("Waiting...");
-        while (iterations++ != 120) swiWaitForVBlank();
-
-        Display::TOP->print("Checking data...");
-        auto ptr = (u32*) 0x03000000;
-        int i = 0;
-        while (ptr[i] == (0xBEEF0000 | i) && i != 8192) i++;
-        if (i == 8192)  {
-            Display::TOP->print("Data valid!");
-        } else {
-            Display::TOP->printf("Invalid! %d %d", i << 2, i);
-        }*/
-
-        /*fifoInit();
-        fifoSetValue32Handler(FIFO_USER_01, [](u32 value32, void* userdata) {
-            Display::TOP->printf("received data: %d", value32);
-            switch(value32 & 0xF) {
-                case 0:
-                    Display::TOP->print("ARM7 is writing data...");
-                    break;
-                case 1:
-                    Display::TOP->print("Checking data...");
-                    auto ptr = (u32*) (value32 >> 4);
-                    int i = 0;
-                    while (ptr[i++] != (0xBEEF0000 | i) && i != 8192);
-                    if (i == 8192)  {
-                        Display::TOP->print("Data valid!");
-                    } else {
-                        Display::TOP->printf("Invalid! %d %d", i << 2, i);
-                    }
-                    break;
-            }
-        }, nullptr);
-
-        Display::TOP->print("Waiting...");*/
-
         return endlessWait();
     }
 
@@ -144,42 +112,7 @@ int main() {
         return endlessWait();
     } else {
         setCpuClock(true);
-
-        Display::TOP->printf("Battery level: %d, heap is %d bytes", (int) getBatteryLevel(), (int) (getHeapEnd() - getHeapStart()));
-        Display::TOP->printf("(~%d MB) (from %d to %d,", (int) (getHeapEnd() - getHeapStart()) / (1024 * 1024), (int) getHeapStart());
-        Display::TOP->printf(" limit: %d)", (int) getHeapLimit());
     }
-
-    Display::TOP->printf("NDS: %d, DSi: %d", sizeof(dsi::wifi::WifiConnectionData), sizeof(dsi::wifi::DSiWifiConnectionData));
-
-    char* personal_data_ptr = (char*) PersonalData;
-
-    {
-        auto name = new char[PersonalData->nameLen + 1];
-        name[PersonalData->nameLen] = 0;
-        for (size_t i = PersonalData->nameLen; i--;) {
-            name[i] = (u8) PersonalData->name[i];
-        }
-        Display::TOP->printf("Name: %s (%d chars)", name, (int) PersonalData->nameLen);
-        delete name;
-    }
-
-    dsi::wifi::DSiWifiConnectionData* wifi_ptr = (dsi::wifi::DSiWifiConnectionData*) (personal_data_ptr - 0xA00);
-
-    Display::TOP->printf("SSID: %s", wifi_ptr[1].ssid);
-
-    if (true) { return endlessWait(); }
-
-    /*Display::HANDLERS.push_back([](int keys, touchPosition *touch) -> void {
-        if (keys & KEY_START) {
-            Display::TOP->print("Closing socket...");
-            Socket::INSTANCE.close();
-            //exit(0);
-        }
-    });*/
-
-    //Display::TOP->print("Waiting...");
-    //while (Display::CURRENT_FRAME < 200) swiWaitForVBlank();
 
     try {
         Display::TOP->print("Connecting to server...");

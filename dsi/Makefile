@@ -13,9 +13,9 @@ export ASFLAGS		:=
 export LDFLAGS		:=	-Wl,--nmagic -Wl,-Map,$(notdir $*).map -fuse-linker-plugin
 
 export CFLAGS_7		:=	-DARM7 -march=armv4t -mcpu=arm7tdmi -mtune=arm7tdmi
-export LDFLAGS_7	:=	-specs=ds_arm7.specs
+export LDFLAGS_7	:=	-specs=$(DEVKITARM)/arm-none-eabi/lib/ds_arm7.specs
 export CFLAGS_9		:=	-DARM9 -march=armv5te -mcpu=arm946e-s+nofp -mtune=arm946e-s
-export LDFLAGS_9	:=	-specs=ds_arm9.specs
+export LDFLAGS_9	:=	-specs=$(DEVKITARM)/arm-none-eabi/lib/ds_arm9.specs
 
 export AR	:=	/opt/devkitpro/devkitARM/bin/arm-none-eabi-gcc-ar
 export CC	:=	/opt/devkitpro/devkitARM/bin/arm-none-eabi-gcc

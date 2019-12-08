@@ -8,6 +8,7 @@
 #include <libdsi/registers.h>
 #include <libdsi/bios.h>
 #include <libdsi/core.h>
+#include <libdsi/dma.h>
 
 #include <libdsi/arm9/wifi9.h>
 

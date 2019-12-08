@@ -337,7 +337,66 @@ namespace dsi::reg {
 
     // ARM9 DMA and Timers
     #ifdef ARM9
-    //TODO
+    /**
+     * DMA 0 Source Address (internal memory)
+     * DMA 1-3 Source Address (any memory)
+     *
+     * The most significant address bits are ignored, only the least significant 27 or 28 bits are used (max 07FFFFFFh internal memory, or max
+     * 0FFFFFFFh any memory - except SRAM ?!).
+     */
+    REG_W(0x40000B0, void*, DMA0SAD)
+    REG_W(0x40000BC, void*, DMA1SAD)
+    REG_W(0x40000C8, void*, DMA2SAD)
+    REG_W(0x40000D4, void*, DMA3SAD)
+
+    /**
+     * DMA 0-2 Destination Address (internal memory)
+     * DMA 3 Destination Address (any memory)
+     *
+     * The most significant address bits are ignored, only the least significant 27 or 28 bits are used (max. 07FFFFFFh internal memory or
+     * 0FFFFFFFh any memory - except SRAM ?!).
+     */
+    REG_W(0x40000B4, void*, DMA0DAD);
+    REG_W(0x40000C0, void*, DMA1DAD);
+    REG_W(0x40000CC, void*, DMA2DAD);
+    REG_W(0x40000D8, void*, DMA3DAD);
+
+    /**
+     * DMA 0-2 Word Count (14-bit)
+     * DMA 3 Word Count (16-bit)
+     *
+     * Specifies the number of data units to be transferred, each unit is 16bit or 32bit depending on the transfer type, a value of zero is
+     * treated as max length (ie. 4000h, or 10000h for DMA3).
+     */
+    REG_W(0x40000B8, u16, DMA0CNT_L)
+    REG_W(0x40000C4, u16, DMA1CNT_L)
+    REG_W(0x40000D0, u16, DMA2CNT_L)
+    REG_RW(0x40000DC, u16, DMA3CNT_L)
+
+    /**
+     * DMA 0-3 Control
+     *
+     * Bit   Expl.
+     * 0-4   Not used
+     * 5-6   Dest Addr Control  (0=Increment,1=Decrement,2=Fixed,3=Increment/Reload)
+     * 7-8   Source Adr Control (0=Increment,1=Decrement,2=Fixed,3=Prohibited)
+     * 9     DMA Repeat                   (0=Off, 1=On) (Must be zero if Bit 11 set)
+     * 10    DMA Transfer Type            (0=16bit, 1=32bit)
+     * 11    Game Pak DRQ  - DMA3 only -  (0=Normal, 1=DRQ <from> Game Pak, DMA3)
+     * 12-13 DMA Start Timing  (0=Immediately, 1=VBlank, 2=HBlank, 3=Special)
+     *         The 'Special' setting (Start Timing=3) depends on the DMA channel:
+     *         DMA0=Prohibited, DMA1/DMA2=Sound FIFO, DMA3=Video Capture
+     * 14    IRQ upon end of Word Count   (0=Disable, 1=Enable)
+     * 15    DMA Enable                   (0=Off, 1=On)
+     *
+     * After changing the Enable bit from 0 to 1, wait 2 clock cycles before accessing any DMA related registers.
+     *
+     * When accessing OAM (7000000h) or OBJ VRAM (6010000h) by HBlank Timing, then the "H-Blank Interval Free" bit in DISPCNT register must be set.
+     */
+    REG_W(0x40000BA, u16, DMA0CNT_H)
+    REG_W(0x40000C6, u16, DMA1CNT_H)
+    REG_W(0x40000D2, u16, DMA2CNT_H)
+    REG_W(0x40000DE, u16, DMA3CNT_H)
     #endif
 
     // Keypad (ARM7 and ARM9)
