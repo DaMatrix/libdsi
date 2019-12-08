@@ -29,7 +29,7 @@ LIBS			:=	-L$(TOPDIR)/lib/ -ldsi9 -L$(DEVKITPRO)/libnds/lib/ -lnds9
 
 all: $(PROJDIR)/arm9.elf
 
-$(PROJDIR)/arm9.elf: $(OFILES)
+$(PROJDIR)/arm9.elf: $(OFILES) $(TOPDIR)/lib/libdsi9.a
 	@echo linking $@
 	@rm -f $@
 	@$(CXX) $(LDFLAGS) $(OFILES) $(LIBS) -o $@

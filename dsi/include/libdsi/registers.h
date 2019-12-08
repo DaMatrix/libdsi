@@ -14,7 +14,7 @@
  */
 namespace dsi::reg {
     #define REG_R(ADDRESS, TYPE, NAME) constexpr TYPE NAME() { return *((TYPE* ) (ADDRESS)); }
-    #define REG_W(ADDRESS, TYPE, NAME) constexpr TYPE NAME(TYPE value) { return *((TYPE* ) (ADDRESS)) = value; }
+    #define REG_W(ADDRESS, TYPE, NAME) constexpr void NAME(TYPE value) { *((TYPE* ) (ADDRESS)) = value; }
     #define REG_RW(ADDRESS, TYPE, NAME) REG_R(ADDRESS, TYPE, NAME) REG_W(ADDRESS, TYPE, NAME)
 
     /**
@@ -425,16 +425,47 @@ namespace dsi::reg {
     #if defined(ARM7) || defined(ARM9)
     /**
      * IPC Synchronize Register
+     *
+     * Bit   Dir  Expl.
+     * 0-3   R    Data input from IPCSYNC Bit8-11 of remote CPU (00h..0Fh)
+     * 4-7   -    Not used
+     * 8-11  R/W  Data output to IPCSYNC Bit0-3 of remote CPU   (00h..0Fh)
+     * 12    -    Not used
+     * 13    W    Send IRQ to remote CPU      (0=None, 1=Send IRQ)
+     * 14    R/W  Enable IRQ from remote CPU  (0=Disable, 1=Enable)
+     * 15-31 -    Not used
      */
-    REG_RW(0x4000180, u16, IPCSYNC)
+    REG_RW(0x4000180, u32, IPCSYNC)
     /**
      * IPC Fifo Control Register
+     *
+     * Bit   Dir  Expl.
+     * 0     R    Send Fifo Empty Status      (0=Not Empty, 1=Empty)
+     * 1     R    Send Fifo Full Status       (0=Not Full, 1=Full)
+     * 2     R/W  Send Fifo Empty IRQ         (0=Disable, 1=Enable)
+     * 3     W    Send Fifo Clear             (0=Nothing, 1=Flush Send Fifo)
+     * 4-7   -    Not used
+     * 8     R    Receive Fifo Empty          (0=Not Empty, 1=Empty)
+     * 9     R    Receive Fifo Full           (0=Not Full, 1=Full)
+     * 10    R/W  Receive Fifo Not Empty IRQ  (0=Disable, 1=Enable)
+     * 11-13 -    Not used
+     * 14    R/W  Error, Read Empty/Send Full (0=No Error, 1=Error/Acknowledge)
+     * 15    R/W  Enable Send/Receive Fifo    (0=Disable, 1=Enable)
+     * 16-31 -    Not used
      */
-    REG_RW(0x4000184, u16, IPCFIFOCOUNT)
+    REG_RW(0x4000184, u32, IPCFIFOCOUNT)
     /**
      * IPC Send Fifo
+     *
+     * Bit0-31  Send Fifo Data (max 16 words; 64bytes)
      */
-    REG_RW(0x4000188, u32, IPCFIFOSEND)
+    REG_W(0x4000188, u32, IPCFIFOSEND)
+    /**
+     * IPC Receive Fifo
+     *
+     * Bit0-31  Receive Fifo Data (max 16 words; 64bytes)
+     */
+    REG_R(0x4100000, u32, IPCFIFORECV)
     /**
      * Gamecard ROM and SPI Control
      */

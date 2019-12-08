@@ -40,8 +40,30 @@ int main() {
     Font::init();
     irqSet(IRQ_VBLANK, vblank);
 
+    if (true)   {
+        u32 size = 64 << 3;
+        auto a = new u32[size];
+        auto b = new u32[size];
+        for (u32 i = 0; i < size; i++)  {
+            a[i] = i + 1;
+        }
+        Display::TOP->printf("%d %d %d %d %d", a[0], a[1], a[2], a[3], a[4]);
+        Display::TOP->printf("%d %d %d %d %d", b[0], b[1], b[2], b[3], b[4]);
+        dsi::memory::copyChunks32(a, b, size >> 3);
+        Display::TOP->printf("%d %d %d %d %d", a[0], a[1], a[2], a[3], a[4]);
+        Display::TOP->printf("%d %d %d %d %d", b[0], b[1], b[2], b[3], b[4]);
+        for (u32 i = 0; i < size; i++)  {
+            if (a[i] != b[i])   {
+                Display::TOP->printf("%d: %d != %d", i, a[i], b[i]);
+                goto COPY_TEST_END;
+            }
+        }
+        Display::TOP->printf("Copy test succeeded!");
+    }
+    COPY_TEST_END:
+
     if (true) {
-        for (u32 i = 0; i <= 10; i++) {
+        for (u32 i = 0; false && i <= 10; i++) {
             Display::TOP->printf("%d, %d, %d, %d, %d", dsi::bios::div(i, 1), dsi::bios::div(i, 2), dsi::bios::div(i, 3), dsi::bios::div(i, 4), dsi::bios::div(i, 5));
         }
         Display::TOP->print("Done!");

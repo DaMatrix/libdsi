@@ -29,7 +29,7 @@ LIBS			:=	-L$(TOPDIR)/lib/ -ldsi7 -L$(DEVKITPRO)/libnds/lib/ -lnds7 -lmm7
 
 all: $(PROJDIR)/arm7.elf
 
-$(PROJDIR)/arm7.elf: $(OFILES)
+$(PROJDIR)/arm7.elf: $(OFILES) $(TOPDIR)/lib/libdsi7.a
 	@echo linking $@
 	@rm -f $@
 	@$(CXX) $(LDFLAGS) $(OFILES) $(LIBS) -o $@
