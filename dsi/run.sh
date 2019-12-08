@@ -1,4 +1,4 @@
 #!/bin/bash
 
-#make -j$( nproc ) release && dsilink test/libdsi_test.nds
-make release && dsilink test/libdsi_test.nds
+#make -j$( nproc ) && dsilink test/test.nds
+make && dsilink test/test.nds
