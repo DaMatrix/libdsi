@@ -7,31 +7,32 @@ build:
 	@$(MAKE) --no-print-directory -C build -f $(CURDIR)/Makefile all
 
 clean:
-	@rm -rf build/ $(TOPDIR)/lib/libdsi9.a
+	@rm -rf build/ $(PROJDIR)/arm7.elf
 
 else
 
-SOURCES			:=	$(PROJDIR)/source $(TOPDIR)/common/source
-INCLUDES		:=	$(TOPDIR)/include
+SOURCES			:=	$(PROJDIR)/source $(TOPDIR)/test/common/source
+INCLUDES		:=	$(TOPDIR)/include $(TOPDIR)/test/common/source $(DEVKITPRO)/libnds/include/
 
 CFILES			:=	$(foreach dir,$(SOURCES),$(shell find -L $(dir) -type f -name '*.c'))
 CPPFILES		:=	$(foreach dir,$(SOURCES),$(shell find -L $(dir) -type f -name '*.cpp'))
 SFILES			:=	$(foreach dir,$(SOURCES),$(shell find -L $(dir) -type f -name '*.S'))
 OFILES			:=	$(addsuffix .o,$(subst /,_, $(CFILES)) $(subst /,_, $(CPPFILES)) $(subst /,_, $(SFILES)))
 
-CFLAGS			:=	$(CFLAGS) $(CFLAGS_9) $(foreach dir,$(INCLUDES),-I$(dir)) -Os
+CFLAGS			:=	$(CFLAGS) $(CFLAGS_7) $(foreach dir,$(INCLUDES),-I$(dir)) -O3
 CXXFLAGS		:=	$(CFLAGS) $(CXXFLAGS)
 ASFLAGS			:=	$(CFLAGS) $(ASFLAGS)
-LDFLAGS			:=	$(CFLAGS) $(LDFLAGS)
+LDFLAGS			:=	$(LDFLAGS_7) $(CFLAGS) $(LDFLAGS)
+LIBS			:=	-L$(TOPDIR)/lib/ -ldsi7 -L$(DEVKITPRO)/libnds/lib/ -lnds7 -lmm7
 
 -include $(subst .c,.d,$(subst /,_, $(CFILES))) $(subst .cpp,.d,$(subst /,_, $(CPPFILES))) $(subst .S,.d,$(subst /,_, $(SFILES)))
 
-all: $(TOPDIR)/lib/libdsi9.a
+all: $(PROJDIR)/arm7.elf
 
-$(TOPDIR)/lib/libdsi9.a: $(OFILES)
+$(PROJDIR)/arm7.elf: $(OFILES)
 	@echo linking $@
 	@rm -f $@
-	@$(AR) rcs $@ $(OFILES)
+	@$(CXX) $(LDFLAGS) $(OFILES) $(LIBS) -o $@
 
 %.c.o:
 	$(CC) -MMD -MP -MF $(CURDIR)/$*.d $(CFLAGS) -c $(subst .c.o,.c,$(subst _,/,$@)) -o $@ $(ERROR_FILTER)

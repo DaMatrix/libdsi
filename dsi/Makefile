@@ -1,11 +1,11 @@
-export TARGET	:=	$(shell basename $(CURDIR))
-export TOPDIR	:=	$(CURDIR)
+export TARGET			:=	$(shell basename $(CURDIR))
+export TOPDIR			:=	$(CURDIR)
 
-export LIBDSI_MAJOR		:= 0
-export LIBDSI_MINOR		:= 0
-export LIBDSI_REVISION	:= 0
-export LIBDSI_SUFFIX	:= -SNAPSHOT
-VERSION	:=	$(LIBDSI_MAJOR).$(LIBDSI_MINOR).$(LIBDSI_REVISION)$(LIBDSI_SUFFIX)
+export LIBDSI_MAJOR		:=	0
+export LIBDSI_MINOR		:=	0
+export LIBDSI_REVISION	:=	0
+export LIBDSI_SUFFIX	:=	-SNAPSHOT
+export VERSION			:=	$(LIBDSI_MAJOR).$(LIBDSI_MINOR).$(LIBDSI_REVISION)$(LIBDSI_SUFFIX)
 
 export CFLAGS		:=	-mthumb -mthumb-interwork -Wall -ffunction-sections -fdata-sections -fomit-frame-pointer -ffast-math -DNDS -DDSI
 export CXXFLAGS		:=	-fno-rtti
@@ -48,7 +48,7 @@ arm7: lib include/libdsi/version.h .FORCE
 arm9: lib include/libdsi/version.h .FORCE
 	@$(MAKE) --no-print-directory -C arm9
 
-test: lib include/libdsi/version.h .FORCE
+test: arm7 arm9 .FORCE
 	@$(MAKE) --no-print-directory -C test
 
 lib:

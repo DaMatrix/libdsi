@@ -1,3 +1,3 @@
-add_subdirectory(test_common)
-add_subdirectory(test_arm7)
-add_subdirectory(test_arm9)
+add_subdirectory(common)
+add_subdirectory(arm7)
+add_subdirectory(arm9)
