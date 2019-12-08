@@ -84,10 +84,8 @@ int main() {
 
     setPowerButtonCB(powerButtonCB);
 
-    /*auto ptr = (u32*) 0x03000000;
-    for (int i = 0; i < 8192; i++)  {
-        ptr[i] = 0xBEEF0000 | i;
-    }*/
+    auto ptr = (u32*) 0xCF00000;
+    ptr[0] = 0;
 
     // Keep the ARM7 mostly idle
     while (!exitflag) {
@@ -95,6 +93,7 @@ int main() {
             exitflag = true;
         }
         swiWaitForVBlank();
+        ptr[0]++;
     }
     return 0;
 }

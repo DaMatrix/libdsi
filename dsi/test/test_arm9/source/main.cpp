@@ -40,6 +40,15 @@ int main() {
     Font::init();
     irqSet(IRQ_VBLANK, vblank);
 
+    if (true)   {
+        auto ptr = (u32*) 0xCF00000;
+
+        while(true)  {
+            dsi::bios::vBlankIntrWait();
+            Display::TOP->printf("%d", ptr[0]);
+        }
+    }
+
     if (true) {
         for (u32 i = 0; i <= 10; i++) {
             Display::TOP->printf("%d, %d, %d, %d, %d", dsi::bios::div(i, 1), dsi::bios::div(i, 2), dsi::bios::div(i, 3), dsi::bios::div(i, 4), dsi::bios::div(i, 5));
