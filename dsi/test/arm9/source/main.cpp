@@ -1,7 +1,5 @@
 #include "main.h"
 
-static void* src = nullptr;
-
 void vblank() {
     Display::CURRENT_FRAME++;
 
@@ -9,15 +7,9 @@ void vblank() {
     Display::KEYS_DOWN |= keysDown();
     touchRead(&Display::TOUCH_POS);
 
-    /*for (std::vector<InputHandler>::iterator it = Gui::HANDLERS.begin(); it != Gui::HANDLERS.end(); it++) {
-        (*it)(Gui::KEYS_DOWN, &Gui::TOUCH_POS);
-    }*/
-
     if (Display::QUEUED_REDRAW || !(Display::CURRENT_FRAME & 0xF)) {
         dsi::memory::copyChunks32(Display::TEMP_DISPLAY_TOP, Display::DISPLAY_TOP, (SCREEN_WIDTH * SCREEN_HEIGHT * 2) >> 5);
-        dsi::memory::copyChunks32(src == nullptr ? Display::TEMP_DISPLAY_BOTTOM : src, Display::DISPLAY_BOTTOM, (SCREEN_WIDTH * SCREEN_HEIGHT * 2) >> 5);
-
-        //GuiExitCode exitCode = Gui::MENU_STACK.back()(keys);
+        dsi::memory::copyChunks32(Display::TEMP_DISPLAY_BOTTOM, Display::DISPLAY_BOTTOM, (SCREEN_WIDTH * SCREEN_HEIGHT * 2) >> 5);
 
         Display::QUEUED_REDRAW = false;
     }
@@ -32,60 +24,28 @@ int endlessWait() {
 
 void swapByteOrder(u32& ui) { ui = (ui >> 24) | ((ui << 8) & 0x00FF0000) | ((ui >> 8) & 0x0000FF00) | (ui << 24); }
 
-extern "C" u32 jeff(void* framebuffer, u32 seed, u32 remaining);
-
-int main() {
+__attribute__((section(".itcm"))) int main() {
     Font::init();
-    irqSet(IRQ_VBLANK, vblank);
+    //irqSet(IRQ_VBLANK, vblank);
 
-    if (true)   {
-        for (int i = 0; i < 15; i++) swiWaitForVBlank();
-
-        u16 size = (SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(u16)) / sizeof(u32);
-        Display::TOP->printf("Allocating %d word buffer...", size);
-        auto img = new u32[size];
-
-        Display::TOP->printf("Configuring DMA channel");
-        if (false) {
-            dsi::dma::Channel* channel = dsi::dma::channel(3);
-            channel->src     = img;
-            channel->dst     = Display::TEMP_DISPLAY_BOTTOM;
-            channel->size    = size * 2;
-            channel->control = dsi::dma::ENABLE | dsi::dma::REPEAT | dsi::dma::SRC_FIX | dsi::dma::DST_FIX | dsi::dma::START_VBL;
-        } else {
-            DMA2_SRC = (u32) img;
-            DMA2_DEST = (u32) Display::TEMP_DISPLAY_BOTTOM;
-            //DMA2_CR = DMA_ENABLE | DMA_REPEAT | DMA_SRC_FIX | DMA_DST_FIX | DMA_START_VBL | DMA_32_BIT;
-        }
-
-        u32 x = 1;
-        while (true)    {
-            for (auto i = size; i--;) {
+    constexpr int size = 256;
+    u32 x = 1;
+    u32 buf[size];
+    while (true)    {
+        for (int i = (SCREEN_WIDTH * SCREEN_HEIGHT / 2 / size) - 1; i >= 0; i--)   {
+            for (int j = 0; j < size; j++)    {
                 x ^= x << 13;
                 x ^= x >> 17;
                 x ^= x << 5;
-                //((u32*) Display::TEMP_DISPLAY_BOTTOM)[i] = x | 0x80008000;
-                img[i] = x | 0x80008000;
+                buf[j] = x | 0x80008000;
             }
-            swiWaitForVBlank();
-            src = img;
-
-            /*if (!(DMA2_CR & DMA_ENABLE))    {
-                Display::TOP->print("DMA channel was completed!");
-                endlessWait();
-            }*/
-            /*Display::TOP->printf("%x %x %d", channel->src, channel->dst, channel->size);
-            channel->control = dsi::dma::ENABLE | dsi::dma::START_VBL | dsi::dma::IS_32BIT;
-            while (channel->running());
-            Display::TOP->printf("%x %x %d", channel->src, channel->dst, channel->size);
-            endlessWait();*/
+            dsi::memory::copyChunks32(&buf, Display::DISPLAY_BOTTOM + size * 2 * i, size * 4 / 32);
+            //((u32*) Display::DISPLAY_BOTTOM)[i] = x | 0x80008000;
         }
+        //dsi::bios::vBlankIntrWait();
     }
 
     if (true) {
-        for (u32 i = 0; false && i <= 10; i++) {
-            Display::TOP->printf("%d, %d, %d, %d, %d", dsi::bios::div(i, 1), dsi::bios::div(i, 2), dsi::bios::div(i, 3), dsi::bios::div(i, 4), dsi::bios::div(i, 5));
-        }
         Display::TOP->print("Done!");
         //Display::TOP->print("Done! 2");
 
