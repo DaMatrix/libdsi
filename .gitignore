@@ -18,12 +18,12 @@ cmake*/
 .gradle/
 /dsi/include/libdsi/version.h
 
+/gcc/
+/temp/
+
 #ide stuff
 .idea/
 .clion/
 *.iml
 *.ipr
-
-#i have the old dswifi code in this subdirectory locally
-/dsi/old/
 

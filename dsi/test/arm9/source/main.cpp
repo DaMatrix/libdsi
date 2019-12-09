@@ -42,6 +42,7 @@ __attribute__((section(".itcm"))) int main() {
             dsi::memory::copyChunks32(&buf, Display::DISPLAY_BOTTOM + size * 2 * i, size * 4 / 32);
             //((u32*) Display::DISPLAY_BOTTOM)[i] = x | 0x80008000;
         }
+        dsi::memory::copyChunks32(Display::DISPLAY_BOTTOM, Display::DISPLAY_TOP, (SCREEN_WIDTH * SCREEN_HEIGHT * 2) >> 5);
         //dsi::bios::vBlankIntrWait();
     }
 
