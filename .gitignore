@@ -21,6 +21,10 @@ cmake*/
 /gcc/
 /temp/
 
+/link/thumb/
+/link/*.o
+/link/*.specs
+
 #ide stuff
 .idea/
 .clion/

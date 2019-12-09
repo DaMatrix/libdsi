@@ -1,7 +1,0 @@
-%rename link old_link
-
-*link:
-%(old_link) -T dsi-arm7.ld%s --gc-sections
-
-*startfile:
-dsi-arm7-crt0%O%s crti%O%s crtbegin%O%s
