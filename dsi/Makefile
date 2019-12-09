@@ -1,10 +1,3 @@
-ifndef LIBDSI_HOME
-$(error "LIBDSI_HOME is not set!")
-endif
-ifeq ("$(wildcard $(LIBDSI_HOME)/gcc/README.md)","")
-$(error "LIBDSI_HOME points to an invalid libdsi installation. Make sure you set it up correctly using setup-environment.sh")
-endif
-
 export TARGET			:=	$(shell basename $(CURDIR))
 export TOPDIR			:=	$(CURDIR)
 
@@ -20,14 +13,9 @@ export ASFLAGS		:=
 export LDFLAGS		:=	-Wl,--nmagic -Wl,-Map,$(notdir $*).map -fuse-linker-plugin
 
 export CFLAGS_7		:=	-DARM7 -march=armv4t -mcpu=arm7tdmi -mtune=arm7tdmi
-export LDFLAGS_7	:=	-specs=$(DEVKITARM)/arm-none-eabi/lib/ds_arm7.specs
+export LDFLAGS_7	:=	-specs=$(LIBDSI_HOME)/link/dsi-arm7.specs
 export CFLAGS_9		:=	-DARM9 -march=armv5te -mcpu=arm946e-s+nofp -mtune=arm946e-s
 export LDFLAGS_9	:=	-specs=$(DEVKITARM)/arm-none-eabi/lib/ds_arm9.specs
-
-export AR	:=	$(LIBDSI_HOME)/gcc/bin/arm-none-eabi-gcc-ar
-export CC	:=	$(LIBDSI_HOME)/gcc/bin/arm-none-eabi-gcc
-export CXX	:=	$(LIBDSI_HOME)/gcc/bin/arm-none-eabi-g++
-export LD	:=	$(LIBDSI_HOME)/gcc/bin/arm-none-eabi-ld
 
 .PHONY: clean all
 
