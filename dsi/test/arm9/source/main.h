@@ -2,8 +2,5 @@
 #define ARM9_MAIN_H
 
 #include "constants.h"
-#include "netutil.h"
-
-#include <string>
 
 #endif //ARM9_MAIN_H

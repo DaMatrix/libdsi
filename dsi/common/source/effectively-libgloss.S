@@ -12,7 +12,7 @@
 
     .text
 
-ASM_FUNC _getpid
+/*ASM_FUNC _getpid
     mov r0, #1
     bx lr
 
@@ -24,4 +24,4 @@ ASM_FUNC _kill
 
 ASM_FUNC _sbrk
 heap_end:
-    .word	0
+    .word	0*/

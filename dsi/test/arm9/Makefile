@@ -23,7 +23,7 @@ CFLAGS			:=	$(CFLAGS) $(CFLAGS_9) $(foreach dir,$(INCLUDES),-I$(dir)) -O3
 CXXFLAGS		:=	$(CFLAGS) $(CXXFLAGS)
 ASFLAGS			:=	$(CFLAGS) $(ASFLAGS)
 LDFLAGS			:=	$(LDFLAGS_9) $(CFLAGS) $(LDFLAGS)
-LIBS			:=	-L$(TOPDIR)/lib/ -ldsi9 -L$(DEVKITPRO)/libnds/lib/ -lnds9
+LIBS			:=	-L$(TOPDIR)/lib/ -ldsi9 -L$(DEVKITPRO)/libnds/lib/
 
 -include $(subst .c,.d,$(subst /,_, $(CFILES))) $(subst .cpp,.d,$(subst /,_, $(CPPFILES))) $(subst .S,.d,$(subst /,_, $(SFILES)))
 

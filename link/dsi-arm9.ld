@@ -4,85 +4,71 @@ ENTRY(_start)
 
 /* Currently just copypasta from libnds, I'll be re-doing it from scratch myself later (I just want to see if this works) */
 
-__ewram_end	=	ORIGIN(ewram) + LENGTH(ewram);
-__eheap_end	=	ORIGIN(ewram) + LENGTH(ewram);
+__ram_start     =   ORIGIN(ram);
+__ram_end       =	ORIGIN(ram) + LENGTH(ram);
+end = __ram_end;
 
-__dtcm_top	=	ORIGIN(dtcm) + LENGTH(dtcm);
-__irq_flags	=	__dtcm_top - 0x08;
-__irq_vector	=	__dtcm_top - 0x04;
+__itcm_start    =   ORIGIN(itcm);
+__itcm_end      =   ORIGIN(itcm) + LENGTH(itcm);
+__dtcm_start    =   ORIGIN(dtcm);
+__dtcm_end      =   ORIGIN(dtcm) + LENGTH(dtcm);
 
-__sp_svc	=	__dtcm_top - 0x100;
-__sp_irq	=	__sp_svc - 0x100;
-__sp_usr	=	__sp_irq - 0x100;
+/* what is this? */
+/* gbatek: The ARM9 Exception Vectors are located at FFFF0000h. The IRQ handler redirects to [DTCM+3FFCh]. */
+__irq_flags	    =	__dtcm_end - 0x08;
+__irq_vector	=	__dtcm_end - 0x04;
+
+__sp_svc	    =	__dtcm_end - 0x100;
+__sp_irq	    =	__sp_svc - 0x100;
+__sp_usr	    =	__sp_irq - 0x100;
+
+MEMORY {
+	ram 	: ORIGIN = 0x02000000, LENGTH = 16M
+	vectors	: ORIGIN = 0x01000000, LENGTH = 256
+	itcm	: ORIGIN = 0x01000100, LENGTH = 32K - 256
+	dtcm	: ORIGIN = 0x0b000000, LENGTH = 16K
+}
 
 PHDRS {
 	main    PT_LOAD FLAGS(7);
-	dtcm    PT_LOAD FLAGS(7);
 	itcm    PT_LOAD FLAGS(7);
+	dtcm    PT_LOAD FLAGS(7);
 	vectors PT_LOAD FLAGS(7);
-	twl     PT_LOAD FLAGS(0x100007);
 }
 
-MEMORY {
-	ewram	: ORIGIN = 0x02000000, LENGTH = 16M - 512k
-	dtcm	: ORIGIN = 0x0b000000, LENGTH = 16K
-	vectors	: ORIGIN = 0x01000000, LENGTH = 256
-	itcm	: ORIGIN = 0x01000100, LENGTH = 32K - 256
-}
-
-SECTIONS
-{
-	/* Secure area crap */
-	.secure : { *(.secure) } >ewram :main = 0
-
-	.crt0	:
-	{
-		__text_start = . ;
+SECTIONS {
+	.crt0 : {
+		__text_start = .;
 		KEEP (*(.crt0))
-		. = ALIGN(4);  /* REQUIRED. LD is flaky without it. */
-	} >ewram :main = 0x00
+		. = ALIGN(4);
+	} >ram :main = 0x00
 
-	.plt : { *(.plt) } >ewram :main = 0xff
-
-	.init :
-	{
+	.init : {
 		KEEP (*(SORT_NONE(.init)))
-	} >ewram :main
+	} >ram :main
 
-	.text :   /* ALIGN (4): */
-	{
-		*(EXCLUDE_FILE(*.itcm* *.vectors* *.twl*) .text)
-		*(EXCLUDE_FILE(*.itcm* *.vectors* *.twl*) .stub)
-		*(EXCLUDE_FILE(*.itcm* *.vectors* *.twl*) .text.*)
-		/* .gnu.warning sections are handled specially by elf32.em.  */
-		*(EXCLUDE_FILE(*.twl*) .gnu.warning)
-		*(EXCLUDE_FILE(*.twl*) .gnu.linkonce.t*)
-		*(.glue_7)
-		*(.glue_7t)
-		. = ALIGN(4);  /* REQUIRED. LD is flaky without it. */
-	} >ewram :main = 0xff
+	.text : {
+		*(.text .text.* .stub .gnu.warning .gnu.linkonce.t* .glue_7 .glue_7t)
+		. = ALIGN(4);
+	} >ram :main
 
-	.fini           :
-	{
+	.fini : {
 		KEEP (*(.fini))
-	} >ewram :main =0xff
+	} >ram :main =0xff
 
 	__text_end = . ;
 
-	.rodata :
-	{
-		*(EXCLUDE_FILE(*.twl*) .rodata)
+	.rodata : {
+		*(.rodata .roda .rodata.* .gnu.linkonce.r*)
 		*all.rodata*(*)
-		*(EXCLUDE_FILE(*.twl*) .roda)
-		*(EXCLUDE_FILE(*.twl*) .rodata.*)
-		*(EXCLUDE_FILE(*.twl*) .gnu.linkonce.r*)
 		SORT(CONSTRUCTORS)
-		. = ALIGN(4);   /* REQUIRED. LD is flaky without it. */
-	} >ewram :main = 0xff
+		. = ALIGN(4);
+	} >ram :main = 0xff
 
-	.ARM.extab   : { *(.ARM.extab* .gnu.linkonce.armextab.*) } >ewram :main
+    /* ARM exception indices */
+	.ARM.extab : { *(.ARM.extab* .gnu.linkonce.armextab.*) } >ram :main
  	__exidx_start = .;
-	ARM.exidx   : { *(.ARM.exidx* .gnu.linkonce.armexidx.*) } >ewram :main
+	ARM.exidx   : { *(.ARM.exidx* .gnu.linkonce.armexidx.*) } >ram :main
  	__exidx_end = .;
 
 	/*	Ensure the __preinit_array_start label is properly aligned.  We
@@ -93,26 +79,23 @@ SECTIONS
 	. = ALIGN(32 / 8);
 
 	PROVIDE (__preinit_array_start = .);
-	.preinit_array     : { KEEP (*(.preinit_array)) } >ewram :main = 0xff
+	.preinit_array : { KEEP (*(.preinit_array)) } >ram :main = 0xff
 	PROVIDE (__preinit_array_end = .);
 	PROVIDE (__init_array_start = .);
-	.init_array     :
-	{
+	.init_array : {
 		KEEP (*(SORT(.init_array.*)))
 		KEEP (*(.init_array))
-	} >ewram :main = 0xff
+	} >ram :main = 0xff
 	PROVIDE (__init_array_end = .);
 	PROVIDE (__fini_array_start = .);
-	.fini_array     :
-	{
+	.fini_array : {
 		KEEP (*(.fini_array))
 		KEEP (*(SORT(.fini_array.*)))
-	} >ewram :main = 0xff
+	} >ram :main = 0xff
 
 	PROVIDE (__fini_array_end = .);
 
-	.ctors :
-	{
+	.ctors : {
 	/*	gcc uses crtbegin.o to find the start of the constructors, so
 		we make sure it is first.  Because this is a wildcard, it
 		doesn't matter if the user does not actually link against
@@ -123,43 +106,37 @@ SECTIONS
 		KEEP (*(EXCLUDE_FILE (*crtend.o) .ctors))
 		KEEP (*(SORT(.ctors.*)))
 		KEEP (*(.ctors))
-		. = ALIGN(4);   /* REQUIRED. LD is flaky without it. */
-	} >ewram :main = 0xff
+		. = ALIGN(4);
+	} >ram :main = 0xff
 
-	.dtors :
-	{
+	.dtors : {
 		KEEP (*crtbegin.o(.dtors))
 		KEEP (*(EXCLUDE_FILE (*crtend.o) .dtors))
 		KEEP (*(SORT(.dtors.*)))
 		KEEP (*(.dtors))
-		. = ALIGN(4);   /* REQUIRED. LD is flaky without it. */
-	} >ewram :main = 0xff
+		. = ALIGN(4);
+	} >ram :main = 0xff
 
-	.eh_frame :
-	{
+	.eh_frame : {
 		KEEP (*(.eh_frame))
-		. = ALIGN(4);   /* REQUIRED. LD is flaky without it. */
-	} >ewram :main = 0xff
+		. = ALIGN(4);
+	} >ram :main = 0xff
 
-	.gcc_except_table :
-	{
+	.gcc_except_table : {
 		*(.gcc_except_table)
-		. = ALIGN(4);   /* REQUIRED. LD is flaky without it. */
-	} >ewram :main = 0xff
-	.jcr            : { KEEP (*(.jcr)) } >ewram :main = 0
-	.got            : { *(.got.plt) *(.got) *(.rel.got) } >ewram :main = 0
+		. = ALIGN(4);
+	} >ram :main = 0xff
+	.jcr : { KEEP (*(.jcr)) } >ram :main = 0
+	.got : { *(.got.plt) *(.got) *(.rel.got) } >ram :main = 0
 
-	.ewram ALIGN(4) :
-	{
+	.ewram ALIGN(4) : {
 		__ewram_start = ABSOLUTE(.) ;
 		*(.ewram)
 		*ewram.*(.text)
 		. = ALIGN(4);   /* REQUIRED. LD is flaky without it. */
-	} >ewram :main = 0xff
+	} >ram :main = 0xff
 
-
-	.data ALIGN(4) :
-	{
+	.data ALIGN(4) : {
 		__data_start = ABSOLUTE(.);
 		*(EXCLUDE_FILE(*.twl*) .data)
 		*(EXCLUDE_FILE(*.twl*) .data.*)
@@ -167,19 +144,18 @@ SECTIONS
 		CONSTRUCTORS
 		. = ALIGN(4);
 		__data_end = ABSOLUTE(.) ;
-	} >ewram :main = 0xff
+	} >ram :main = 0xff
 
 	__bss_vma = . ;
 
-	.dtcm :
-	{
+	.dtcm : {
 		__dtcm_lma = LOADADDR(.dtcm);
 		__dtcm_start = ABSOLUTE(.);
 		*(.dtcm)
 		*(.dtcm.*)
 		. = ALIGN(4);
 		__dtcm_end = ABSOLUTE(.);
-	} >dtcm AT>ewram :dtcm = 0xff
+	} >dtcm AT>ram :dtcm = 0xff
 
 	.itcm :
 	{
@@ -189,19 +165,17 @@ SECTIONS
 		*.itcm*(.text .stub .text.*)
 		. = ALIGN(4);
 		__itcm_end = ABSOLUTE(.);
-	} >itcm AT>ewram :itcm = 0xff
+	} >itcm AT>ram :itcm = 0xff
 
-	.vectors :
-	{
+	.vectors : {
 		__vectors_lma = LOADADDR(.vectors);
 		__vectors_start = ABSOLUTE(.);
 		KEEP(*(.vectors .vectors.*))
 		. = ALIGN(4);
 		__vectors_end = ABSOLUTE(.);
-	} >vectors AT>ewram :vectors = 0xff
+	} >vectors AT>ram :vectors = 0xff
 
-	.sbss __dtcm_end (NOLOAD):
-	{
+	.sbss __dtcm_end (NOLOAD): {
 		__sbss_start = ABSOLUTE(.);
 		__sbss_start__ = ABSOLUTE(.);
 		*(.sbss)
@@ -209,8 +183,7 @@ SECTIONS
 		__sbss_end = ABSOLUTE(.);
 	} >dtcm :NONE
 
-	.bss __bss_vma (NOLOAD):
-	{
+	.bss __bss_vma (NOLOAD): {
 		__bss_start = ABSOLUTE(.);
 		__bss_start__ = ABSOLUTE(.);
 		*(EXCLUDE_FILE(*.twl*) .dynbss)
@@ -220,35 +193,7 @@ SECTIONS
 		. = ALIGN(4);    /* REQUIRED. LD is flaky without it. */
 		__bss_end__ = ABSOLUTE(.) ;
 		__end__ = ABSOLUTE(.) ;
-	} >ewram :NONE
-
-	.twl __end__ : AT(MAX(0x2400000,MAX(__end__,LOADADDR(.vectors)+SIZEOF(.vectors))))
-	{
-		__arm9i_lma__ = LOADADDR(.twl);
-		__arm9i_start__ = ABSOLUTE(.);
-		*(.twl)
-		*.twl*(.text .stub .text.* .gnu.linkonce.t.*)
-		*.twl*(.rodata)
-		*.twl*(.roda)
-		*.twl*(.rodata.*)
-		*.twl*(.data)
-		*.twl*(.data.*)
-		*.twl*(.gnu.linkonce.d*)
-		__arm9i_end__ = ABSOLUTE(.);
-	} :twl
-
-	.twl_bss __arm9i_end__ (NOLOAD):
-	{
-		__twl_bss_start__ = ABSOLUTE(.);
-		*(.twl_bss)
-		*.twl*(.dynbss)
-		*.twl*(.gnu.linkonce.b*)
-		*.twl*(.bss*)
-		*.twl*(COMMON)
-		. = ALIGN(4);    /* REQUIRED. LD is flaky without it. */
-		__twl_bss_end__ = ABSOLUTE(.);
-		__twl_end__ = ABSOLUTE(.);
-	} :NONE
+	} >ram :NONE
 
 	/* Stabs debugging sections.  */
 	.stab 0 : { *(.stab) }
