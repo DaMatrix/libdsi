@@ -1,10 +1,6 @@
 #include "main.h"
 
-int endlessWait() {
+int main() {
     while (true) { dsi::bios::vBlankIntrWait(); }
     return 0;
-}
-
-int main() {
-    return endlessWait();
 }

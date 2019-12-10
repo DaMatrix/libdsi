@@ -13,9 +13,9 @@ export ASFLAGS		:=
 export LDFLAGS		:=	-Wl,--nmagic -Wl,-Map,$(notdir $*).map -fuse-linker-plugin -Wl,-gc-sections
 
 export CFLAGS_7		:=	-DARM7 -march=armv4t -mcpu=arm7tdmi -mtune=arm7tdmi
-export LDFLAGS_7	:=	-specs=nosys.specs -T $(LIBDSI_HOME)/link/dsi-arm7.ld
+export LDFLAGS_7	:=	-specs=dsi-arm7.specs
 export CFLAGS_9		:=	-DARM9 -march=armv5te -mcpu=arm946e-s+nofp -mtune=arm946e-s
-export LDFLAGS_9	:=	-specs=nosys.specs -T $(LIBDSI_HOME)/link/dsi-arm9.ld
+export LDFLAGS_9	:=	-specs=dsi-arm9.specs
 
 export AR	:=	$(LIBDSI_HOME)/gcc/bin/arm-none-eabi-gcc-ar
 export CC	:=	$(LIBDSI_HOME)/gcc/bin/arm-none-eabi-gcc

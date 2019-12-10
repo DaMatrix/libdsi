@@ -12,16 +12,16 @@ export LD	:=	$(LIBDSI_HOME)/gcc/bin/arm-none-eabi-ld
 
 .PHONY: clean all
 
-all: link libdsi
+all: ldscripts libdsi
 
-libdsi: link .FORCE
+libdsi: ldscripts .FORCE
 	@$(MAKE) --no-print-directory -C dsi
 
-link: .FORCE
-	@$(MAKE) --no-print-directory -C link
+ldscripts: .FORCE
+	@$(MAKE) --no-print-directory -C ldscripts
 
 clean:
 	@$(MAKE) --no-print-directory -C dsi clean
-	@$(MAKE) --no-print-directory -C link clean
+	@$(MAKE) --no-print-directory -C ldscripts clean
 
 .FORCE:
