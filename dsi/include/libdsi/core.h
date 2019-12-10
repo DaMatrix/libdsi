@@ -7,15 +7,15 @@
 namespace dsi {
     namespace memory {
         /**
-         * Copies the specified memory region to the given destination in 32-byte chunks.
+         * Copies the specified memory region to the given destination.
          *
          * Source and destination addresses MUST be word-aligned, otherwise behavior is undefined!
          *
-         * @param src   the base address of the source data
-         * @param dst   the base address of the destination data
-         * @param bytes the number of chunks to copy
+         * @param src  the base address of the source data
+         * @param dst  the base address of the destination data
+         * @param size the number of bytes to copy. If not word-aligned, will be rounded up!
          */
-        extern "C" void copyChunks32(const void* src, void* dst, u32 chunks);
+        extern "C" void fastCopy(const void* src, void* dst, u32 size);
     }
 }
 
