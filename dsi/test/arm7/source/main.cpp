@@ -42,7 +42,7 @@ void vblankHandler(void) {
 }
 
 void vcountHandler() {
-    inputGetAndSend();
+    //inputGetAndSend();
 }
 
 volatile bool exitflag = false;
@@ -53,7 +53,7 @@ void powerButtonCB() {
 
 int main() {
     // clear sound registers
-    dmaFillWords(0, (void*) 0x04000400, 0x100);
+    /*dmaFillWords(0, (void*) 0x04000400, 0x100);
 
     REG_SOUNDCNT |= SOUND_ENABLE;
     writePowerManagement(PM_CONTROL_REG, (readPowerManagement(PM_CONTROL_REG) & ~PM_SOUND_MUTE) | PM_SOUND_AMP);
@@ -90,6 +90,6 @@ int main() {
             exitflag = true;
         }
         swiWaitForVBlank();
-    }
+    }*/
     return 0;
 }

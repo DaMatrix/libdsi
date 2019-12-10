@@ -7,15 +7,20 @@ export LIBDSI_REVISION	:=	0
 export LIBDSI_SUFFIX	:=	-SNAPSHOT
 export VERSION			:=	$(LIBDSI_MAJOR).$(LIBDSI_MINOR).$(LIBDSI_REVISION)$(LIBDSI_SUFFIX)
 
-export CFLAGS		:=	-mthumb -mthumb-interwork -Wall -ffunction-sections -fdata-sections -fomit-frame-pointer -ffast-math -flto -fno-fat-lto-objects -DNDS -DDSI
+export CFLAGS		:=	-mthumb -mthumb-interwork -Wall -ffunction-sections -fdata-sections -fomit-frame-pointer -ffast-math -flto=1 -fno-fat-lto-objects -DNDS -DDSI
 export CXXFLAGS		:=	-fno-rtti
 export ASFLAGS		:=
 export LDFLAGS		:=	-Wl,--nmagic -Wl,-Map,$(notdir $*).map -fuse-linker-plugin
 
 export CFLAGS_7		:=	-DARM7 -march=armv4t -mcpu=arm7tdmi -mtune=arm7tdmi
-export LDFLAGS_7	:=	-specs=$(LIBDSI_HOME)/link/dsi-arm7.specs
+export LDFLAGS_7	:=	-specs=nosys.specs -T $(LIBDSI_HOME)/link/dsi-arm7.ld
 export CFLAGS_9		:=	-DARM9 -march=armv5te -mcpu=arm946e-s+nofp -mtune=arm946e-s
-export LDFLAGS_9	:=	-specs=$(DEVKITARM)/arm-none-eabi/lib/ds_arm9.specs
+export LDFLAGS_7	:=	-specs=nosys.specs -T $(LIBDSI_HOME)/link/dsi-arm9.ld
+
+export AR	:=	$(LIBDSI_HOME)/gcc/bin/arm-none-eabi-gcc-ar
+export CC	:=	$(LIBDSI_HOME)/gcc/bin/arm-none-eabi-gcc
+export CXX	:=	$(LIBDSI_HOME)/gcc/bin/arm-none-eabi-g++
+export LD	:=	$(LIBDSI_HOME)/gcc/bin/arm-none-eabi-ld
 
 .PHONY: clean all
 

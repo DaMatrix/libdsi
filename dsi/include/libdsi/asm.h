@@ -20,7 +20,7 @@
     .text
     .align 4
 
-.macro ASM_FUNC name section=text
+.macro ASM_FUNC name
     .global \name
     .type \name, %function
 \name:
