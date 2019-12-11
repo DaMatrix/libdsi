@@ -13,14 +13,14 @@ export ASFLAGS		:=
 export LDFLAGS		:=	-Wl,--nmagic -Wl,-Map,$(notdir $*).map -fuse-linker-plugin -Wl,-gc-sections
 
 export CFLAGS_7		:=	-DARM7 -march=armv4t -mcpu=arm7tdmi -mtune=arm7tdmi
-export LDFLAGS_7	:=	-nostartfiles -specs=dsi-arm7.specs
+export LDFLAGS_7	:=	-specs=ds_arm7.specs
 export CFLAGS_9		:=	-DARM9 -march=armv5te -mcpu=arm946e-s+nofp -mtune=arm946e-s
-export LDFLAGS_9	:=	-nostartfiles -specs=dsi-arm9.specs
+export LDFLAGS_9	:=	-specs=dsi_arm9.specs
 
-export AR	:=	$(LIBDSI_HOME)/gcc/bin/arm-none-eabi-gcc-ar
-export CC	:=	$(LIBDSI_HOME)/gcc/bin/arm-none-eabi-gcc
-export CXX	:=	$(LIBDSI_HOME)/gcc/bin/arm-none-eabi-g++
-export LD	:=	$(LIBDSI_HOME)/gcc/bin/arm-none-eabi-ld
+export AR	:=	$(DEVKITARM)/bin/arm-none-eabi-gcc-ar
+export CC	:=	$(DEVKITARM)/bin/arm-none-eabi-gcc
+export CXX	:=	$(DEVKITARM)/bin/arm-none-eabi-g++
+export LD	:=	$(DEVKITARM)/bin/arm-none-eabi-ld
 
 .PHONY: clean all
 
