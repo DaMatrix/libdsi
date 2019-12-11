@@ -8,10 +8,10 @@ __ram_start     =   ORIGIN(ram);
 __ram_end       =	ORIGIN(ram) + LENGTH(ram);
 end = __ram_end;
 
-__itcm_start    =   ORIGIN(itcm);
+/*__itcm_start    =   ORIGIN(itcm);
 __itcm_end      =   ORIGIN(itcm) + LENGTH(itcm);
 __dtcm_start    =   ORIGIN(dtcm);
-__dtcm_end      =   ORIGIN(dtcm) + LENGTH(dtcm);
+__dtcm_end      =   ORIGIN(dtcm) + LENGTH(dtcm);*/
 
 /* what is this? */
 /* gbatek: The ARM9 Exception Vectors are located at FFFF0000h. The IRQ handler redirects to [DTCM+3FFCh]. */
@@ -149,7 +149,7 @@ SECTIONS {
 	__bss_vma = . ;
 
 	.dtcm : {
-		__dtcm_lma = LOADADDR(.dtcm);
+		__dtcm_base = LOADADDR(.dtcm);
 		__dtcm_start = ABSOLUTE(.);
 		*(.dtcm)
 		*(.dtcm.*)
@@ -157,9 +157,8 @@ SECTIONS {
 		__dtcm_end = ABSOLUTE(.);
 	} >dtcm AT>ram :dtcm = 0xff
 
-	.itcm :
-	{
-		__itcm_lma = LOADADDR(.itcm);
+	.itcm : {
+		__itcm_base = LOADADDR(.itcm);
 		__itcm_start = ABSOLUTE(.);
 		*(.itcm)
 		*.itcm*(.text .stub .text.*)
@@ -177,14 +176,12 @@ SECTIONS {
 
 	.sbss __dtcm_end (NOLOAD): {
 		__sbss_start = ABSOLUTE(.);
-		__sbss_start__ = ABSOLUTE(.);
 		*(.sbss)
 		. = ALIGN(4);    /* REQUIRED. LD is flaky without it. */
 		__sbss_end = ABSOLUTE(.);
 	} >dtcm :NONE
 
 	.bss __bss_vma (NOLOAD): {
-		__bss_start = ABSOLUTE(.);
 		__bss_start__ = ABSOLUTE(.);
 		*(EXCLUDE_FILE(*.twl*) .dynbss)
 		*(EXCLUDE_FILE(*.twl*) .gnu.linkonce.b*)

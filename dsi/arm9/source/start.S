@@ -4,6 +4,9 @@
 	.section .crt0
 
     .align 4
+ASM_FUNC _init
+    bx lr
+
 ASM_FUNC _start
     //set lsb of Interrupt Master Enable (0x04000208) to 0 to disable all interrupts
 	mov	r0, #0x04000000
@@ -32,7 +35,9 @@ ASM_FUNC _start
 	mov	r12, #0x4000000
 	ldrb r11, [r12,r12,lsr #12]
 	and	r11, r11, #0x3
-	//TODO: display some kind of error message if the current console isn't a DSi?
+
+	cmp	r11, #1
+	bne	NotDSi
 
 	//
 	// configure memory protection unit
@@ -140,132 +145,70 @@ arm7_sync_lock:
     cmp r0, r2
     bne arm7_sync_lock
 
-	ldr	r1, =__itcm_lma		@ Copy instruction tightly coupled memory (itcm section) from LMA to VMA
-	ldr	r2, =__itcm_start
-	ldr	r4, =__itcm_end
-	bl	CopyMemCheck
+    //copy code into actual ITCM
+    ldr r0, =__itcm_base
+    ldr r1, =__itcm_start
+    ldr r2, =__itcm_end
+    bl SimpleCopy
 
-	ldr	r1, =__vectors_lma	@ Copy reserved vectors area (itcm section) from LMA to VMA
-	ldr	r2, =__vectors_start
-	ldr	r4, =__vectors_end
-	bl	CopyMemCheck
-
-	ldr	r1, =__dtcm_lma		@ Copy data tightly coupled memory (dtcm section) from LMA to VMA
-	ldr	r2, =__dtcm_start
-	ldr	r4, =__dtcm_end
-	bl	CopyMemCheck
+    //copy data into actual DTCM
+    //TODO: could probably be removed, DTCM is only used as stack
+	ldr	r0, =__dtcm_base
+	ldr	r1, =__dtcm_start
+	ldr	r2, =__dtcm_end
+	bl SimpleCopy
 
 	cmp	r11, #1
-	ldrne	r10, =__end__		@ (DS mode) heap start
-	ldreq	r10, =__twl_end__	@ (DSi mode) heap start
-	bl	checkARGV		@ check and process argv trickery
 
-	ldr	r0, =__bss_start__	@ Clear BSS section
+	//clear BSS region
+	ldr	r0, =__bss_start__
 	ldr	r1, =__bss_end__
-	sub	r1, r1, r0
-	bl	ClearMem
+	bl SimpleClear
 
-	ldr	r0, =__sbss_start	@ Clear SBSS section
+    //clear SBSS region
+	ldr	r0, =__sbss_start
 	ldr	r1, =__sbss_end
-	sub	r1, r1, r0
-	bl	ClearMem
+	bl SimpleClear
 
-	cmp	r11, #1
-	bne	NotTWL
-	ldr	r9, =__dsimode		@ set DSi mode flag
-	strb	r11, [r9]
-
-	@ Copy TWL area (arm9i section) from LMA to VMA
-	ldr	r1, =0x02ffe1c8		@ Get ARM9i LMA from header
-	ldr	r1, [r1]
-
-	ldr	r2, =__arm9i_start__
-	cmp	r1, r2			@ skip copy if LMA=VMA
-	ldrne	r4, =__arm9i_end__
-	blne	CopyMemCheck
-
-	ldr	r0, =__twl_bss_start__	@ Clear TWL BSS section
-	ldr	r1, =__twl_bss_end__
-	sub	r1, r1, r0
-	bl	ClearMem
-
-NotTWL:
-	ldr	r0, =_libnds_argv
-
-	@ reset heap base
-	ldr	r2, [r0,#20]		@ newheap base
-	cmp	r2, #0
-	moveq	r2, r10
-	ldr	r1, =fake_heap_start	@ set heap start
-	str	r2, [r1]
-
-	ldr	r1, =fake_heap_end	@ set heap end
-	sub	r8, r8,#0xc000
-	str	r8, [r1]
-
-	push	{r0}
-	ldr	r0, =__secure_area__
+	/*mov	r0, #0
 	ldr	r3, =initSystem
-	blx	r3			@ system initialisation
+	blx	r3*/ //TODO
 
-	ldr	r3, =__libc_init_array	@ global constructors
+	ldr	r3, =__libc_init_array
 	blx	r3
 
-	pop	{r0}
-
-	ldr	r1, [r0,#16]		@ argv
-	ldr	r0, [r0,#12]		@ argc
+    mov r0, #0 //argc
+    mov r1, #0 //argv
 
 	ldr	r3, =main
-	ldr	lr, =__libnds_exit
-	bx	r3			@ jump to user code
+	blx r3 //call main function
 
-@---------------------------------------------------------------------------------
-@ check for a commandline
-@---------------------------------------------------------------------------------
-checkARGV:
-@---------------------------------------------------------------------------------
-	ldr	r0, =_libnds_argv	@ argv structure
-	mov	r1, #0
-	str	r1, [r0,#12]		@ clear argc
-	str	r1, [r0,#16]		@ clear argv
+shutdown:
+	//shut down console
+	ldr r0, =0x4000304
+	ldr r1, [r0]
+	orr r1, #(1 << 6)
+	str r1, [r0]
+	b shutdown //spinlock if for whatever reason this doesn't work
 
-	ldr	r3, [r0]		@ argv magic number
-	ldr	r2, =0x5f617267		@ '_arg'
-	cmp	r3, r2
-	strne	r1, [r0,#20]
-	bxne	lr			@ bail out if no magic
+SimpleCopy:
+    push {r5-r11}
+_SimpleCopy_main:
+    ldmia r0!, {r5-r12}
+    stmia r1!, {r5-r12}
+    cmp r0, r2
+    blt _SimpleCopy_main
+    pop {r5-r11}
+    bx lr
 
-	ldr	r1, [r0, #4]		@ command line address
-	ldr	r2, [r0, #8]		@ length of command line
+SimpleClear:
+    mov r2, #0
+_SimpleClear_main:
+    stmia r0!, {r2}
+    cmp r0, r1
+    blt _SimpleClear_main
+    bx lr
 
-	@ copy to heap
-	mov	r3, r10			@ initial heap base
-	str	r3, [r0, #4]		@ set command line address
-
-	cmp	r2, #0
-	subnes	r4, r3, r1		@ dst-src
-	bxeq	lr			@ dst == src || len==0 : nothing to do.
-
-	cmphi	r2, r4			@ len > (dst-src)
-	bhi	.copybackward
-
-.copyforward:
-	ldrb	r4, [r1], #1
-	strb	r4, [r3], #1
-	subs	r2, r2, #1
-	bne	.copyforward
-	b	.copydone
-
-.copybackward:
-	subs	r2, r2, #1
-	ldrb	r4, [r1, r2]
-	strb	r4, [r3, r2]
-	bne	.copybackward
-
-.copydone:
-	push	{lr}
-	ldr	r3, =build_argv
-	blx	r3
-	pop	{lr}
-	bx	lr
+NotDSi:
+    //TODO: display some kind of error message, for now this just spinlocks forever
+    b NotDSi
