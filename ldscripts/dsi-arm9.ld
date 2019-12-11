@@ -1,8 +1,6 @@
 OUTPUT_FORMAT("elf32-littlearm", "elf32-bigarm", "elf32-littlearm")
 OUTPUT_ARCH(arm)
-ENTRY(_start)
-
-/* Currently just copypasta from libnds, I'll be re-doing it from scratch myself later (I just want to see if this works) */
+ENTRY(_dsi_start)
 
 __ram_start     =   ORIGIN(ram);
 __ram_end       =	ORIGIN(ram) + LENGTH(ram);
@@ -44,11 +42,11 @@ SECTIONS {
 	} >ram :main = 0x00
 
 	.init : {
-		KEEP (*(SORT_NONE(.init)))
+		*(SORT_NONE(.init))
 	} >ram :main
 
 	.text : {
-		*(.text .text.* .stub .gnu.warning .gnu.linkonce.t* .glue_7 .glue_7t)
+		KEEP (*(.text .text.* .stub .gnu.warning .gnu.linkonce.t* .glue_7 .glue_7t))
 		. = ALIGN(4);
 	} >ram :main
 

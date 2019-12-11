@@ -1,13 +1,14 @@
 #include <libdsi/asm.h>
 
     .arm
-	.section .crt0
+	//.section .crt0
+	.section .text
 
     .align 4
 ASM_FUNC _init
     bx lr
 
-ASM_FUNC _start
+ASM_FUNC _dsi_start
     //set lsb of Interrupt Master Enable (0x04000208) to 0 to disable all interrupts
 	mov	r0, #0x04000000
 	str	r0, [r0, #0x208]
@@ -35,6 +36,14 @@ ASM_FUNC _start
 	mov	r12, #0x4000000
 	ldrb r11, [r12,r12,lsr #12]
 	and	r11, r11, #0x3
+
+	//debug: go straight to main method
+    mov r0, #0 //argc
+    mov r1, #0 //argv
+
+	ldr lr, =shutdown
+	ldr	r0, =main
+	blx r0 //call main function
 
 	cmp	r11, #1
 	bne	NotDSi
@@ -170,18 +179,17 @@ arm7_sync_lock:
 	ldr	r1, =__sbss_end
 	bl SimpleClear
 
-	/*mov	r0, #0
-	ldr	r3, =initSystem
-	blx	r3*/ //TODO
+	//ldr	r0, =initSystem
+	//blx	r0
 
-	ldr	r3, =__libc_init_array
-	blx	r3
+	ldr	r0, =__libc_init_array
+	blx	r0
 
     mov r0, #0 //argc
     mov r1, #0 //argv
 
-	ldr	r3, =main
-	blx r3 //call main function
+	ldr	r2, =main
+	blx r2 //call main function
 
 shutdown:
 	//shut down console

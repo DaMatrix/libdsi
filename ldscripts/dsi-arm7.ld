@@ -1,6 +1,6 @@
 OUTPUT_FORMAT("elf32-littlearm", "elf32-bigarm", "elf32-littlearm")
 OUTPUT_ARCH(arm)
-ENTRY(_start)
+ENTRY(_dsi_start)
 
 /* Currently just copypasta from libnds, I'll be re-doing it from scratch myself later (I just want to see if this works) */
 

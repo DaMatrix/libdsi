@@ -32,7 +32,7 @@ all: $(PROJDIR)/arm9.elf
 $(PROJDIR)/arm9.elf: $(OFILES) $(TOPDIR)/lib/libdsi9.a
 	@echo linking $@
 	@rm -f $@
-	$(CXX) -nostartfiles $(LDFLAGS) $(OFILES) $(LIBS) -o $@
+	$(CXX) $(LDFLAGS) $(OFILES) $(LIBS) -o $@
 
 %.c.o:
 	$(CC) -MMD -MP -MF $(CURDIR)/$*.d $(CFLAGS) -c $(subst .c.o,.c,$(subst _,/,$@)) -o $@ $(ERROR_FILTER)
