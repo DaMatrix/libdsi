@@ -176,17 +176,20 @@ arm7_sync_lock:
 	ldr	r1, =__sbss_end
 	bl SimpleClear
 
-	//ldr	r0, =initSystem
-	//blx	r0
+    //run system init code
+	ldr	r0, =initSystem
+	blx	r0
 
+    //run libc init code
 	ldr	r0, =__libc_init_array
 	blx	r0
 
     mov r0, #0 //argc
     mov r1, #0 //argv
 
+    //call main function
 	ldr	r2, =main
-	blx r2 //call main function
+	blx r2
 
 shutdown:
 	//shut down console

@@ -1,5 +1,6 @@
 #include <dsi.h>
 
+#if false
 extern "C" void initSystem(void) {
 //---------------------------------------------------------------------------------
     register int i;
@@ -26,3 +27,4 @@ extern "C" void initSystem(void) {
     VRAM_H_CR = 0;
     VRAM_I_CR = 0;*/
 }
+#endif
