@@ -2,11 +2,8 @@
 
     .arm
 	//.section .crt0
-	.section .text
-
-    .align 4
-ASM_FUNC _init
-    bx lr
+	//.section .text
+	.section ".crt0","ax"
 
 ASM_FUNC _dsi_start
     //set lsb of Interrupt Master Enable (0x04000208) to 0 to disable all interrupts
@@ -38,12 +35,12 @@ ASM_FUNC _dsi_start
 	and	r11, r11, #0x3
 
 	//debug: go straight to main method
-    mov r0, #0 //argc
+    /*mov r0, #0 //argc
     mov r1, #0 //argv
 
 	ldr lr, =shutdown
 	ldr	r0, =main
-	blx r0 //call main function
+	blx r0*/
 
 	cmp	r11, #1
 	bne	NotDSi

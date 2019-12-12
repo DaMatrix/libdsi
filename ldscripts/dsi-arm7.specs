@@ -7,4 +7,4 @@
 %{!specs=nano.specs:-lc} %{specs=nano.specs:-lc_nano}
 
 *link_gcc_c_sequence:
-%(nosys_link_gcc_c_sequence) --start-group %G %(nosys_libc) %(nosys_libgloss) --end-group -T dsi-arm7.ld
+%(nosys_link_gcc_c_sequence) --start-group %G %(nosys_libc) %(nosys_libgloss) --end-group -T dsi-arm7.ld --gc-sections

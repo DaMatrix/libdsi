@@ -12,16 +12,10 @@
 
     .text
 
-/*ASM_FUNC _getpid
+ASM_FUNC _getpid
     mov r0, #1
     bx lr
-
-    .extern	_impure_ptr
 
 ASM_FUNC _exit
 ASM_FUNC _kill
     bx lr
-
-ASM_FUNC _sbrk
-heap_end:
-    .word	0*/

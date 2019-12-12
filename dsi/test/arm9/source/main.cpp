@@ -35,10 +35,6 @@ int main() {
     reg::VRAMCNT_H(0);
     reg::VRAMCNT_I(0);
 
-    if (true)   {
-        return 0;
-    }
-
     dsi::memory::fastCopy(nullptr, nullptr, 32);
     while (true) { dsi::bios::vBlankIntrWait(); }
     return 0;

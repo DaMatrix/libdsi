@@ -1,4 +1,4 @@
-OUTPUT_FILES	:=	$(foreach file,$(wildcard *.ld) $(wildcard *.specs),$(CURDIR)/../gcc/arm-none-eabi/lib/$(file))
+OUTPUT_FILES	:=	$(addprefix $(CURDIR)/../gcc/arm-none-eabi/lib/,$(wildcard *.ld) $(wildcard *.specs))
 
 .PHONY: clean all
 
