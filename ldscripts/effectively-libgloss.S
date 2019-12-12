@@ -1,5 +1,39 @@
+/**
+ * In order to not require on any devkitpro/ARM things I have to work around the fact that there really is no system, and the libgloss implementation
+ * seems to be gone as well.
+ *
+ * The devkitARM nds implementation of libgloss at https://github.com/devkitPro/newlib/blob/master/libgloss/nds32/ is written in some undecipherable
+ * assembly notation.
+ *
+ * This file contains implementations of all libgloss functions, or stubs.
+ */
+
 #include <libdsi/asm.h>
 
+/**
+ * _getpid
+ */
+ASM_FUNC _getpid
+    mov r0, #1 //always return 1, dsi doesn't need any processes
+    bx lr
+
+/**
+ * _exit
+ */
+ASM_FUNC _exit
+    //no-op
+    bx lr
+
+/**
+ * _kill
+ */
+ASM_FUNC _kill
+    //no-op
+    bx lr
+
+/**
+ * _sbrk
+ */
 ASM_FUNC _sbrk
     ldr r3, =heap_end
     ldr r1, [r3] //get current heap end address

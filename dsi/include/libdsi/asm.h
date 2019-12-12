@@ -17,10 +17,9 @@
 #error "Neither ARM7 nor ARM9 is defined!"
 #endif
 
-    .text
-    .align 4
 
 .macro ASM_FUNC name
+    .text
     .global \name
     .type \name, %function
 \name:

@@ -4,4 +4,4 @@
 %(old_link) -T dsi-arm9.ld%s
 
 *startfile:
-crti%O%s crtbegin%O%s
+dsi-arm9-libgloss%O%s crti%O%s crtbegin%O%s

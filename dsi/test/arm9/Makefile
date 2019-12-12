@@ -17,9 +17,9 @@ INCLUDES		:=	$(TOPDIR)/include $(TOPDIR)/test/common/source $(DEVKITPRO)/libnds/
 CFILES			:=	$(foreach dir,$(SOURCES),$(shell find -L $(dir) -type f -name '*.c'))
 CPPFILES		:=	$(foreach dir,$(SOURCES),$(shell find -L $(dir) -type f -name '*.cpp'))
 SFILES			:=	$(foreach dir,$(SOURCES),$(shell find -L $(dir) -type f -name '*.S'))
-OFILES			:=	$(addsuffix .o,$(subst /,_, $(CFILES)) $(subst /,_, $(CPPFILES)) $(subst /,_, $(SFILES)))
+OFILES			:=	$(addsuffix .o,$(subst /,_, $(CFILES) $(CPPFILES) $(SFILES)))
 
-CFLAGS			:=	$(CFLAGS) $(CFLAGS_9) $(foreach dir,$(INCLUDES),-I$(dir)) -O3
+CFLAGS			:=	$(CFLAGS) $(CFLAGS_9) $(addprefix -I,$(INCLUDES)) -O3
 CXXFLAGS		:=	$(CFLAGS) $(CXXFLAGS)
 ASFLAGS			:=	$(CFLAGS) $(ASFLAGS)
 LDFLAGS			:=	$(LDFLAGS_9) $(CFLAGS) $(LDFLAGS)
