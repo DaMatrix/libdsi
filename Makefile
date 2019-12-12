@@ -1,23 +1,27 @@
-ifndef DEVKITARM
-$(error "DEVKITARM is not set!")
+ifndef LIBDSI_HOME
+$(error "LIBDSI_HOME is not set!")
 endif
-ifeq ("$(wildcard $(DEVKITARM)/base_rules)","")
-$(error "DEVKITARM points to an invalid libdsi installation. Make sure you set it up correctly using setup-environment.sh")
+ifeq ("$(wildcard $(LIBDSI_HOME)/gcc/README.md)","")
+$(error "LIBDSI_HOME points to an invalid libdsi installation. Make sure you set it up correctly using setup-environment.sh")
 endif
 
-export AR	:=	$(DEVKITARM)/bin/arm-none-eabi-gcc-ar
-export CC	:=	$(DEVKITARM)/bin/arm-none-eabi-gcc
-export CXX	:=	$(DEVKITARM)/bin/arm-none-eabi-g++
-export LD	:=	$(DEVKITARM)/bin/arm-none-eabi-ld
+export AR	:=	$(LIBDSI_HOME)/gcc/bin/arm-none-eabi-gcc-ar
+export CC	:=	$(LIBDSI_HOME)/gcc/bin/arm-none-eabi-gcc
+export CXX	:=	$(LIBDSI_HOME)/gcc/bin/arm-none-eabi-g++
+export LD	:=	$(LIBDSI_HOME)/gcc/bin/arm-none-eabi-ld
 
 .PHONY: clean all
 
-all: libdsi
+all: ldscripts libdsi
 
-libdsi: .FORCE
+libdsi: ldscripts .FORCE
 	@$(MAKE) --no-print-directory -C dsi
+
+ldscripts: .FORCE
+	@$(MAKE) --no-print-directory -C ldscripts
 
 clean:
 	@$(MAKE) --no-print-directory -C dsi clean
+	@$(MAKE) --no-print-directory -C ldscripts clean
 
 .FORCE:
