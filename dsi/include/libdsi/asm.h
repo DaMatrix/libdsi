@@ -18,8 +18,8 @@
 #endif
 
 
-.macro ASM_FUNC name
-    .text
+.macro ASM_FUNC name section=text
+    .section .\section\, "ax", %progbits
     .global \name
     .type \name, %function
 \name:
