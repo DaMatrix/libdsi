@@ -12,14 +12,14 @@ clean:
 else
 
 SOURCES			:=	$(PROJDIR)/source $(TOPDIR)/common/source
-INCLUDES		:=	$(TOPDIR)/include
+INCLUDES		:=	$(TOPDIR)/include $(DEVKITPRO)/libnds/include/
 
 CFILES			:=	$(foreach dir,$(SOURCES),$(shell find -L $(dir) -type f -name '*.c'))
 CPPFILES		:=	$(foreach dir,$(SOURCES),$(shell find -L $(dir) -type f -name '*.cpp'))
 SFILES			:=	$(foreach dir,$(SOURCES),$(shell find -L $(dir) -type f -name '*.S'))
 OFILES			:=	$(addsuffix .o,$(subst /,_,$(CFILES) $(CPPFILES) $(SFILES)))
 
-CFLAGS			:=	$(CFLAGS) $(CFLAGS_9) $(foreach dir,$(INCLUDES),-I$(dir)) -Os
+CFLAGS			:=	$(CFLAGS) $(CFLAGS_9) $(addprefix -I,$(INCLUDES)) -Os
 CXXFLAGS		:=	$(CFLAGS) $(CXXFLAGS)
 ASFLAGS			:=	$(CFLAGS) $(ASFLAGS)
 LDFLAGS			:=	$(CFLAGS) $(LDFLAGS)

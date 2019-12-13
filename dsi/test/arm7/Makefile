@@ -17,13 +17,13 @@ INCLUDES		:=	$(TOPDIR)/include $(TOPDIR)/test/common/source $(DEVKITPRO)/libnds/
 CFILES			:=	$(foreach dir,$(SOURCES),$(shell find -L $(dir) -type f -name '*.c'))
 CPPFILES		:=	$(foreach dir,$(SOURCES),$(shell find -L $(dir) -type f -name '*.cpp'))
 SFILES			:=	$(foreach dir,$(SOURCES),$(shell find -L $(dir) -type f -name '*.S'))
-OFILES			:=	$(addsuffix .o,$(subst /,_, $(CFILES)) $(subst /,_, $(CPPFILES)) $(subst /,_, $(SFILES)))
+OFILES			:=	$(addsuffix .o,$(subst /,_,$(CFILES) $(CPPFILES) $(SFILES)))
 
-CFLAGS			:=	$(CFLAGS) $(CFLAGS_7) $(foreach dir,$(INCLUDES),-I$(dir)) -O3
+CFLAGS			:=	$(CFLAGS) $(CFLAGS_7) $(addprefix -I,$(INCLUDES)) -O3
 CXXFLAGS		:=	$(CFLAGS) $(CXXFLAGS)
 ASFLAGS			:=	$(CFLAGS) $(ASFLAGS)
 LDFLAGS			:=	$(LDFLAGS_7) $(CFLAGS) $(LDFLAGS)
-LIBS			:=	-L$(TOPDIR)/lib/ -ldsi7 -L$(DEVKITPRO)/libnds/lib/
+LIBS			:=	-L$(TOPDIR)/lib/ -ldsi7 -L$(DEVKITPRO)/libnds/lib/ -lnds7 -lmm7
 
 -include $(subst .c,.d,$(subst /,_, $(CFILES))) $(subst .cpp,.d,$(subst /,_, $(CPPFILES))) $(subst .S,.d,$(subst /,_, $(SFILES)))
 

@@ -1,6 +1,7 @@
 #include "main.h"
 
+using namespace dsi;
+
 int main() {
-    while (true) { dsi::bios::vBlankIntrWait(); }
-    return 0;
+    while (true) bios::vBlankIntrWait();
 }

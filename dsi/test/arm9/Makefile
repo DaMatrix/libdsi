@@ -17,13 +17,13 @@ INCLUDES		:=	$(TOPDIR)/include $(TOPDIR)/test/common/source $(DEVKITPRO)/libnds/
 CFILES			:=	$(foreach dir,$(SOURCES),$(shell find -L $(dir) -type f -name '*.c'))
 CPPFILES		:=	$(foreach dir,$(SOURCES),$(shell find -L $(dir) -type f -name '*.cpp'))
 SFILES			:=	$(foreach dir,$(SOURCES),$(shell find -L $(dir) -type f -name '*.S'))
-OFILES			:=	$(addsuffix .o,$(subst /,_, $(CFILES) $(CPPFILES) $(SFILES)))
+OFILES			:=	$(addsuffix .o,$(subst /,_,$(CFILES) $(CPPFILES) $(SFILES)))
 
 CFLAGS			:=	$(CFLAGS) $(CFLAGS_9) $(addprefix -I,$(INCLUDES)) -O3
 CXXFLAGS		:=	$(CFLAGS) $(CXXFLAGS)
 ASFLAGS			:=	$(CFLAGS) $(ASFLAGS)
 LDFLAGS			:=	$(LDFLAGS_9) $(CFLAGS) $(LDFLAGS)
-LIBS			:=	-L$(TOPDIR)/lib/ -ldsi9
+LIBS			:=	-L$(TOPDIR)/lib/ -ldsi9 -L$(DEVKITPRO)/libnds/lib/ -lnds9
 
 -include $(subst .c,.d,$(subst /,_, $(CFILES))) $(subst .cpp,.d,$(subst /,_, $(CPPFILES))) $(subst .S,.d,$(subst /,_, $(SFILES)))
 

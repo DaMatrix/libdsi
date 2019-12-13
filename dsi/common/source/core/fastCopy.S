@@ -3,11 +3,7 @@
     .arm
 
     .align 4
-#ifdef ARM7
-ASM_FUNC fastCopy
-#else
 ASM_FUNC fastCopy itcm
-#endif
     lsr r3, r2, #5
     cmp r3, #0
     beq _fastCopy_words_check
