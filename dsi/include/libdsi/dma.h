@@ -55,7 +55,7 @@ namespace dsi::dma {
         /**
          * Blocks until this DMA channel is finished.
          */
-        void wait() { while (this->control & ENABLE) {}}
+        void wait() { while (this->control & ENABLE) {} }
 
         /**
          * Simply starts this DMA channel with the given settings.
@@ -66,7 +66,7 @@ namespace dsi::dma {
          * @param control additional settings
          */
         void start(void* src, void* dst, u16 size, u16 control) {
-            while (this->control & ENABLE) {}
+            this->wait();
             this->src     = src;
             this->dst     = dst;
             this->size    = size;
@@ -75,15 +75,6 @@ namespace dsi::dma {
     };
 
     constexpr Channel* channel(u32 i) { return (Channel*) (0x40000B0 + i * sizeof(Channel)); }
-
-    /*Channel* anyOpenChannel() {
-        for (u32 i = 0; i < 4; i++) {
-            if (channel(i)->complete()) {
-                return channel(i);
-            }
-        }
-        return nullptr;
-    }*/
 }
 
 #endif //LIBDSI_ROOT_H

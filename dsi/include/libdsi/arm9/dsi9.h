@@ -10,6 +10,7 @@
 #include <libdsi/core.h>
 #include <libdsi/dma.h>
 
+#include <libdsi/arm9/video.h>
 #include <libdsi/arm9/wifi9.h>
 
 #endif //LIBDSI_LIBDSI9_H

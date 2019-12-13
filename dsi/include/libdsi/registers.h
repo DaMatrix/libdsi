@@ -803,6 +803,161 @@ namespace dsi::reg {
     #endif
 
     #ifdef ARM9
+    constexpr u8 VRAM_ENABLE = 0x80;
+
+    /**
+     * The different modes for VRAM bank A.
+     */
+    enum VramModeA: u8 {
+        A_Disable     = 0,
+        A_Direct      = VRAM_ENABLE,
+        A_Background0 = VRAM_ENABLE | 1 | (0 << 3),
+        A_Background1 = VRAM_ENABLE | 1 | (1 << 3),
+        A_Background2 = VRAM_ENABLE | 1 | (2 << 3),
+        A_Background3 = VRAM_ENABLE | 1 | (3 << 3),
+        A_Object0     = VRAM_ENABLE | 2 | (0 << 3),
+        A_Object1     = VRAM_ENABLE | 2 | (1 << 3),
+        A_Texture0    = VRAM_ENABLE | 3 | (0 << 3),
+        A_Texture1    = VRAM_ENABLE | 3 | (1 << 3),
+        A_Texture2    = VRAM_ENABLE | 3 | (2 << 3),
+        A_Texture3    = VRAM_ENABLE | 3 | (3 << 3)
+    };
+
+    /**
+     * The different modes for VRAM bank B.
+     */
+    enum VramModeB: u8 {
+        B_Disable     = 0,
+        B_Direct      = VRAM_ENABLE,
+        B_Background0 = VRAM_ENABLE | 1 | (0 << 3),
+        B_Background1 = VRAM_ENABLE | 1 | (1 << 3),
+        B_Background2 = VRAM_ENABLE | 1 | (2 << 3),
+        B_Background3 = VRAM_ENABLE | 1 | (3 << 3),
+        B_Object0     = VRAM_ENABLE | 2 | (0 << 3),
+        B_Object1     = VRAM_ENABLE | 2 | (1 << 3),
+        B_Texture0    = VRAM_ENABLE | 3 | (0 << 3),
+        B_Texture1    = VRAM_ENABLE | 3 | (1 << 3),
+        B_Texture2    = VRAM_ENABLE | 3 | (2 << 3),
+        B_Texture3    = VRAM_ENABLE | 3 | (3 << 3)
+    };
+
+    /**
+     * The different modes for VRAM bank C.
+     */
+    enum VramModeC: u8 {
+        C_Disable     = 0,
+        C_Direct      = VRAM_ENABLE,
+        C_Background0 = VRAM_ENABLE | 1 | (0 << 3),
+        C_Background1 = VRAM_ENABLE | 1 | (1 << 3),
+        C_Background2 = VRAM_ENABLE | 1 | (2 << 3),
+        C_Background3 = VRAM_ENABLE | 1 | (3 << 3),
+        C_Texture0    = VRAM_ENABLE | 3 | (0 << 3),
+        C_Texture1    = VRAM_ENABLE | 3 | (1 << 3),
+        C_Texture2    = VRAM_ENABLE | 3 | (2 << 3),
+        C_Texture3    = VRAM_ENABLE | 3 | (3 << 3),
+        C_BackgroundB = VRAM_ENABLE | 4,
+        C_ARM7        = VRAM_ENABLE | 2
+    };
+
+    /**
+     * The different modes for VRAM bank D.
+     */
+    enum VramModeD: u8 {
+        D_Disable     = 0,
+        D_Direct      = VRAM_ENABLE,
+        D_Background0 = VRAM_ENABLE | 1 | (0 << 3),
+        D_Background1 = VRAM_ENABLE | 1 | (1 << 3),
+        D_Background2 = VRAM_ENABLE | 1 | (2 << 3),
+        D_Background3 = VRAM_ENABLE | 1 | (3 << 3),
+        D_Texture0    = VRAM_ENABLE | 3 | (0 << 3),
+        D_Texture1    = VRAM_ENABLE | 3 | (1 << 3),
+        D_Texture2    = VRAM_ENABLE | 3 | (2 << 3),
+        D_Texture3    = VRAM_ENABLE | 3 | (3 << 3),
+        D_ObjectB     = VRAM_ENABLE | 4,
+        D_ARM7        = VRAM_ENABLE | 2
+    };
+
+    /**
+     * The different modes for VRAM bank E.
+     */
+    enum VramModeE: u8 {
+        E_Disable             = 0,
+        E_Direct              = VRAM_ENABLE,
+        E_Background          = VRAM_ENABLE | 1,
+        E_Object              = VRAM_ENABLE | 2,
+        E_Background_Extended = VRAM_ENABLE | 4,
+        E_Texture_Palette     = VRAM_ENABLE | 3
+    };
+
+    /**
+     * The different modes for VRAM bank F.
+     */
+    enum VramModeF: u8 {
+        F_Disable              = 0,
+        F_Direct               = VRAM_ENABLE,
+        F_Background0          = VRAM_ENABLE | 1 | (0 << 3),
+        F_Background1          = VRAM_ENABLE | 1 | (1 << 3),
+        F_Background2          = VRAM_ENABLE | 1 | (2 << 3),
+        F_Background3          = VRAM_ENABLE | 1 | (3 << 3),
+        F_Object0              = VRAM_ENABLE | 2 | (0 << 3),
+        F_Object1              = VRAM_ENABLE | 2 | (1 << 3),
+        F_Object2              = VRAM_ENABLE | 2 | (2 << 3),
+        F_Object3              = VRAM_ENABLE | 2 | (3 << 3),
+        F_Background_Extended0 = VRAM_ENABLE | 4 | (0 << 3),
+        F_Background_Extended1 = VRAM_ENABLE | 4 | (1 << 3),
+        F_Object_Extended0     = VRAM_ENABLE | 5 | (0 << 3),
+        F_Object_Extended1     = VRAM_ENABLE | 5 | (1 << 3),
+        F_Texture_Palette0     = VRAM_ENABLE | 3 | (0 << 3),
+        F_Texture_Palette1     = VRAM_ENABLE | 3 | (1 << 3),
+        F_Texture_Palette2     = VRAM_ENABLE | 3 | (2 << 3),
+        F_Texture_Palette3     = VRAM_ENABLE | 3 | (3 << 3)
+    };
+
+    /**
+     * The different modes for VRAM bank G.
+     */
+    enum VramModeG: u8 {
+        G_Disable              = 0,
+        G_Direct               = VRAM_ENABLE,
+        G_Background0          = VRAM_ENABLE | 1 | (0 << 3),
+        G_Background1          = VRAM_ENABLE | 1 | (1 << 3),
+        G_Background2          = VRAM_ENABLE | 1 | (2 << 3),
+        G_Background3          = VRAM_ENABLE | 1 | (3 << 3),
+        G_Object0              = VRAM_ENABLE | 2 | (0 << 3),
+        G_Object1              = VRAM_ENABLE | 2 | (1 << 3),
+        G_Object2              = VRAM_ENABLE | 2 | (2 << 3),
+        G_Object3              = VRAM_ENABLE | 2 | (3 << 3),
+        G_Background_Extended0 = VRAM_ENABLE | 4 | (0 << 3),
+        G_Background_Extended1 = VRAM_ENABLE | 4 | (1 << 3),
+        G_Object_Extended0     = VRAM_ENABLE | 5 | (0 << 3),
+        G_Object_Extended1     = VRAM_ENABLE | 5 | (1 << 3),
+        G_Texture_Palette0     = VRAM_ENABLE | 3 | (0 << 3),
+        G_Texture_Palette1     = VRAM_ENABLE | 3 | (1 << 3),
+        G_Texture_Palette2     = VRAM_ENABLE | 3 | (2 << 3),
+        G_Texture_Palette3     = VRAM_ENABLE | 3 | (3 << 3)
+    };
+
+    /**
+     * The different modes for VRAM bank H.
+     */
+    enum VramModeH: u8 {
+        H_Disable              = 0,
+        H_Direct               = VRAM_ENABLE,
+        H_BackgroundB          = VRAM_ENABLE | 1,
+        H_BackgroundB_Extended = VRAM_ENABLE | 2
+    };
+
+    /**
+     * The different modes for VRAM bank I.
+     */
+    enum VramModeI: u8 {
+        I_Disable          = 0,
+        I_Direct           = VRAM_ENABLE,
+        I_BackgroundB      = VRAM_ENABLE | 1,
+        I_ObjectB          = VRAM_ENABLE | 2,
+        I_ObjectB_Extended = VRAM_ENABLE | 3
+    };
+
     /**
      *   0-2   VRAM MST              ;Bit2 not used by VRAM-A,B,H,I
      *   3-4   VRAM Offset (0-3)     ;Offset not used by VRAM-E,H,I
@@ -874,15 +1029,15 @@ namespace dsi::reg {
      *   7000000h Engine A OAM (1024 bytes)
      *   7000400h Engine B OAM (1024 bytes)
      */
-    REG_W(0x4000240, u8, VRAMCNT_A)
-    REG_W(0x4000241, u8, VRAMCNT_B)
-    REG_W(0x4000242, u8, VRAMCNT_C)
-    REG_W(0x4000243, u8, VRAMCNT_D)
-    REG_W(0x4000244, u8, VRAMCNT_E)
-    REG_W(0x4000245, u8, VRAMCNT_F)
-    REG_W(0x4000246, u8, VRAMCNT_G)
-    REG_W(0x4000248, u8, VRAMCNT_H)
-    REG_W(0x4000249, u8, VRAMCNT_I)
+    REG_W(0x4000240, VramModeA, VRAMCNT_A)
+    REG_W(0x4000241, VramModeB, VRAMCNT_B)
+    REG_W(0x4000242, VramModeC, VRAMCNT_C)
+    REG_W(0x4000243, VramModeD, VRAMCNT_D)
+    REG_W(0x4000244, VramModeE, VRAMCNT_E)
+    REG_W(0x4000245, VramModeF, VRAMCNT_F)
+    REG_W(0x4000246, VramModeG, VRAMCNT_G)
+    REG_W(0x4000248, VramModeH, VRAMCNT_H)
+    REG_W(0x4000249, VramModeI, VRAMCNT_I)
     #endif
 
     // NDS 32K shared WRAM
@@ -891,29 +1046,29 @@ namespace dsi::reg {
      */
     #ifdef ARM9
     enum WRAMCNT_Value: u8 {
-    #else
-    enum WRAMSTAT_Value: u8 {
-    #endif
+        #else
+        enum WRAMSTAT_Value: u8 {
+        #endif
         /**
          * ARM9 area contains all 32K of shared-WRAM (plus mirrors).
          * ARM7 area contains mirrors of ARM7-WRAM.
          */
-        ARM9_32K_ARM7_0K = 0,
+                ARM9_32K_ARM7_0K      = 0,
         /**
          * ARM9 area contains the 2nd 16K of shared-WRAM (plus mirrors).
          * ARM7 area contains the 1st 16K of shared-WRAM (plus mirrors).
          */
-        ARM9_16K_2_ARM7_16K_1 = 1,
+                ARM9_16K_2_ARM7_16K_1 = 1,
         /**
          * ARM9 area contains the 1st 16K of shared-WRAM (plus mirrors).
          * ARM7 area contains the 2nd 16K of shared-WRAM (plus mirrors).
          */
-        ARM9_16K_1_ARM7_16K_2 = 2,
+                ARM9_16K_1_ARM7_16K_2 = 2,
         /**
          * ARM9 area contains undefined data.
          * ARM7 area contains all 32K of shared-WRAM (plus mirrors).
          */
-        ARM9_0K_ARM7_32K = 3
+                ARM9_0K_ARM7_32K      = 3
     };
 
     /**

@@ -16,6 +16,16 @@ namespace dsi {
          * @param size the number of bytes to copy. If not word-aligned, will be rounded up!
          */
         extern "C" void fastCopy(const void* src, void* dst, u32 size);
+
+        /**
+         * Clears (zeroes out) the specified memory region.
+         *
+         * Destination address MUST be word-aligned, otherwise behavior is undefined!
+         *
+         * @param dst  the base address to start clearing from
+         * @param size the number of bytes to clear. If not word-aligned, will be rounded up!
+         */
+        extern "C" void fastClear(void* dst, u32 size);
     }
 }
 
