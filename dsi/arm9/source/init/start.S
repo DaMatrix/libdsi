@@ -2,48 +2,25 @@
 
     .arm
 	//.section .crt0
-	//.section .text
-	.section ".crt0","ax"
+	.section ".crt0","ax" //why is this needed?!?
 
 ASM_FUNC _dsi_start
     //set lsb of Interrupt Master Enable (0x04000208) to 0 to disable all interrupts
 	mov	r0, #0x04000000
 	str	r0, [r0, #0x208]
 
-    //
-    // set up stacks
-    //
+	//ARM svc mode
+	mov r0, #0x13
+	msr cpsr, r0
+	mov r1, #0x03000000
+	sub r1, r1, #0x1000
+	mov sp, r1
 
-    //irq mode
-	mov	r0, #0x12
-	msr	cpsr, r0
-	ldr	sp, =__sp_irq
-
-    //svc mode
-	mov	r0, #0x13
-	msr	cpsr, r0
-	ldr	sp, =__sp_svc
-
-	//system (user) mode
-	mov	r0, #0x1F
-	msr	cpsr, r0
-	ldr	sp, =__sp_usr
-
-	//get current console mode
-	mov	r12, #0x4000000
-	ldrb r11, [r12,r12,lsr #12]
-	and	r11, r11, #0x3
-
-	//debug: go straight to main method
-    /*mov r0, #0 //argc
-    mov r1, #0 //argv
-
-	ldr lr, =shutdown
-	ldr	r0, =main
-	blx r0*/
-
-	cmp	r11, #1
-	bne	NotDSi
+	//ARM system mode
+	mov r0, #0x1F
+	msr cpsr, r0
+	sub r1, r1, #0x100
+	mov sp, r1
 
 	//
 	// configure memory protection unit
@@ -66,7 +43,7 @@ ASM_FUNC _dsi_start
 	mcr p15, 0, r0, c7, c10, 4 //flush write buffer
 
     //set DTCM size/base
-	ldr r0, =__dtcm_start
+/*	ldr r0, =__dtcm_start
 	add r0, r0, #0x0A //dtcm size (512 shl 5, lsb is reserved so A becomes 5)
 	mcr p15, 0, r0, c9, c1, 0
 
@@ -128,12 +105,40 @@ ASM_FUNC _dsi_start
     ldr r1, =0x51005
     mrc p15, 0, r0, c1, c0, 0
     orr r0, r0, r1
-    mcr p15, 0, r0, c1, c0, 0
+    mcr p15, 0, r0, c1, c0, 0*/
+
+    //
+    // set up stacks
+    //
+
+    //irq mode
+	mov	r0, #0x12
+	msr	cpsr, r0
+	ldr	sp, =__sp_irq
+
+    //svc mode
+	mov	r0, #0x13
+	msr	cpsr, r0
+	ldr	sp, =__sp_svc
+
+	//system (user) mode
+	mov	r0, #0x1F
+	msr	cpsr, r0
+	ldr	sp, =__sp_usr
+
+	//get current console mode
+	mov	r12, #0x4000000
+	ldrb r11, [r12,r12,lsr #12]
+	and	r11, r11, #0x3
+
+    //TODO:
+	//cmp	r11, #1
+	//bne	NotDSi
 
     //
     // arm7 sync
     //
-
+/*
     //get current value of remote IPCSYNC register
     ldr r2, [r12, #0x180]
     and r2, r2, #0xF
@@ -149,7 +154,7 @@ arm7_sync_lock:
     and r0, r0, #0xF
     eor r0, r0, #0xF
     cmp r0, r2
-    bne arm7_sync_lock
+    bne arm7_sync_lock*/
 
     //copy code into actual ITCM
     ldr r0, =__itcm_base

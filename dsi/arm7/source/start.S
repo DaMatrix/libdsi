@@ -8,6 +8,9 @@ ASM_FUNC _init
     bx lr
 
 ASM_FUNC _dsi_start
+    //debug: spinlock forever
+    b _dsi_start
+
 	mov	r0, #0x04000000		@ IME = 0;
 	mov	r1, #0
 	str	r1, [r0, #0x208]
