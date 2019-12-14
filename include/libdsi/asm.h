@@ -17,10 +17,7 @@
 #error "Neither ARM7 nor ARM9 is defined!"
 #endif
 
-.macro ASM_FUNC name section=text
-#ifdef ARM9
-    //.section .\section\().\name\(), "ax", %progbits
-#endif
+.macro ASM_FUNC name
     .global \name
     .type \name, %function
 \name:

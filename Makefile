@@ -7,7 +7,7 @@ export LIBDSI_REVISION	:=	0
 export LIBDSI_SUFFIX	:=	-SNAPSHOT
 export VERSION			:=	$(LIBDSI_MAJOR).$(LIBDSI_MINOR).$(LIBDSI_REVISION)$(LIBDSI_SUFFIX)
 
-export CFLAGS		:=	-mthumb -mthumb-interwork -Wall -ffunction-sections -fdata-sections -fomit-frame-pointer -ffast-math -flto=1 -fno-fat-lto-objects -DDSI
+export CFLAGS		:=	-mthumb -mthumb-interwork -Wall -ffunction-sections -fdata-sections -fomit-frame-pointer -flto=1 -fno-fat-lto-objects -ffast-math -DDSI
 export CXXFLAGS		:=	-fno-rtti
 export ASFLAGS		:=
 export LDFLAGS		:=	-Wl,--nmagic -Wl,-Map,$(notdir $*).map -fuse-linker-plugin

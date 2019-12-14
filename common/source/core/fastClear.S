@@ -1,9 +1,10 @@
 #include <libdsi/asm.h>
 
     .arm
+    .section .itcm
 
     .align 4
-ASM_FUNC fastClear itcm
+ASM_FUNC fastClear
     add r2, r0, r1
     cmp r2, r0
     bxeq lr //immediately return if 0 bytes

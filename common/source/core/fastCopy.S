@@ -1,9 +1,10 @@
 #include <libdsi/asm.h>
 
     .arm
+    .section .itcm
 
     .align 4
-ASM_FUNC fastCopy itcm
+ASM_FUNC fastCopy
     lsr r3, r2, #5
     cmp r3, #0
     beq _fastCopy_words_check
