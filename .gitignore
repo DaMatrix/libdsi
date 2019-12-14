@@ -16,7 +16,7 @@ release/
 *.map
 cmake*/
 .gradle/
-/dsi/include/libdsi/version.h
+/include/libdsi/version.h
 
 /gcc/
 /temp/

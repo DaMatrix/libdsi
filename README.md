@@ -4,4 +4,4 @@ please disregard the project name, i can't make up my mind as to what i actually
 
 ## (Functional) Subprojects
 
-- [dsilink](https://github.com/DaMatrix/libdsi/tree/master/dsilink)
+- [dsilink](https://github.com/DaMatrix/dsilink/)
