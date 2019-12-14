@@ -8,10 +8,10 @@ clean:
 	@rm -f $(OUTFILES)
 
 %7.o: %7.S
-	@$(CC) -x assembler-with-cpp -marm -I$(TOPDIR)/dsi/include -DARM7 -c $< -o $@
+	@$(CC) -x assembler-with-cpp -marm -I$(TOPDIR)/include -DARM7 -c $< -o $@
 
 %9.o: %9.S
-	@$(CC) -x assembler-with-cpp -marm -I$(TOPDIR)/dsi/include -DARM9 -c $< -o $@
+	@$(CC) -x assembler-with-cpp -marm -I$(TOPDIR)/include -DARM9 -c $< -o $@
 
 dsi-arm7.specs: .FORCE
 	@echo "%rename link                old_link" > $@
@@ -26,7 +26,7 @@ dsi-arm9.specs: .FORCE
 	@echo "%rename link                old_link" > $@
 	@echo "" >> $@
 	@echo "*link:" >> $@
-	@echo "%(old_link) -T $(DEVKITARM)/arm-none-eabi/lib/ds_arm9.ld%s -T $(DEVKITARM)/arm-none-eabi/lib/dsi_arm9.mem%s --gc-sections" >> $@
+	@echo "%(old_link) -T $(DEVKITARM)/arm-none-eabi/lib/dsi_arm9.mem%s -T $(LIBDSI_HOME)/link/dsi-arm9.ld%s --gc-sections" >> $@
 	@echo "" >> $@
 	@echo "*startfile:" >> $@
 	@echo "$(LIBDSI_HOME)/link/crt0-dsi-arm9%O%s crti%O%s crtbegin%O%s" >> $@

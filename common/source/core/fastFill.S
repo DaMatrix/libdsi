@@ -8,7 +8,7 @@ ASM_FUNC fastFillHalfWords
     orr r0, r0, r0, lsl#16
 
 ASM_FUNC fastFill
-    lsr r3, r2, #5
+    movs r3, r2, lsr#5
     beq _fastFill_words_check
     add r3, r1, r3, lsl #5
     push {r6-r11}
@@ -25,7 +25,7 @@ _fastFill_chunks:
     blt _fastFill_chunks
     pop {r6-r11}
 _fastFill_words_check:
-    and r3, r2, #0x1F
+    ands r3, r2, #0x1F
     bxeq lr
     add r3, r3, r1
 _fastFill_words:

@@ -5,7 +5,7 @@
 #include <libdsi/version.h>
 
 namespace dsi {
-    namespace memory {
+    namespace mem {
         /**
          * Copies the specified memory region to the given destination.
          *

@@ -1,260 +1,224 @@
-/*--------------------------------------------------------------------------------
-	This Source Code Form is subject to the terms of the Mozilla Public License,
-	v. 2.0. If a copy of the MPL was not distributed with this file, You can
-	obtain one at https://mozilla.org/MPL/2.0/.
---------------------------------------------------------------------------------*/
+#include <libdsi/asm.h>
 
-//TODO: rewrite this
+    .equ _libnds_argv,0x02FFFE70
 
-// DS processor selection
-	.arch	armv5te
-	.cpu	arm946e-s
+    .section .crt0, "ax"
 
-	.equ	_libnds_argv,0x02FFFE70
+    .arm
+    .align 4
 
-	.section .crt0, "ax"
-	.global _start
-	.align	4
-	.arm
-_start:
-	mov	r0, #0x04000000		// IME = 0;
-	str	r0, [r0, #0x208]
-	
-	// set sensible stacks to allow bios call
+ASM_FUNC _start
+    //disable all interrupts (set Interrupt Master Enable to 0)
+    mov r0, #0x04000000
+    str r0, [r0, #0x208]
 
-	mov	r0, #0x13		// Switch to SVC Mode
-	msr	cpsr, r0
-	mov	r1,#0x03000000
-	sub	r1,r1,#0x1000
-	mov	sp,r1
-	mov	r0, #0x1F		// Switch to System Mode
-	msr	cpsr, r0
-	sub	r1,r1,#0x100
-	mov	sp,r1
+    //
+    // set temporary stack
+    //
 
-	ldr	r3, =__libnds_mpu_setup
-	blx	r3
+    //arm svc mode
+    mov r0, #0x13
+    msr cpsr, r0
+    mov r1, #0x03000000
+    sub r1, r1, #0x1000
+    mov sp, r1
 
-	mov	r0, #0x12		// Switch to IRQ Mode
-	msr	cpsr, r0
-	ldr	sp, =__sp_irq		// Set IRQ stack
+    //arm system mode
+    mov r0, #0x1F
+    msr cpsr, r0
+    sub r1, r1, #0x100
+    mov sp, r1
 
-	mov	r0, #0x13		// Switch to SVC Mode
-	msr	cpsr, r0
-	ldr	sp, =__sp_svc		// Set SVC stack
+    //
+    // setup memory protection
+    //
 
-	mov	r0, #0x1F		// Switch to System Mode
-	msr	cpsr, r0
-	ldr	sp, =__sp_usr		// Set user stack
+    //TODO: rewrite this for full libnds separation
+    ldr r3, =__libnds_mpu_setup
+    blx r3
 
-	mov	r12, #0x4000000		// Read system ROM status (NTR/TWL)
-	ldrb	r11, [r12,r12,lsr #12]
-	and	r11, r11, #0x3
+    //
+    // set actual stack
+    //
 
-	mov	r9, #(0x0<<8)		// Synchronize with ARM7
-	str	r9, [r12, #0x180]
-	mov	r9, #0x9
-	bl	IPCSync
-	mov	r9, #(0xA<<8)
-	str	r9, [r12, #0x180]
-	mov	r9, #0xB
-	bl	IPCSync
-	mov	r9, #(0xC<<8)
-	str	r9, [r12, #0x180]
-	mov	r9, #0xD
-	bl	IPCSync
-	mov	r9, r11, lsl #8
-	str	r9, [r12, #0x180]
-	mov	r9, #0
-	bl	IPCSync
-	str	r9, [r12, #0x180]
+    //arm irq mode
+    mov r0, #0x12
+    msr cpsr, r0
+    ldr sp, =__sp_irq
 
-	ldr	r1, =__itcm_lma		// Copy instruction tightly coupled memory (itcm section) from LMA to VMA
-	ldr	r2, =__itcm_start
-	ldr	r4, =__itcm_end
-	bl	CopyMemCheck
+    //arm svc mode
+    mov r0, #0x13
+    msr cpsr, r0
+    ldr sp, =__sp_svc
 
-	ldr	r1, =__vectors_lma	// Copy reserved vectors area (itcm section) from LMA to VMA
-	ldr	r2, =__vectors_start
-	ldr	r4, =__vectors_end
-	bl	CopyMemCheck
+    //arm system mode
+    mov r0, #0x1F
+    msr cpsr, r0
+    ldr sp, =__sp_usr
 
-	ldr	r1, =__dtcm_lma		// Copy data tightly coupled memory (dtcm section) from LMA to VMA
-	ldr	r2, =__dtcm_start
-	ldr	r4, =__dtcm_end
-	bl	CopyMemCheck
+    //check for current console mode
+    mov r12, #0x4000000
+    ldrb r11, [r12, r12, lsr#12]
+    and r11, r11, #0x3
+    cmp r11, #1
+    movne r11, #0 //only accept DSi mode, everything else is invalid
 
-	cmp	r11, #1
-	ldrne	r10, =__end__		// (DS mode) heap start
-	ldreq	r10, =__twl_end__	// (DSi mode) heap start
-	bl	checkARGV		// check and process argv trickery
+    //
+    // ARM7 sync
+    //
 
-	ldr	r0, =__bss_start__	// Clear BSS section
-	ldr	r1, =__bss_end__
-	sub	r1, r1, r0
-	bl	ClearMem
+    //libnds sync process:
+    //ARM9 sends 0x0
+    //ARM7 replies with 0x9
+    //ARM9 replies with 0xA
+    //ARM7 replies with 0xB
+    //ARM9 replies with 0xC
+    //ARM7 replies with 0xD
+    //ARM9 replies with current DSi mode flag
+    //ARM7 copies code into WRAM from main RAM and then replies with 0x0, sync is completed
 
-	ldr	r0, =__sbss_start	// Clear SBSS section 
-	ldr	r1, =__sbss_end
-	sub	r1, r1, r0
-	bl	ClearMem
+    //TODO: redo this
+    mov r9, #(0x0 << 8)
+    str r9, [r12, #0x180]
+    mov r9, #0x9
+    bl IPCSync
+    mov r9, #(0xA << 8)
+    str r9, [r12, #0x180]
+    mov r9, #0xB
+    bl IPCSync
+    mov r9, #(0xC << 8)
+    str r9, [r12, #0x180]
+    mov r9, #0xD
+    bl IPCSync
+    mov r9, r11, lsl #8
+    str r9, [r12, #0x180]
+    mov r9, #0
+    bl IPCSync
+    str r9, [r12, #0x180]
 
-	cmp	r11, #1
-	bne	NotTWL
-	ldr	r9, =__dsimode		// set DSi mode flag
-	strb	r11, [r9]
+    //
+    // move memory regions to their actual positions
+    //
 
-	// Copy TWL area (arm9i section) from LMA to VMA
-	ldr	r1, =0x02ffe1c8		// Get ARM9i LMA from header
-	ldr	r1, [r1]
+    //itcm code
+    ldr r0, =__itcm_lma
+    ldr r1, =__itcm_start
+    ldr r2, =__itcm_end
+    sub r2, r2, r1
+    lsr r2, r2, #2
+    swi 0x0C0000 //CpuFastSet
 
-	ldr	r2, =__arm9i_start__
-	cmp	r1, r2			// skip copy if LMA=VMA
-	ldrne	r4, =__arm9i_end__
-	blne	CopyMemCheck
+    ldr r4, =fastCopy //fastCopy is now located in ITCM, so we can use it instead of bugged BIOS CpuFastSet function
 
-	ldr	r0, =__twl_bss_start__	// Clear TWL BSS section
-	ldr	r1, =__twl_bss_end__
-	sub	r1, r1, r0
-	bl	ClearMem
+    //vectors (also goes into itcm)
+    ldr r0, =__vectors_lma
+    ldr r1, =__vectors_start
+    ldr r2, =__vectors_end
+    sub r2, r2, r1
+    blx r4
 
-NotTWL:
-	ldr	r0, =_libnds_argv
+    //dtcm
+    //TODO: is this even needed? DTCM should really only be used for stack
+    ldr r0, =__dtcm_lma
+    ldr r1, =__dtcm_start
+    ldr r2, =__dtcm_end
+    sub r2, r2, r1
+    blx r4
 
-	// reset heap base
-	ldr	r2, [r0,#20]		// newheap base
-	cmp	r2, #0
-	moveq	r2, r10
-	ldr	r1, =fake_heap_start	// set heap start
-	str	r2, [r1]
+    //cmp r11, #1
+    //ldrne r10, =__end__ // (DS mode) heap start
+    //ldreq r10, =__twl_end__ // (DSi mode) heap start
+    ldr r10, =__twl_end__
 
-	ldr	r1, =fake_heap_end	// set heap end
-	sub	r8, r8,#0xc000
-	str	r8, [r1]
+    ldr r4, =fastClear
 
-	push	{r0}
-	ldr	r0, =__secure_area__
-	ldr	r3, =initSystem
-	blx	r3			// system initialisation
+    //clear bss
+    ldr r0, =__bss_start__
+    ldr r1, =__bss_end__
+    sub r1, r1, r0
+    blx r4
 
-	ldr	r3, =__libc_init_array	// global constructors
-	blx	r3
+    //clear TWL mode bss
+    //TODO: there should only be one BSS section! merge TWL stuff with NTR stuff
+    ldr r0, =__twl_bss_start__
+    ldr r1, =__twl_bss_end__
+    sub r1, r1, r0
+    blx r4
 
-	cmp	r11, #1
-	bne NotDSi_error
+    //clear sbss
+    ldr r0, =__sbss_start
+    ldr r1, =__sbss_end
+    sub r1, r1, r0
+    blx r4
 
-	pop	{r0}
+    //set DSi mode flag
+    //TODO: remove this for libnds separation
+    ldr r9, =__dsimode
+    strb r11, [r9]
 
-	ldr	r1, [r0,#16]		// argv
-	ldr	r0, [r0,#12]		// argc
+    // Copy TWL area (arm9i section) from LMA to VMA
+    /*ldr r1, =0x02ffe1c8 // Get ARM9i LMA from header
+    ldr r1, [r1]
 
-	ldr	r3, =main
-	ldr	lr, =__libnds_exit
-	bx	r3			// jump to user code
+    ldr r2, =__arm9i_start__
+    cmp r1, r2 // skip copy if LMA=VMA
+    ldrne r4, =__arm9i_end__
+    blne CopyMemCheck*/
 
-// check for a commandline 
-checkARGV:
-	ldr	r0, =_libnds_argv	// argv structure
-	mov	r1, #0
-	str	r1, [r0,#12]		// clear argc
-	str	r1, [r0,#16]		// clear argv
-	
-	ldr	r3, [r0]		// argv magic number
-	ldr	r2, =0x5f617267		// '_arg'
-	cmp	r3, r2
-	strne	r1, [r0,#20]
-	bxne	lr			// bail out if no magic
-	
-	ldr	r1, [r0, #4]		// command line address
-	ldr	r2, [r0, #8]		// length of command line
+    ldr r0, =_libnds_argv
 
-	// copy to heap
-	mov	r3, r10			// initial heap base
-	str	r3, [r0, #4]		// set command line address
+    // reset heap base
+    ldr r2, [r0, #20] // newheap base
+    cmp r2, #0
+    moveq r2, r10
+    ldr r1, =fake_heap_start // set heap start
+    str r2, [r1]
 
-	cmp	r2, #0
-	subnes	r4, r3, r1		// dst-src
-	bxeq	lr			// dst == src || len==0 : nothing to do.
-	
-	cmphi	r2, r4			// len > (dst-src)
-	bhi	.copybackward
+    ldr r1, =fake_heap_end // set heap end
+    sub r8, r8, #0xc000
+    str r8, [r1]
 
-.copyforward:		
-	ldrb	r4, [r1], #1
-	strb	r4, [r3], #1
-	subs	r2, r2, #1
-	bne	.copyforward
-	b	.copydone
+    //load secure area address
+    ldr r0, =__secure_area__ //TODO: i can set this to 0 without causing issues, figure out why actually deleting it or the line in securearea.c prevents the ROM from loading
+    mov r0, #0
 
-.copybackward:
-	subs	r2, r2, #1
-	ldrb	r4, [r1, r2]
-	strb	r4, [r3, r2]
-	bne	.copybackward
+    //run system init
+    ldr r3, =initSystem
+    blx r3
 
-.copydone:
-	push	{lr}
-	ldr	r3, =build_argv
-	blx	r3
-	pop	{lr}
-	bx	lr	
+    //run libc init (static constructors)
+    ldr r3, =__libc_init_array
+    blx r3
 
+    //display error message if not running on DSi
+    cmp r11, #1
+    bne NotDSi_error
 
-// Clear memory to 0x00 if length != 0
-//  r0 = Start Address
-//  r1 = Length
-ClearMem:
-	mov	r2, #3			// Round down to nearest word boundary
-	add	r1, r1, r2		// Shouldn't be needed
-	bics	r1, r1, r2		// Clear 2 LSB (and set Z)
-	bxeq	lr			// Quit if copy size is 0
+    pop {r0}
 
-	mov	r2, #0
-ClrLoop:
-	stmia	r0!, {r2}
-	subs	r1, r1, #4
-	bne	ClrLoop
+    mov r0, #0 //argc
+    mov r1, #0 //argv
 
-	bx	lr
-
-// Copy memory if length	!= 0
-//  r1 = Source Address
-//  r2 = Dest Address
-//  r4 = Dest Address + Length
-CopyMemCheck:
-	sub	r3, r4, r2		// Is there any data to copy?
-// Copy memory
-//  r1 = Source Address
-//  r2 = Dest Address
-//  r3 = Length
-CopyMem:
-	mov	r0, #3			// These commands are used in cases where
-	add	r3, r3, r0		// the length is not a multiple of 4,
-	bics	r3, r3, r0		// even though it should be.
-	bxeq	lr			// Length is zero, so exit
-CIDLoop:
-	ldmia	r1!, {r0}
-	stmia	r2!, {r0}
-	subs	r3, r3, #4
-	bne	CIDLoop
-
-	bx	lr
+    //run main method
+    ldr r3, =main
+    ldr lr, =__libnds_exit
+    bx r3
 
 // Synchronize with ARM7
 IPCSync:
-	ldr	r10, [r12, #0x180]
-	and	r10, r10, #0xF
-	cmp	r10, r9
-	bne	IPCSync
-	bx	lr
+    ldr r10, [r12, #0x180]
+    and r10, r10, #0xF
+    cmp r10, r9
+    bne IPCSync
+    bx lr
 
 NotDSi_error:
     ldr r0, =NotDSi_errormsg
-    ldr r1, =crashSystem
-    blx r1
+    ldr r4, =crashSystem
+    blx r4
 
-    .section .data
+    .section .rodata
 NotDSi_errormsg:
-    .string "Must be run on DSi!"
+    .string "Must be run in DSi mode!"
 
-	.end
+    .end

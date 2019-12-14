@@ -10,7 +10,7 @@ extern "C" void doMain(void* buf);
 
 int main() {
     consoleDemoInit();
-    iprintf("%08x %08x\n", memory::fastCopy, memory::fastClear);
+    iprintf("%08x %08x\n", mem::fastCopy, mem::fastClear);
     iprintf(isDSiMode() ? "DSi mode!\n" : "NTR mode...\n");
 
     powerOn(POWER_ALL_2D);

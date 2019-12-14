@@ -27,13 +27,16 @@ namespace dsi {
     extern "C" void initSystem() {
         for (u32 i = 0; i < 4; i++) { dma::channel(0)->erase(); }
 
-        memory::fastClear((void*) 0x04000000, 0x56);
-        memory::fastClear((void*) 0x04001008, 0x56);
+        //clear display registers
+        mem::fastClear((void*) 0x04000000, 0x56);
+        mem::fastClear((void*) 0x04001000, 0x56); //TODO: figure out why libnds uses 0x04001008 here
 
         //TODO: replace all of these things
         videoSetModeSub(0);
 
         video::resetVRAM();
+
+        if (isDSiMode()) setCpuClock(true);
 
         //libnds stuff that all needs to be replaced
         irqInit();
@@ -56,21 +59,22 @@ namespace dsi {
 
     extern "C" void crashSystem(const char* message) {
         register u32 _lr asm("lr");
-        u32 lr = _lr - (lr & 1 ? 2 : 4);
+        u32 lr = _lr - 2 * (lr & 1);
+        const char* lr_mode = lr & 1 ? "THUMB" : "ARM";
 
         initSystem();
 
         //TODO: replace all of these things
         powerOn(POWER_ALL_2D);
-        videoSetModeSub(MODE_3_2D);
-
-        setBrightness(1, -16);
+        lcdSwap();
+        videoSetMode(MODE_3_2D);
+        mem::fastFillHalfWords(ARGB16(0, 0, 0, 0), bgGetGfxPtr(bgInit(3, BgType_Bmp16, BgSize_B16_256x256, 0, 0)), SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(u16));
 
         consoleDemoInit();
 
-        iprintf("\x1b[41m\x1b[1;1HInternal error at 0x%08x\n", lr);
+        iprintf("\x1b[41m\x1b[1;1HError at 0x%08x (%s)\n", lr, lr_mode);
         if (message != nullptr) {
-            iprintf("\x1b[2;1H%s\n", message);
+            iprintf("\x1b[3;1H%s\n", message);
         }
 
         while (true) { bios::vBlankIntrWait(); }
