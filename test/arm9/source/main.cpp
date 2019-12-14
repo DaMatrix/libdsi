@@ -23,18 +23,4 @@ int main() {
     //auto buf = DISPLAY_TOP;
 
     if (true) doMain(buf);
-
-    u32 color = 1;
-    while (true)    {
-        color ^= color << 13;
-        color ^= color >> 17;
-        color ^= color << 5;
-
-        dmaFillHalfWords((color & 0x7FFF) | 0x8000, buf, SCREEN_WIDTH * sizeof(u16));
-        memory::fastCopy(buf, buf + SCREEN_WIDTH, SCREEN_WIDTH * sizeof(u16));
-        bios::vBlankIntrWait();
-    }
-
-    /*memory::fastCopy(nullptr, nullptr, 32);
-    while (true) bios::vBlankIntrWait();*/
 }

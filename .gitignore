@@ -21,7 +21,6 @@ cmake*/
 /gcc/
 /temp/
 
-/link/thumb/
 /link/*.o
 /link/*.specs
 
@@ -30,4 +29,3 @@ cmake*/
 .clion/
 *.iml
 *.ipr
-

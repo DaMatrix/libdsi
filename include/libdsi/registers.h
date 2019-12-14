@@ -421,6 +421,7 @@ namespace dsi::reg {
      * this method avoids problems caused by switch bounce when a key is newly released or pressed.
      */
     REG_R(0x4000130, u16, KEYINPUT)
+
     /**
      * Key Interrupt Control
      *
