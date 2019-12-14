@@ -49,6 +49,22 @@ namespace dsi {
          */
         extern "C" void fastFillHalfWords(u16 value, void* dst, u32 size);
     }
+
+    #ifdef ARM9
+    /**
+     * Initializes the system.
+     *
+     * Should probably never be called by user code.
+     */
+    extern "C" void initSystem();
+
+    /**
+     * Crashes the system, resetting most things and displaying a full-screen error message on both displays.
+     *
+     * This method will never return.
+     */
+    extern "C" void crashSystem(const char* message);
+    #endif //ARM9
 }
 
 #endif //LIBDSI_CORE_H

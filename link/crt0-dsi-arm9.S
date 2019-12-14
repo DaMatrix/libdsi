@@ -140,6 +140,9 @@ NotTWL:
 	ldr	r3, =__libc_init_array	// global constructors
 	blx	r3
 
+	cmp	r11, #1
+	bne NotDSi_error
+
 	pop	{r0}
 
 	ldr	r1, [r0,#16]		// argv
@@ -245,6 +248,13 @@ IPCSync:
 	bne	IPCSync
 	bx	lr
 
-	.align
-	.pool
+NotDSi_error:
+    ldr r0, =NotDSi_errormsg
+    ldr r1, =crashSystem
+    blx r1
+
+    .section .data
+NotDSi_errormsg:
+    .string "Must be run on DSi!"
+
 	.end

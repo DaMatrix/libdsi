@@ -48,14 +48,24 @@ namespace dsi::dma {
         bool running() { return (this->control & ENABLE) != 0; }
 
         /**
-         * Stops this DMA channel (doing nothing if it is not currently active).
-         */
-        void stop() { this->control = 0; }
-
-        /**
          * Blocks until this DMA channel is finished.
          */
         void wait() { while (this->control & ENABLE) {} }
+
+        /**
+         * Aborts this DMA channel (doing nothing if it is not currently active).
+         */
+        void abort() { this->control = 0; }
+
+        /**
+         * Aborts this DMA channel, additionally resetting all other values to 0.
+         */
+        void erase() {
+            this->control = 0;
+            this->size = 0;
+            this->src = nullptr;
+            this->dst = nullptr;
+        }
 
         /**
          * Simply starts this DMA channel with the given settings.

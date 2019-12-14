@@ -144,3 +144,5 @@ ASM_FUNC _asm_rsa_decrypt_unpad
 ASM_FUNC _asm_rsa_decrypt_unpad_openpgp_sha1
     swi 0x23
     bx lr
+
+    .end

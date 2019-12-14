@@ -1,7 +1,7 @@
 #include <libdsi/arm9/video.h>
 
-namespace dsi::video    {
-    void resetVRAM()    {
+namespace dsi::video {
+    void resetVRAM() {
         reg::VRAMCNT_A(reg::A_Direct);
         reg::VRAMCNT_B(reg::B_Direct);
         reg::VRAMCNT_C(reg::C_Direct);
@@ -20,5 +20,10 @@ namespace dsi::video    {
         reg::VRAMCNT_B(reg::B_Object0);
         reg::VRAMCNT_C(reg::C_BackgroundB);
         reg::VRAMCNT_D(reg::D_ObjectB);
+        reg::VRAMCNT_E(reg::E_Disable);
+        reg::VRAMCNT_F(reg::F_Disable);
+        reg::VRAMCNT_G(reg::G_Disable);
+        reg::VRAMCNT_H(reg::H_Disable);
+        reg::VRAMCNT_I(reg::I_Disable);
     }
 }

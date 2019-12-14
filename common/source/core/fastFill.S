@@ -33,3 +33,5 @@ _fastFill_words:
     cmp r1, r3
     blt _fastFill_words
     bx lr
+
+    .end

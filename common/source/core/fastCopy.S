@@ -25,3 +25,5 @@ _fastCopy_words:
     cmp r0, r3
     blt _fastCopy_words
     bx lr
+
+    .end

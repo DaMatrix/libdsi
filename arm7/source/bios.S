@@ -30,3 +30,5 @@ testirq:
     mov r0, #1
     strb r0, [r12,#0x208]
     bx lr
+
+    .end

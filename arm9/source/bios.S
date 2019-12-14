@@ -49,3 +49,5 @@ check_flags:
     eorne r2, r2, r0
     strne r2, [r3, #-8]
     bx lr
+
+    .end

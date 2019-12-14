@@ -15,3 +15,5 @@ _fastClear_body:
     cmp r0, r2
     blt _fastClear_body
     bx lr
+
+    .end
