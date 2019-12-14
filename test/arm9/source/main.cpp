@@ -6,6 +6,8 @@
 
 using namespace dsi;
 
+extern "C" void doMain(void* buf);
+
 int main() {
     consoleDemoInit();
     iprintf("%08x %08x\n", memory::fastCopy, memory::fastClear);
@@ -20,18 +22,17 @@ int main() {
     auto buf = bgGetGfxPtr(bgInit(3, BgType_Bmp16, BgSize_B16_256x256, 0, 0));
     //auto buf = DISPLAY_TOP;
 
+    if (true) doMain(buf);
+
     u32 color = 1;
     while (true)    {
         color ^= color << 13;
         color ^= color >> 17;
         color ^= color << 5;
 
-        u16 theColor = (color & 0x7FFF) | 0x8000;
-        for (u32 i = 0; i < SCREEN_WIDTH; i++)   {
-            buf[i] = theColor;
-        }
+        dmaFillHalfWords((color & 0x7FFF) | 0x8000, buf, SCREEN_WIDTH * sizeof(u16));
+        memory::fastCopy(buf, buf + SCREEN_WIDTH, SCREEN_WIDTH * sizeof(u16));
         bios::vBlankIntrWait();
-        //memory::fastCopy(buf, buf + SCREEN_WIDTH * sizeof(u16), SCREEN_WIDTH * sizeof(u16));
     }
 
     /*memory::fastCopy(nullptr, nullptr, 32);
