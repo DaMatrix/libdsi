@@ -204,7 +204,6 @@ ASM_FUNC _start
     ldr lr, =__libnds_exit
     bx r3
 
-// Synchronize with ARM7
 IPCSync:
     ldr r10, [r12, #0x180]
     and r10, r10, #0xF

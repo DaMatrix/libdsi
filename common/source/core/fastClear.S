@@ -1,7 +1,9 @@
 #include <libdsi/asm.h>
 
     .arm
+#ifdef ARM9
     .section .itcm
+#endif
 
     .align 4
 ASM_FUNC fastClear //TODO: benchmark to see whether this is actually faster than fastFill with 0
