@@ -194,7 +194,7 @@ ASM_FUNC _start
     cmp r11, #1
     bne NotDSi_error
 
-    pop {r0}
+    //pop {r0}
 
     mov r0, #0 //argc
     mov r1, #0 //argv

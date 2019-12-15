@@ -93,11 +93,11 @@ IPCRecvFlag:
     ldr r3, =fastClear
     bl _blx_r3_stub
 
+NotDSi_prepareCleanup:
     //run libc init (static constructors)
     ldr r3, =__libc_init_array // global constructors
     bl _blx_r3_stub
 
-NotDSi_prepareCleanup:
     //finish arm9 sync (arm9 has been spinlocking the whole time)
     mov r9, #0
     mov r12, #0x4000000 // tell arm9 we are ready

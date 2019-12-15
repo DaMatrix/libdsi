@@ -8,8 +8,25 @@ void powerButtonCB() {
     exitflag = true;
 }
 
-int main() {// clear sound registers
-    dmaFillWords(0, (void*) 0x04000400, 0x100);
+void vcountHandler() {
+    inputGetAndSend();
+}
+
+int main() {
+    //clear sound registers
+    mem::fastClear((void*) 0x04000400, 0x100);
+
+    irqInit();
+    initClockIRQ();
+    fifoInit();
+
+    SetYtrigger(80);
+
+    installSystemFIFO();
+
+    irqSet(IRQ_VCOUNT, vcountHandler);
+
+    irqEnable(IRQ_VCOUNT);
 
     setPowerButtonCB(powerButtonCB);
 
