@@ -3,7 +3,7 @@
 
 #include <libdsi/arm9/dsi9.h>
 
-namespace dsi::video    {
+namespace dsi::video {
     /**
      * Clears and resets all VRAM banks and mappings to their original state.
      */

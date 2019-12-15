@@ -125,23 +125,24 @@ ASM_FUNC _start
     sub r2, r2, r1
     blx r4
 
-    //cmp r11, #1
-    //ldrne r10, =__end__ // (DS mode) heap start
-    //ldreq r10, =__twl_end__ // (DSi mode) heap start
-    ldr r10, =__twl_end__
+    //don't copy arm9i stuff if not on DSi
+    cmp r11, #1
+    bne _crt0_bss
 
+    //arm9i code+data
+    ldr r0, =0x02ffe1c8
+    ldr r0, [r0]
+    ldr r1, =__arm9i_start__
+    ldr r2, =__arm9i_end__
+    sub r2, r2, r1
+    blx r4
+
+_crt0_bss:
     ldr r4, =fastClear
 
     //clear bss
     ldr r0, =__bss_start__
     ldr r1, =__bss_end__
-    sub r1, r1, r0
-    blx r4
-
-    //clear TWL mode bss
-    //TODO: there should only be one BSS section! merge TWL stuff with NTR stuff
-    ldr r0, =__twl_bss_start__
-    ldr r1, =__twl_bss_end__
     sub r1, r1, r0
     blx r4
 
@@ -151,19 +152,25 @@ ASM_FUNC _start
     sub r1, r1, r0
     blx r4
 
+    //don't clear arm9i bss if not on DSi
+    cmp r11, #1
+    bne _crt0_init
+
+    //clear arm9i bss
+    ldr r0, =__twl_bss_start__
+    ldr r1, =__twl_bss_end__
+    sub r1, r1, r0
+    blx r4
+
+    //cmp r11, #1
+    //ldrne r10, =__end__ // (DS mode) heap start
+    //ldreq r10, =__twl_end__ // (DSi mode) heap start
+    ldr r10, =__twl_end__
+
     //set DSi mode flag
     //TODO: remove this for libnds separation
     ldr r9, =__dsimode
     strb r11, [r9]
-
-    // Copy TWL area (arm9i section) from LMA to VMA
-    /*ldr r1, =0x02ffe1c8 // Get ARM9i LMA from header
-    ldr r1, [r1]
-
-    ldr r2, =__arm9i_start__
-    cmp r1, r2 // skip copy if LMA=VMA
-    ldrne r4, =__arm9i_end__
-    blne CopyMemCheck*/
 
     ldr r0, =_libnds_argv
 
@@ -178,6 +185,7 @@ ASM_FUNC _start
     sub r8, r8, #0xc000
     str r8, [r1]
 
+_crt0_init:
     //load secure area address
     ldr r0, =__secure_area__ //TODO: i can set this to 0 without causing issues, figure out why actually deleting it or the line in securearea.c prevents the ROM from loading
     mov r0, #0
@@ -193,8 +201,6 @@ ASM_FUNC _start
     //display error message if not running on DSi
     cmp r11, #1
     bne NotDSi_error
-
-    //pop {r0}
 
     mov r0, #0 //argc
     mov r1, #0 //argv

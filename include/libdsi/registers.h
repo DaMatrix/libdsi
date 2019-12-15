@@ -11,179 +11,220 @@
  * I sincerely hope that copying so much stuff from gbatek won't cause issues, I just want to be able to see documentation of the registers directly
  * in my IDE while I'm coding, without having to have multiple browser tabs open on a second screen to see register info. Martin Korth - if you want
  * me to get rid of all the comments, just tell me.
+ *
+ * All the macro calls have a fully namespaced type because CLion shows up with errors otherwise.
  */
 namespace dsi::reg {
-    #define REG_R(ADDRESS, TYPE, NAME) constexpr TYPE NAME() { return *((TYPE* ) (ADDRESS)); }
-    #define REG_W(ADDRESS, TYPE, NAME) constexpr void NAME(TYPE value) { *((TYPE* ) (ADDRESS)) = value; }
-    #define REG_RW(ADDRESS, TYPE, NAME) REG_R(ADDRESS, TYPE, NAME) REG_W(ADDRESS, TYPE, NAME)
+    #define REG_R(ADDRESS, TYPE, NAME) static volatile const TYPE& NAME = *((volatile TYPE*) ADDRESS);
+    #define REG_W(ADDRESS, TYPE, NAME) static volatile TYPE& NAME = *((volatile TYPE*) ADDRESS);
+    #define REG_RW(ADDRESS, TYPE, NAME) static volatile TYPE& NAME = *((volatile TYPE*) ADDRESS);
 
     /**
      * 2D Engine A+B - DISPSTAT - General LCD Status (Read/Write)
      */
-    REG_RW(0x4000004, u16, DISPSTAT)
+    REG_RW(0x04000004, u16, DISPSTAT)
+
     /**
      * 2D Engine A+B - VCOUNT - Vertical Counter (Read only)
      */
-    REG_R(0x4000006, u16, VCOUNT)
+    REG_R(0x04000006, u16, VCOUNT)
 
     // ARM9 Display Engine A
     #ifdef ARM9
     /**
      * 2D Engine A - DISPCNT - LCD Control (Read/Write)
      */
-    REG_RW(0x4000000, u32, DISPCNT_A)
+    REG_RW(0x04000000, u32, DISPCNT_A)
+
     /**
      * BG0 Control
      */
-    REG_RW(0x4000008, u16, BG0CNT_A)
+    REG_RW(0x04000008, u16, BG0CNT_A)
+
     /**
      * BG1 Control
      */
-    REG_RW(0x40000A0, u16, BG1CNT_A)
+    REG_RW(0x040000A0, u16, BG1CNT_A)
+
     /**
      * BG2 Control
      */
-    REG_RW(0x40000C0, u16, BG2CNT_A)
+    REG_RW(0x040000C0, u16, BG2CNT_A)
+
     /**
      * BG3 Control
      */
-    REG_RW(0x40000E0, u16, BG3CNT_A)
+    REG_RW(0x040000E0, u16, BG3CNT_A)
+
     /**
      * BG0 X-Offset
      */
-    REG_W(0x4000010, u16, BG0HOFS_A)
+    REG_W(0x04000010, u16, BG0HOFS_A)
+
     /**
      * BG0 Y-Offset
      */
-    REG_W(0x4000012, u16, BG0VOFS_A)
+    REG_W(0x04000012, u16, BG0VOFS_A)
+
     /**
      * BG1 X-Offset
      */
-    REG_W(0x4000014, u16, BG1HOFS_A)
+    REG_W(0x04000014, u16, BG1HOFS_A)
+
     /**
      * BG1 Y-Offset
      */
-    REG_W(0x4000016, u16, BG1VOFS_A)
+    REG_W(0x04000016, u16, BG1VOFS_A)
+
     /**
      * BG2 X-Offset
      */
-    REG_W(0x4000018, u16, BG2HOFS_A)
+    REG_W(0x04000018, u16, BG2HOFS_A)
+
     /**
      * BG2 Y-Offset
      */
-    REG_W(0x400001A, u16, BG2VOFS_A)
+    REG_W(0x0400001A, u16, BG2VOFS_A)
+
     /**
      * BG3 X-Offset
      */
-    REG_W(0x400001C, u16, BG3HOFS_A)
+    REG_W(0x0400001C, u16, BG3HOFS_A)
+
     /**
      * BG3 Y-Offset
      */
-    REG_W(0x400001E, u16, BG3VOFS_A)
+    REG_W(0x0400001E, u16, BG3VOFS_A)
+
     /**
      * BG2 Rotation/Scaling Parameter A (dx)
      */
-    REG_W(0x4000020, u16, BG2PA_A)
+    REG_W(0x04000020, u16, BG2PA_A)
+
     /**
      * BG2 Rotation/Scaling Parameter B (dmx)
      */
-    REG_W(0x4000022, u16, BG2PB_A)
+    REG_W(0x04000022, u16, BG2PB_A)
+
     /**
      * BG2 Rotation/Scaling Parameter C (dy)
      */
-    REG_W(0x4000024, u16, BG2PC_A)
+    REG_W(0x04000024, u16, BG2PC_A)
+
     /**
      * BG2 Rotation/Scaling Parameter D (dmy)
      */
-    REG_W(0x4000026, u16, BG2PD_A)
+    REG_W(0x04000026, u16, BG2PD_A)
+
     /**
      * BG2 Reference Point X-Coordinate
      */
-    REG_W(0x4000028, u32, BG2X_A)
+    REG_W(0x04000028, u32, BG2X_A)
+
     /**
      * BG2 Reference Point Y-Coordinate
      */
-    REG_W(0x400002C, u32, BG2Y_A)
+    REG_W(0x0400002C, u32, BG2Y_A)
+
     /**
      * BG3 Rotation/Scaling Parameter A (dx)
      */
-    REG_W(0x4000030, u16, BG3PA_A)
+    REG_W(0x04000030, u16, BG3PA_A)
+
     /**
      * BG3 Rotation/Scaling Parameter B (dmx)
      */
-    REG_W(0x4000032, u16, BG3PB_A)
+    REG_W(0x04000032, u16, BG3PB_A)
+
     /**
      * BG3 Rotation/Scaling Parameter C (dy)
      */
-    REG_W(0x4000034, u16, BG3PC_A)
+    REG_W(0x04000034, u16, BG3PC_A)
+
     /**
      * BG3 Rotation/Scaling Parameter D (dmy)
      */
-    REG_W(0x4000036, u16, BG3PD_A)
+    REG_W(0x04000036, u16, BG3PD_A)
+
     /**
      * BG3 Reference Point X-Coordinate
      */
-    REG_W(0x4000038, u32, BG3X_A)
+    REG_W(0x04000038, u32, BG3X_A)
+
     /**
      * BG3 Reference Point Y-Coordinate
      */
-    REG_W(0x400003C, u32, BG3Y_A)
+    REG_W(0x0400003C, u32, BG3Y_A)
+
     /**
      * Window 0 Horizontal Dimensions
      */
-    REG_W(0x4000040, u16, WIN0H_A)
+    REG_W(0x04000040, u16, WIN0H_A)
+
     /**
      * Window 1 Horizontal Dimensions
      */
-    REG_W(0x4000042, u16, WIN1H_A)
+    REG_W(0x04000042, u16, WIN1H_A)
+
     /**
      * Window 0 Vertical Dimensions
      */
-    REG_W(0x4000044, u16, WIN0V_A)
+    REG_W(0x04000044, u16, WIN0V_A)
+
     /**
      * Window 1 Vertical Dimensions
      */
-    REG_W(0x4000046, u16, WIN1V_A)
+    REG_W(0x04000046, u16, WIN1V_A)
+
     /**
      * Inside of Window 0 and 1
      */
-    REG_RW(0x4000048, u16, WININ_A)
+    REG_RW(0x04000048, u16, WININ_A)
+
     /**
      * Inside of OBJ Window & Outside of Windows
      */
-    REG_RW(0x400004A, u16, WINOUT_A)
+    REG_RW(0x0400004A, u16, WINOUT_A)
+
     /**
      * Mosaic Size
      */
-    REG_W(0x400004C, u16, MOSAIC_A)
+    REG_W(0x0400004C, u16, MOSAIC_A)
+
     /**
      * Color Special Effects Selection
      */
-    REG_RW(0x4000050, u16, BLDCNT_A)
+    REG_RW(0x04000050, u16, BLDCNT_A)
+
     /**
      * Alpha Blending Coefficients
      */
-    REG_RW(0x4000052, u16, BLDALPHA_A)
+    REG_RW(0x04000052, u16, BLDALPHA_A)
+
     /**
      * Brightness (Fade-In/Out) Coefficient
      */
-    REG_W(0x4000054, u16, BLDY_A)
+    REG_W(0x04000054, u16, BLDY_A)
+
     /**
      * 3D Display Control Register
      */
-    REG_RW(0x4000060, u16, DISP3DCNT_A)
+    REG_RW(0x04000060, u16, DISP3DCNT_A)
+
     /**
      * Display Capture Control Register
      */
-    REG_RW(0x4000064, u32, DISPCAPCNT_A)
+    REG_RW(0x04000064, u32, DISPCAPCNT_A)
+
     /**
      * Main Memory Display FIFO
      */
-    REG_RW(0x4000068, u32, DISP_MMEM_FIFO_A)
+    REG_RW(0x04000068, u32, DISP_MMEM_FIFO_A)
+
     /**
      * 2D Engine A - Master Brightness Up/Down
      */
-    REG_RW(0x400006C, u16, MASTER_BRIGHT_A)
+    REG_RW(0x0400006C, u16, MASTER_BRIGHT_A)
     #endif
 
     // ARM9 Display Engine B
@@ -192,147 +233,182 @@ namespace dsi::reg {
     /**
      * 2D Engine B - DISPCNT - LCD Control (Read/Write)
      */
-    REG_RW(0x4000000 + 0x1000, u32, DISPCNT_B)
+    REG_RW(0x04000000 + 0x1000, u32, DISPCNT_B)
+
     /**
      * BG0 Control
      */
-    REG_RW(0x4000008 + 0x1008, u16, BG0CNT_B)
+    REG_RW(0x04000008 + 0x1008, u16, BG0CNT_B)
+
     /**
      * BG1 Control
      */
-    REG_RW(0x40000A0 + 0x1008, u16, BG1CNT_B)
+    REG_RW(0x040000A0 + 0x1008, u16, BG1CNT_B)
+
     /**
      * BG2 Control
      */
-    REG_RW(0x40000C0 + 0x1008, u16, BG2CNT_B)
+    REG_RW(0x040000C0 + 0x1008, u16, BG2CNT_B)
+
     /**
      * BG3 Control
      */
-    REG_RW(0x40000E0 + 0x1008, u16, BG3CNT_B)
+    REG_RW(0x040000E0 + 0x1008, u16, BG3CNT_B)
+
     /**
      * BG0 X-Offset
      */
-    REG_W(0x4000010 + 0x1008, u16, BG0HOFS_B)
+    REG_W(0x04000010 + 0x1008, u16, BG0HOFS_B)
+
     /**
      * BG0 Y-Offset
      */
-    REG_W(0x4000012 + 0x1008, u16, BG0VOFS_B)
+    REG_W(0x04000012 + 0x1008, u16, BG0VOFS_B)
+
     /**
      * BG1 X-Offset
      */
-    REG_W(0x4000014 + 0x1008, u16, BG1HOFS_B)
+    REG_W(0x04000014 + 0x1008, u16, BG1HOFS_B)
+
     /**
      * BG1 Y-Offset
      */
-    REG_W(0x4000016 + 0x1008, u16, BG1VOFS_B)
+    REG_W(0x04000016 + 0x1008, u16, BG1VOFS_B)
+
     /**
      * BG2 X-Offset
      */
-    REG_W(0x4000018 + 0x1008, u16, BG2HOFS_B)
+    REG_W(0x04000018 + 0x1008, u16, BG2HOFS_B)
+
     /**
      * BG2 Y-Offset
      */
-    REG_W(0x400001A + 0x1008, u16, BG2VOFS_B)
+    REG_W(0x0400001A + 0x1008, u16, BG2VOFS_B)
+
     /**
      * BG3 X-Offset
      */
-    REG_W(0x400001C + 0x1008, u16, BG3HOFS_B)
+    REG_W(0x0400001C + 0x1008, u16, BG3HOFS_B)
+
     /**
      * BG3 Y-Offset
      */
-    REG_W(0x400001E + 0x1008, u16, BG3VOFS_B)
+    REG_W(0x0400001E + 0x1008, u16, BG3VOFS_B)
+
     /**
      * BG2 Rotation/Scaling Parameter A (dx)
      */
-    REG_W(0x4000020 + 0x1008, u16, BG2PA_B)
+    REG_W(0x04000020 + 0x1008, u16, BG2PA_B)
+
     /**
      * BG2 Rotation/Scaling Parameter B (dmx)
      */
-    REG_W(0x4000022 + 0x1008, u16, BG2PB_B)
+    REG_W(0x04000022 + 0x1008, u16, BG2PB_B)
+
     /**
      * BG2 Rotation/Scaling Parameter C (dy)
      */
-    REG_W(0x4000024 + 0x1008, u16, BG2PC_B)
+    REG_W(0x04000024 + 0x1008, u16, BG2PC_B)
+
     /**
      * BG2 Rotation/Scaling Parameter D (dmy)
      */
-    REG_W(0x4000026 + 0x1008, u16, BG2PD_B)
+    REG_W(0x04000026 + 0x1008, u16, BG2PD_B)
+
     /**
      * BG2 Reference Point X-Coordinate
      */
-    REG_W(0x4000028 + 0x1008, u32, BG2X_B)
+    REG_W(0x04000028 + 0x1008, u32, BG2X_B)
+
     /**
      * BG2 Reference Point Y-Coordinate
      */
-    REG_W(0x400002C + 0x1008, u32, BG2Y_B)
+    REG_W(0x0400002C + 0x1008, u32, BG2Y_B)
+
     /**
      * BG3 Rotation/Scaling Parameter A (dx)
      */
-    REG_W(0x4000030 + 0x1008, u16, BG3PA_B)
+    REG_W(0x04000030 + 0x1008, u16, BG3PA_B)
+
     /**
      * BG3 Rotation/Scaling Parameter B (dmx)
      */
-    REG_W(0x4000032 + 0x1008, u16, BG3PB_B)
+    REG_W(0x04000032 + 0x1008, u16, BG3PB_B)
+
     /**
      * BG3 Rotation/Scaling Parameter C (dy)
      */
-    REG_W(0x4000034 + 0x1008, u16, BG3PC_B)
+    REG_W(0x04000034 + 0x1008, u16, BG3PC_B)
+
     /**
      * BG3 Rotation/Scaling Parameter D (dmy)
      */
-    REG_W(0x4000036 + 0x1008, u16, BG3PD_B)
+    REG_W(0x04000036 + 0x1008, u16, BG3PD_B)
+
     /**
      * BG3 Reference Point X-Coordinate
      */
-    REG_W(0x4000038 + 0x1008, u32, BG3X_B)
+    REG_W(0x04000038 + 0x1008, u32, BG3X_B)
+
     /**
      * BG3 Reference Point Y-Coordinate
      */
-    REG_W(0x400003C + 0x1008, u32, BG3Y_B)
+    REG_W(0x0400003C + 0x1008, u32, BG3Y_B)
+
     /**
      * Window 0 Horizontal Dimensions
      */
-    REG_W(0x4000040 + 0x1008, u16, WIN0H_B)
+    REG_W(0x04000040 + 0x1008, u16, WIN0H_B)
+
     /**
      * Window 1 Horizontal Dimensions
      */
-    REG_W(0x4000042 + 0x1008, u16, WIN1H_B)
+    REG_W(0x04000042 + 0x1008, u16, WIN1H_B)
+
     /**
      * Window 0 Vertical Dimensions
      */
-    REG_W(0x4000044 + 0x1008, u16, WIN0V_B)
+    REG_W(0x04000044 + 0x1008, u16, WIN0V_B)
+
     /**
      * Window 1 Vertical Dimensions
      */
-    REG_W(0x4000046 + 0x1008, u16, WIN1V_B)
+    REG_W(0x04000046 + 0x1008, u16, WIN1V_B)
+
     /**
      * Inside of Window 0 and 1
      */
-    REG_RW(0x4000048 + 0x1008, u16, WININ_B)
+    REG_RW(0x04000048 + 0x1008, u16, WININ_B)
+
     /**
      * Inside of OBJ Window & Outside of Windows
      */
-    REG_RW(0x400004A + 0x1008, u16, WINOUT_B)
+    REG_RW(0x0400004A + 0x1008, u16, WINOUT_B)
+
     /**
      * Mosaic Size
      */
-    REG_W(0x400004C + 0x1008, u16, MOSAIC_B)
+    REG_W(0x0400004C + 0x1008, u16, MOSAIC_B)
+
     /**
      * Color Special Effects Selection
      */
-    REG_RW(0x4000050 + 0x1008, u16, BLDCNT_B)
+    REG_RW(0x04000050 + 0x1008, u16, BLDCNT_B)
+
     /**
      * Alpha Blending Coefficients
      */
-    REG_RW(0x4000052 + 0x1008, u16, BLDALPHA_B)
+    REG_RW(0x04000052 + 0x1008, u16, BLDALPHA_B)
+
     /**
      * Brightness (Fade-In/Out) Coefficient
      */
-    REG_W(0x4000054 + 0x1008, u16, BLDY_B)
+    REG_W(0x04000054 + 0x1008, u16, BLDY_B)
+
     /**
      * 2D Engine B - Master Brightness Up/Down
      */
-    REG_RW(0x400006C + 0x1000, u16, MASTER_BRIGHT_B)
+    REG_RW(0x0400006C + 0x1000, u16, MASTER_BRIGHT_B)
     #endif
 
     // ARM9 DMA and Timers
@@ -344,10 +420,10 @@ namespace dsi::reg {
      * The most significant address bits are ignored, only the least significant 27 or 28 bits are used (max 07FFFFFFh internal memory, or max
      * 0FFFFFFFh any memory - except SRAM ?!).
      */
-    REG_W(0x40000B0, void*, DMA0SAD)
-    REG_W(0x40000BC, void*, DMA1SAD)
-    REG_W(0x40000C8, void*, DMA2SAD)
-    REG_W(0x40000D4, void*, DMA3SAD)
+    REG_W(0x040000B0, void*, DMA0SAD)
+    REG_W(0x040000BC, void*, DMA1SAD)
+    REG_W(0x040000C8, void*, DMA2SAD)
+    REG_W(0x040000D4, void*, DMA3SAD)
 
     /**
      * DMA 0-2 Destination Address (internal memory)
@@ -356,10 +432,10 @@ namespace dsi::reg {
      * The most significant address bits are ignored, only the least significant 27 or 28 bits are used (max. 07FFFFFFh internal memory or
      * 0FFFFFFFh any memory - except SRAM ?!).
      */
-    REG_W(0x40000B4, void*, DMA0DAD);
-    REG_W(0x40000C0, void*, DMA1DAD);
-    REG_W(0x40000CC, void*, DMA2DAD);
-    REG_W(0x40000D8, void*, DMA3DAD);
+    REG_W(0x040000B4, void*, DMA0DAD);
+    REG_W(0x040000C0, void*, DMA1DAD);
+    REG_W(0x040000CC, void*, DMA2DAD);
+    REG_W(0x040000D8, void*, DMA3DAD);
 
     /**
      * DMA 0-2 Word Count (14-bit)
@@ -368,10 +444,10 @@ namespace dsi::reg {
      * Specifies the number of data units to be transferred, each unit is 16bit or 32bit depending on the transfer type, a value of zero is
      * treated as max length (ie. 4000h, or 10000h for DMA3).
      */
-    REG_W(0x40000B8, u16, DMA0CNT_L)
-    REG_W(0x40000C4, u16, DMA1CNT_L)
-    REG_W(0x40000D0, u16, DMA2CNT_L)
-    REG_RW(0x40000DC, u16, DMA3CNT_L)
+    REG_W(0x040000B8, u16, DMA0CNT_L)
+    REG_W(0x040000C4, u16, DMA1CNT_L)
+    REG_W(0x040000D0, u16, DMA2CNT_L)
+    REG_RW(0x040000DC, u16, DMA3CNT_L)
 
     /**
      * DMA 0-3 Control
@@ -393,14 +469,15 @@ namespace dsi::reg {
      *
      * When accessing OAM (7000000h) or OBJ VRAM (6010000h) by HBlank Timing, then the "H-Blank Interval Free" bit in DISPCNT register must be set.
      */
-    REG_W(0x40000BA, u16, DMA0CNT_H)
-    REG_W(0x40000C6, u16, DMA1CNT_H)
-    REG_W(0x40000D2, u16, DMA2CNT_H)
-    REG_W(0x40000DE, u16, DMA3CNT_H)
+    REG_W(0x040000BA, u16, DMA0CNT_H)
+    REG_W(0x040000C6, u16, DMA1CNT_H)
+    REG_W(0x040000D2, u16, DMA2CNT_H)
+    REG_W(0x040000DE, u16, DMA3CNT_H)
     #endif
 
     // Keypad (ARM7 and ARM9)
     #if defined(ARM7) || defined(ARM9)
+
     /**
      * Key Status
      *
@@ -420,7 +497,7 @@ namespace dsi::reg {
      * It'd be usually recommended to read-out this register only once per frame, and to store the current state in memory. As a side effect,
      * this method avoids problems caused by switch bounce when a key is newly released or pressed.
      */
-    REG_R(0x4000130, u16, KEYINPUT)
+    REG_R(0x04000130, u16, KEYINPUT)
 
     /**
      * Key Interrupt Control
@@ -446,7 +523,7 @@ namespace dsi::reg {
      * In logical OR mode, an interrupt is requested when at least one of the selected buttons is pressed.
      * In logical AND mode, an interrupt is requested when ALL of the selected buttons are pressed.
      */
-    REG_RW(0x4000132, u16, KEYCNT)
+    REG_RW(0x04000132, u16, KEYCNT)
 
     #ifdef ARM7
     /**
@@ -477,12 +554,13 @@ namespace dsi::reg {
      *
      * Interrupts are reportedly not supported for X,Y buttons.
      */
-    REG_R(0x4000136, u16, EXTKEYIN)
+    REG_R(0x04000136, u16, EXTKEYIN)
     #endif
     #endif
 
     // IPC/ROM
     #if defined(ARM7) || defined(ARM9)
+
     /**
      * IPC Synchronize Register
      *
@@ -495,7 +573,8 @@ namespace dsi::reg {
      * 14    R/W  Enable IRQ from remote CPU  (0=Disable, 1=Enable)
      * 15-31 -    Not used
      */
-    REG_RW(0x4000180, u32, IPCSYNC)
+    REG_RW(0x04000180, u32, IPCSYNC)
+
     /**
      * IPC Fifo Control Register
      *
@@ -513,51 +592,61 @@ namespace dsi::reg {
      * 15    R/W  Enable Send/Receive Fifo    (0=Disable, 1=Enable)
      * 16-31 -    Not used
      */
-    REG_RW(0x4000184, u32, IPCFIFOCOUNT)
+    REG_RW(0x04000184, u32, IPCFIFOCOUNT)
+
     /**
      * IPC Send Fifo
      *
      * Bit0-31  Send Fifo Data (max 16 words; 64bytes)
      */
-    REG_W(0x4000188, u32, IPCFIFOSEND)
+    REG_W(0x04000188, u32, IPCFIFOSEND)
+
     /**
      * IPC Receive Fifo
      *
      * Bit0-31  Receive Fifo Data (max 16 words; 64bytes)
      */
-    REG_R(0x4100000, u32, IPCFIFORECV)
+    REG_R(0x04100000, u32, IPCFIFORECV)
+
     /**
      * Gamecard ROM and SPI Control
      */
-    REG_RW(0x40001A0, u16, AUXSPICNT)
+    REG_RW(0x040001A0, u16, AUXSPICNT)
+
     /**
      * Gamecard SPI Bus Data/Strobe
      */
-    REG_RW(0x40001A2, u16, AUXSPIDATA)
+    REG_RW(0x040001A2, u16, AUXSPIDATA)
+
     /**
      * Gamecard bus timing/control
      */
-    REG_RW(0x40001A4, u32, GAMECARD_BUS_TIMING_CONTROL)
+    REG_RW(0x040001A4, u32, GAMECARD_BUS_TIMING_CONTROL)
+
     /**
      * Gamecard bus 8-byte command out
      */
-    REG_RW(0x40001A8, u64, GAMECARD_BUS_CMD_OUT)
+    REG_RW(0x040001A8, u64, GAMECARD_BUS_CMD_OUT)
+
     /**
      * Gamecard Encryption Seed 0 Lower 32bit
      */
-    REG_RW(0x40001B0, u32, GAMECARD_ENCRYPTION_SEED_0_LOWER)
+    REG_RW(0x040001B0, u32, GAMECARD_ENCRYPTION_SEED_0_LOWER)
+
     /**
      * Gamecard Encryption Seed 1 Lower 32bit
      */
-    REG_RW(0x40001B4, u32, GAMECARD_ENCRYPTION_SEED_1_LOWER)
+    REG_RW(0x040001B4, u32, GAMECARD_ENCRYPTION_SEED_1_LOWER)
+
     /**
      * Gamecard Encryption Seed 0 Upper 7bit (bit7-15 unused)
      */
-    REG_RW(0x40001B8, u16, GAMECARD_ENCRYPTION_SEED_0_UPPER)
+    REG_RW(0x040001B8, u16, GAMECARD_ENCRYPTION_SEED_0_UPPER)
+
     /**
      * Gamecard Encryption Seed 1 Upper 7bit (bit7-15 unused)
      */
-    REG_RW(0x40001BA, u16, GAMECARD_ENCRYPTION_SEED_1_UPPER)
+    REG_RW(0x040001BA, u16, GAMECARD_ENCRYPTION_SEED_1_UPPER)
     #endif
 
     // ARM9 Math
@@ -565,39 +654,47 @@ namespace dsi::reg {
     /**
      * Division Control 
      */
-    REG_RW(0x4000280, u8, DIVCNT)
+    REG_RW(0x04000280, u8, DIVCNT)
+
     /**
      * Division Numerator 
      */
-    REG_RW(0x4000290, u64, DIV_NUMER)
+    REG_RW(0x04000290, u64, DIV_NUMER)
+
     /**
      * Division Denominator 
      */
-    REG_RW(0x4000298, u64, DIV_DENOM)
+    REG_RW(0x04000298, u64, DIV_DENOM)
+
     /**
      * Division Quotient (=Numer/Denom) 
      */
-    REG_R(0x40002A0, u64, DIV_RESULT)
+    REG_R(0x040002A0, u64, DIV_RESULT)
+
     /**
      * Division Remainder (=Numer MOD Denom) 
      */
-    REG_R(0x40002A8, u64, DIVREM_RESULT)
+    REG_R(0x040002A8, u64, DIVREM_RESULT)
+
     /**
      * Square Root Control 
      */
-    REG_RW(0x40002B0, u8, SQRTCNT)
+    REG_RW(0x040002B0, u8, SQRTCNT)
+
     /**
      * Square Root Result 
      */
-    REG_R(0x40002B4, u32, SQRT_RESULT)
+    REG_R(0x040002B4, u32, SQRT_RESULT)
+
     /**
      * Square Root Parameter Input 
      */
-    REG_RW(0x40002B8, u64, SQRT_PARAM)
+    REG_RW(0x040002B8, u64, SQRT_PARAM)
+
     /**
      * Graphics Power Control Register 
      */
-    REG_RW(0x4000304, u8, POWCNT1)
+    REG_RW(0x04000304, u8, POWCNT1)
     #endif
 
     // ARM9 3D Display Engine
@@ -621,7 +718,7 @@ namespace dsi::reg {
      * 7,12-15  Direction for Bit3,8-11 (usually 0)
      * 16-31    Not used
      */
-    REG_RW(0x4000138, u32, RTC)
+    REG_RW(0x04000138, u32, RTC)
 
     /**
      * SPI Bus Control/Status Register
@@ -637,7 +734,7 @@ namespace dsi::reg {
      * 14    Interrupt Request   (0=Disable, 1=Enable)
      * 15    SPI Bus Enable      (0=Disable, 1=Enable)
      */
-    REG_RW(0x40001C0, u16, SPICNT)
+    REG_RW(0x040001C0, u16, SPICNT)
 
     /**
      * SPI Bus Data/Strobe Register
@@ -653,11 +750,12 @@ namespace dsi::reg {
      * simultaneously data is received (via input line). Upon transfer completion, the Busy flag goes off (with optional IRQ), and the received
      * value can be then read from SPIDATA, if desired.
      */
-    REG_RW(0x40001C2, u16, SPIDATA)
+    REG_RW(0x040001C2, u16, SPIDATA)
     #endif
 
     // Memory and Interrupt control (ARM7 and ARM9)
     #if defined(ARM7) || defined(ARM9)
+
     /**
      * External Memory Control/Status
      *
@@ -678,33 +776,36 @@ namespace dsi::reg {
      * Bit14=0 is intended for GBA mode, however, writes to this bit appear to be ignored?
      */
     #ifdef ARM7
-    REG_RW(0x4000206, u16, EXMEMSTAT)
+    REG_RW(0x04000206, u16, EXMEMSTAT)
     #else
-    REG_RW(0x4000206, u16, EXMEMCNT)
+    REG_RW(0x04000206, u16, EXMEMCNT)
     #endif
     /**
      * Interrupt Master Enable
      */
-    REG_RW(0x4000208, u32, IME)
+    REG_RW(0x04000208, u32, IME)
+
     /**
      * Interrupt Enable
      */
-    REG_RW(0x4000210, u32, IE)
+    REG_RW(0x04000210, u32, IE)
+
     /**
      * Interrupt Request Flags
      */
-    REG_RW(0x4000214, u32, IF)
+    REG_RW(0x04000214, u32, IF)
     #ifdef ARM7
     /**
      * Interrupt Enable
      * DSi only (additional ARM7 interrupt sources)
      */
-    REG_RW(0x4000218, u32, IE2)
+    REG_RW(0x04000218, u32, IE2)
+
     /**
      * Interrupt Request Flags
      * DSi only (additional ARM7 interrupt sources)
      */
-    REG_RW(0x400021C, u32, IF2)
+    REG_RW(0x0400021C, u32, IF2)
     #endif
     #endif
 
@@ -721,7 +822,7 @@ namespace dsi::reg {
      * This register is initialized by firmware on power-up, don't change.
      * Note: WIFIWAITCNT can be accessed only when enabled in POWCNT2.
      */
-    REG_RW(0x4000206, u16, WIFIWAITCNT)
+    REG_RW(0x04000206, u16, WIFIWAITCNT)
 
     /**
      * Low Power Mode Control
@@ -735,7 +836,7 @@ namespace dsi::reg {
      * The HALTCNT register should not be accessed directly. Instead, the BIOS Halt, Sleep, CustomHalt, IntrWait, or VBlankIntrWait SWI functions
      * should be used.
      */
-    REG_RW(0x4000301, u8, HALTCNT)
+    REG_RW(0x04000301, u8, HALTCNT)
 
     /**
      * Sound/Wifi Power Control Register
@@ -748,7 +849,7 @@ namespace dsi::reg {
      * Note: Bit0 disables the internal Speaker only, headphones are not disabled.
      * Bit1 disables Port 4000206h, and Ports 4800000h-480FFFFh.
      */
-    REG_RW(0x4000304, u16, POWCNT2)
+    REG_RW(0x04000304, u16, POWCNT2)
 
     /**
      * Bios-data-read-protection address
@@ -774,7 +875,7 @@ namespace dsi::reg {
      * Additionally most BIOS functions (eg. CpuSet), include a software-based protection which rejects source addresses in the BIOS area (the
      * only exception is GetCRC16, though it still cannot bypass the BIOSPROT setting).
      */
-    REG_R(0x4000308, u32, BIOSPROT)
+    REG_R(0x04000308, u32, BIOSPROT)
     #endif
     // NDS VRAM
     #ifdef ARM7
@@ -800,7 +901,7 @@ namespace dsi::reg {
      * The register indicates if VRAM C/D are allocated to NDS7 (as Work RAM), ie. if VRAMCNT_C/D are enabled (Bit7=1), with MST=2 (Bit0-2). However,
      * it does not reflect the OFS value.
      */
-    REG_R(0x4000240, VRAMSTAT_Value, VRAMSTAT)
+    REG_R(0x04000240, VRAMSTAT_Value, VRAMSTAT)
     #endif
 
     #ifdef ARM9
@@ -809,7 +910,7 @@ namespace dsi::reg {
     /**
      * The different modes for VRAM bank A.
      */
-    enum VramModeA: u8 {
+    volatile enum VramModeA: u8 {
         A_Disable     = 0,
         A_Direct      = VRAM_ENABLE,
         A_Background0 = VRAM_ENABLE | 1 | (0 << 3),
@@ -827,7 +928,7 @@ namespace dsi::reg {
     /**
      * The different modes for VRAM bank B.
      */
-    enum VramModeB: u8 {
+    volatile enum VramModeB: u8 {
         B_Disable     = 0,
         B_Direct      = VRAM_ENABLE,
         B_Background0 = VRAM_ENABLE | 1 | (0 << 3),
@@ -845,7 +946,7 @@ namespace dsi::reg {
     /**
      * The different modes for VRAM bank C.
      */
-    enum VramModeC: u8 {
+    volatile enum VramModeC: u8 {
         C_Disable     = 0,
         C_Direct      = VRAM_ENABLE,
         C_Background0 = VRAM_ENABLE | 1 | (0 << 3),
@@ -863,7 +964,7 @@ namespace dsi::reg {
     /**
      * The different modes for VRAM bank D.
      */
-    enum VramModeD: u8 {
+    volatile enum VramModeD: u8 {
         D_Disable     = 0,
         D_Direct      = VRAM_ENABLE,
         D_Background0 = VRAM_ENABLE | 1 | (0 << 3),
@@ -881,7 +982,7 @@ namespace dsi::reg {
     /**
      * The different modes for VRAM bank E.
      */
-    enum VramModeE: u8 {
+    volatile enum VramModeE: u8 {
         E_Disable             = 0,
         E_Direct              = VRAM_ENABLE,
         E_Background          = VRAM_ENABLE | 1,
@@ -893,7 +994,7 @@ namespace dsi::reg {
     /**
      * The different modes for VRAM bank F.
      */
-    enum VramModeF: u8 {
+    volatile enum VramModeF: u8 {
         F_Disable              = 0,
         F_Direct               = VRAM_ENABLE,
         F_Background0          = VRAM_ENABLE | 1 | (0 << 3),
@@ -917,7 +1018,7 @@ namespace dsi::reg {
     /**
      * The different modes for VRAM bank G.
      */
-    enum VramModeG: u8 {
+    volatile enum VramModeG: u8 {
         G_Disable              = 0,
         G_Direct               = VRAM_ENABLE,
         G_Background0          = VRAM_ENABLE | 1 | (0 << 3),
@@ -941,7 +1042,7 @@ namespace dsi::reg {
     /**
      * The different modes for VRAM bank H.
      */
-    enum VramModeH: u8 {
+    volatile enum VramModeH: u8 {
         H_Disable              = 0,
         H_Direct               = VRAM_ENABLE,
         H_BackgroundB          = VRAM_ENABLE | 1,
@@ -951,7 +1052,7 @@ namespace dsi::reg {
     /**
      * The different modes for VRAM bank I.
      */
-    enum VramModeI: u8 {
+    volatile enum VramModeI: u8 {
         I_Disable          = 0,
         I_Direct           = VRAM_ENABLE,
         I_BackgroundB      = VRAM_ENABLE | 1,
@@ -1030,15 +1131,15 @@ namespace dsi::reg {
      *   7000000h Engine A OAM (1024 bytes)
      *   7000400h Engine B OAM (1024 bytes)
      */
-    REG_W(0x4000240, VramModeA, VRAMCNT_A)
-    REG_W(0x4000241, VramModeB, VRAMCNT_B)
-    REG_W(0x4000242, VramModeC, VRAMCNT_C)
-    REG_W(0x4000243, VramModeD, VRAMCNT_D)
-    REG_W(0x4000244, VramModeE, VRAMCNT_E)
-    REG_W(0x4000245, VramModeF, VRAMCNT_F)
-    REG_W(0x4000246, VramModeG, VRAMCNT_G)
-    REG_W(0x4000248, VramModeH, VRAMCNT_H)
-    REG_W(0x4000249, VramModeI, VRAMCNT_I)
+    REG_W(0x04000240, VramModeA, VRAMCNT_A)
+    REG_W(0x04000241, VramModeB, VRAMCNT_B)
+    REG_W(0x04000242, VramModeC, VRAMCNT_C)
+    REG_W(0x04000243, VramModeD, VRAMCNT_D)
+    REG_W(0x04000244, VramModeE, VRAMCNT_E)
+    REG_W(0x04000245, VramModeF, VRAMCNT_F)
+    REG_W(0x04000246, VramModeG, VRAMCNT_G)
+    REG_W(0x04000248, VramModeH, VRAMCNT_H)
+    REG_W(0x04000249, VramModeI, VRAMCNT_I)
     #endif
 
     // NDS 32K shared WRAM
@@ -1088,9 +1189,9 @@ namespace dsi::reg {
      * area is then containing mirrors of the 64KB ARM7-WRAM (the memory at 3800000h and up).
      */
     #ifdef ARM9
-    REG_RW(0x4000247, WRAMCNT_Value, WRAMCNT)
+    REG_RW(0x04000247, WRAMCNT_Value, WRAMCNT)
     #else
-    REG_RW(0x4000241, WRAMSTAT_Value, WRAMSTAT)
+    REG_RW(0x04000241, WRAMSTAT_Value, WRAMSTAT)
     #endif
 
     // DSi WRAM registers
@@ -1107,9 +1208,9 @@ namespace dsi::reg {
      * registers; that applies only to that registers, ie. the memory itself isn't write-protected).
      */
     #ifdef ARM9
-    REG_R(0x4004060, u32, MKB9)
+    REG_R(0x04004060, u32, MKB9)
     #else
-    REG_RW(0x4004060, u32, MKB9)
+    REG_RW(0x04004060, u32, MKB9)
     #endif
 
     /**
@@ -1124,15 +1225,15 @@ namespace dsi::reg {
      *   7    Enable (0=Disable, 1=Enable)
      */
     #ifdef ARM9
-    REG_RW(0x4004040, u8, MKB1_0)
-    REG_RW(0x4004041, u8, MKB1_1)
-    REG_RW(0x4004042, u8, MKB1_2)
-    REG_RW(0x4004043, u8, MKB1_3)
+    REG_RW(0x04004040, u8, MKB1_0)
+    REG_RW(0x04004041, u8, MKB1_1)
+    REG_RW(0x04004042, u8, MKB1_2)
+    REG_RW(0x04004043, u8, MKB1_3)
     #else
-    REG_R(0x4004040, u8, MKB1_0)
-    REG_R(0x4004041, u8, MKB1_1)
-    REG_R(0x4004042, u8, MKB1_2)
-    REG_R(0x4004043, u8, MKB1_3)
+    REG_R(0x04004040, u8, MKB1_0)
+    REG_R(0x04004041, u8, MKB1_1)
+    REG_R(0x04004042, u8, MKB1_2)
+    REG_R(0x04004043, u8, MKB1_3)
     #endif
 
     /**
@@ -1146,23 +1247,23 @@ namespace dsi::reg {
      *   7    Enable (0=Disable, 1=Enable)
      */
     #ifdef ARM9
-    REG_RW(0x4004044, u8, MKB2_0)
-    REG_RW(0x4004045, u8, MKB2_1)
-    REG_RW(0x4004046, u8, MKB2_2)
-    REG_RW(0x4004047, u8, MKB2_3)
-    REG_RW(0x4004048, u8, MKB3_0)
-    REG_RW(0x4004049, u8, MKB3_1)
-    REG_RW(0x400404A, u8, MKB3_2)
-    REG_RW(0x400404B, u8, MKB3_3)
+    REG_RW(0x04004044, u8, MKB2_0)
+    REG_RW(0x04004045, u8, MKB2_1)
+    REG_RW(0x04004046, u8, MKB2_2)
+    REG_RW(0x04004047, u8, MKB2_3)
+    REG_RW(0x04004048, u8, MKB3_0)
+    REG_RW(0x04004049, u8, MKB3_1)
+    REG_RW(0x0400404A, u8, MKB3_2)
+    REG_RW(0x0400404B, u8, MKB3_3)
     #else
-    REG_R(0x4004044, u8, MKB2_0)
-    REG_R(0x4004045, u8, MKB2_1)
-    REG_R(0x4004046, u8, MKB2_2)
-    REG_R(0x4004047, u8, MKB2_3)
-    REG_R(0x4004048, u8, MKB3_0)
-    REG_R(0x4004049, u8, MKB3_1)
-    REG_R(0x400404A, u8, MKB3_2)
-    REG_R(0x400404B, u8, MKB3_3)
+    REG_R(0x04004044, u8, MKB2_0)
+    REG_R(0x04004045, u8, MKB2_1)
+    REG_R(0x04004046, u8, MKB2_2)
+    REG_R(0x04004047, u8, MKB2_3)
+    REG_R(0x04004048, u8, MKB3_0)
+    REG_R(0x04004049, u8, MKB3_1)
+    REG_R(0x0400404A, u8, MKB3_2)
+    REG_R(0x0400404B, u8, MKB3_3)
     #endif
 
     /**
@@ -1176,23 +1277,23 @@ namespace dsi::reg {
      *   7    Enable (0=Disable, 1=Enable)
      */
     #ifdef ARM9
-    REG_RW(0x400404C, u8, MKB4_0)
-    REG_RW(0x400404D, u8, MKB4_1)
-    REG_RW(0x400404E, u8, MKB4_2)
-    REG_RW(0x400404F, u8, MKB4_3)
-    REG_RW(0x4004050, u8, MKB5_0)
-    REG_RW(0x4004051, u8, MKB5_1)
-    REG_RW(0x4004052, u8, MKB5_2)
-    REG_RW(0x4004053, u8, MKB5_3)
+    REG_RW(0x0400404C, u8, MKB4_0)
+    REG_RW(0x0400404D, u8, MKB4_1)
+    REG_RW(0x0400404E, u8, MKB4_2)
+    REG_RW(0x0400404F, u8, MKB4_3)
+    REG_RW(0x04004050, u8, MKB5_0)
+    REG_RW(0x04004051, u8, MKB5_1)
+    REG_RW(0x04004052, u8, MKB5_2)
+    REG_RW(0x04004053, u8, MKB5_3)
     #else
-    REG_R(0x400404C, u8, MKB4_0)
-    REG_R(0x400404D, u8, MKB4_1)
-    REG_R(0x400404E, u8, MKB4_2)
-    REG_R(0x400404F, u8, MKB4_3)
-    REG_R(0x4004050, u8, MKB5_0)
-    REG_R(0x4004051, u8, MKB5_1)
-    REG_R(0x4004052, u8, MKB5_2)
-    REG_R(0x4004053, u8, MKB5_3)
+    REG_R(0x0400404C, u8, MKB4_0)
+    REG_R(0x0400404D, u8, MKB4_1)
+    REG_R(0x0400404E, u8, MKB4_2)
+    REG_R(0x0400404F, u8, MKB4_3)
+    REG_R(0x04004050, u8, MKB5_0)
+    REG_R(0x04004051, u8, MKB5_1)
+    REG_R(0x04004052, u8, MKB5_2)
+    REG_R(0x04004053, u8, MKB5_3)
     #endif
 
     /**
@@ -1208,7 +1309,7 @@ namespace dsi::reg {
      *   20-28 End Address   (3000000h+N*10000h-1)   ;=2FFFFFFh..4FEFFFFh
      *   29-31 Not used (0)
      */
-    REG_RW(0x4004054, u32, MKB6)
+    REG_RW(0x04004054, u32, MKB6)
 
     /**
      * MBK7, WRAM-B.
@@ -1223,7 +1324,7 @@ namespace dsi::reg {
      *   19-28 End Address   (3000000h+N*8000h-1)    ;=2FFFFFFh..4FF7FFFh
      *   29-31 Not used (0)
      */
-    REG_RW(0x4004058, u32, MKB7)
+    REG_RW(0x04004058, u32, MKB7)
 
     /**
      * MBK8, WRAM-C.
@@ -1238,7 +1339,7 @@ namespace dsi::reg {
      *   19-28 End Address   (3000000h+N*8000h-1)    ;=2FFFFFFh..4FF7FFFh
      *   29-31 Not used (0)
      */
-    REG_RW(0x400405C, u32, MKB8)
+    REG_RW(0x0400405C, u32, MKB8)
 
     //TODO: there are a LOT more registers that need adding, and more documentation that should be put into the comments for the registers that are already there
 

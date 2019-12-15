@@ -14,7 +14,10 @@ int main() {
     iprintf(isDSiMode() ? "DSi mode!\n" : "NTR mode...\n");
 
     powerOn(POWER_ALL_2D);
-    videoSetMode(MODE_3_2D);
+    iprintf("%08x\n", reg::DISPCNT_A);
+    //videoSetMode(MODE_3_2D);
+    reg::DISPCNT_A = MODE_3_2D;
+    iprintf("%08x\n", REG_DISPCNT);
 
     //auto buf = (u16*) 0x06000000;
     auto buf = bgGetGfxPtr(bgInit(3, BgType_Bmp16, BgSize_B16_256x256, 0, 0));

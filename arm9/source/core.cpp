@@ -77,6 +77,6 @@ namespace dsi {
             iprintf("\x1b[3;1H%s\n", message);
         }
 
-        while (true) { bios::vBlankIntrWait(); }
+        while (true) bios::vBlankIntrWait();
     }
 }

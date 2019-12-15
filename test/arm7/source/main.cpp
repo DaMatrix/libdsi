@@ -8,6 +8,9 @@ void powerButtonCB() {
     exitflag = true;
 }
 
+void vblankHandler() {
+}
+
 void vcountHandler() {
     inputGetAndSend();
 }
@@ -15,6 +18,13 @@ void vcountHandler() {
 int main() {
     //clear sound registers
     mem::fastClear((void*) 0x04000400, 0x100);
+
+    REG_SOUNDCNT |= SOUND_ENABLE;
+    writePowerManagement(PM_CONTROL_REG, (readPowerManagement(PM_CONTROL_REG) & ~PM_SOUND_MUTE) | PM_SOUND_AMP);
+    powerOn(POWER_SOUND);
+
+    readUserSettings();
+    ledBlink(0);
 
     irqInit();
     initClockIRQ();
@@ -25,13 +35,14 @@ int main() {
     installSystemFIFO();
 
     irqSet(IRQ_VCOUNT, vcountHandler);
+    irqSet(IRQ_VBLANK, vblankHandler);
 
-    irqEnable(IRQ_VCOUNT);
+    irqEnable(IRQ_VBLANK | IRQ_VCOUNT);
 
     setPowerButtonCB(powerButtonCB);
 
     while (!exitflag) {
-        if (!(reg::KEYINPUT() & (KEY_SELECT | KEY_START | KEY_L | KEY_R))) {
+        if (!(reg::KEYINPUT & (KEY_SELECT | KEY_START | KEY_L | KEY_R))) {
             exitflag = true;
         }
         bios::vBlankIntrWait();
