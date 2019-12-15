@@ -29,14 +29,14 @@ namespace dsi {
 
         //clear display registers
         mem::fastClear((void*) 0x04000000, 0x56);
-        mem::fastClear((void*) 0x04001000, 0x56); //TODO: figure out why libnds uses 0x04001008 here
+        mem::fastClear((void*) 0x04001000, 0x56); //TODO: figure out why libnds uses 0x04001008 here and then uses videoSetModeSub
+        //videoSetModeSub(0);
+
+        video::resetBrightness(video::DISPLAY_BOTH);
 
         //TODO: replace all of these things
-        videoSetModeSub(0);
 
         video::resetVRAM();
-
-        if (isDSiMode()) setCpuClock(true);
 
         //libnds stuff that all needs to be replaced
         irqInit();
@@ -65,18 +65,37 @@ namespace dsi {
         initSystem();
 
         //TODO: replace all of these things
-        powerOn(POWER_ALL_2D);
-        lcdSwap();
-        videoSetMode(MODE_3_2D);
-        mem::fastFillHalfWords(ARGB16(0, 0, 0, 0), bgGetGfxPtr(bgInit(3, BgType_Bmp16, BgSize_B16_256x256, 0, 0)), SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(u16));
-
+        sys::powerOn(sys::POWER_2D_A | sys::POWER_2D_B);
+        videoSetMode(MODE_0_2D);
         consoleDemoInit();
 
-        iprintf("\x1b[41m\x1b[1;1HError at 0x%08x (%s)\n", lr, lr_mode);
+        setBackdropColor(ARGB16(1, 25, 0, 0));
+        setBackdropColorSub(ARGB16(1, 25, 0, 0));
+
+        iprintf("\x1b[97m\x1b[1;1HError at 0x%08x (%s)\n", lr, lr_mode);
         if (message != nullptr) {
             iprintf("\x1b[3;1H%s\n", message);
         }
 
+        video::swapDisplays();
+
+#if false
+        while (true) {
+            for (int i = 0; i < 60; i++) bios::vBlankIntrWait();
+            video::swapDisplays();
+        }
+#else
         while (true) bios::vBlankIntrWait();
+#endif
+    }
+
+    namespace sys   {
+        void powerOn(u32 val)   {
+            reg::POWCNT1 |= val;
+        }
+
+        void powerOff(u32 val)   {
+            reg::POWCNT1 &= ~(val & ~POWER_LCD);
+        }
     }
 }

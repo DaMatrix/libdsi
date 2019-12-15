@@ -26,4 +26,35 @@ namespace dsi::video {
         reg::VRAMCNT_H = reg::H_Disable;
         reg::VRAMCNT_I = reg::I_Disable;
     }
+
+    void swapDisplays() {
+        reg::POWCNT1 ^= sys::POWER_SWAP_DISPLAYS;
+    }
+
+    void resetBrightness(Display display) {
+        if (display & DISPLAY_TOP)  {
+            reg::MASTER_BRIGHT_A = 0;
+        }
+        if (display & DISPLAY_BOTTOM)   {
+            reg::MASTER_BRIGHT_B = 0;
+        }
+    }
+
+    void setBrightness(Display display, i32 brightness)  {
+        u32 value;
+        if (brightness == 0)    {
+            return resetBrightness(display);
+        } else if (brightness < 0)  {
+            value = (2 << 14) | (u32) (brightness < -16 ? 16 : -brightness);
+        } else if (brightness > 0)  {
+            value = (1 << 14) | (u32) (brightness > 16 ? 16 : brightness);
+        }
+
+        if (display & DISPLAY_TOP)  {
+            reg::MASTER_BRIGHT_A = value;
+        }
+        if (display & DISPLAY_BOTTOM)   {
+            reg::MASTER_BRIGHT_B = value;
+        }
+    }
 }

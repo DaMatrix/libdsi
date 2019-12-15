@@ -3,6 +3,12 @@
 
 #include <libdsi/types.h>
 
+#ifdef __JETBRAINS_IDE__
+#define _ENUM_VOLATILE volatile
+#else
+#define _ENUM_VOLATILE
+#endif
+
 /**
  * Definitions of all NDS registers, along with some basic documentation.
  *
@@ -224,7 +230,7 @@ namespace dsi::reg {
     /**
      * 2D Engine A - Master Brightness Up/Down
      */
-    REG_RW(0x0400006C, u16, MASTER_BRIGHT_A)
+    REG_RW(0x0400006C, u32, MASTER_BRIGHT_A)
     #endif
 
     // ARM9 Display Engine B
@@ -408,7 +414,7 @@ namespace dsi::reg {
     /**
      * 2D Engine B - Master Brightness Up/Down
      */
-    REG_RW(0x0400006C + 0x1000, u16, MASTER_BRIGHT_B)
+    REG_RW(0x0400006C + 0x1000, u32, MASTER_BRIGHT_B)
     #endif
 
     // ARM9 DMA and Timers
@@ -652,49 +658,63 @@ namespace dsi::reg {
     // ARM9 Math
     #ifdef ARM9
     /**
-     * Division Control 
+     * Division Control
      */
     REG_RW(0x04000280, u8, DIVCNT)
 
     /**
-     * Division Numerator 
+     * Division Numerator
      */
     REG_RW(0x04000290, u64, DIV_NUMER)
 
     /**
-     * Division Denominator 
+     * Division Denominator
      */
     REG_RW(0x04000298, u64, DIV_DENOM)
 
     /**
-     * Division Quotient (=Numer/Denom) 
+     * Division Quotient (=Numer/Denom)
      */
     REG_R(0x040002A0, u64, DIV_RESULT)
 
     /**
-     * Division Remainder (=Numer MOD Denom) 
+     * Division Remainder (=Numer MOD Denom)
      */
     REG_R(0x040002A8, u64, DIVREM_RESULT)
 
     /**
-     * Square Root Control 
+     * Square Root Control
      */
     REG_RW(0x040002B0, u8, SQRTCNT)
 
     /**
-     * Square Root Result 
+     * Square Root Result
      */
     REG_R(0x040002B4, u32, SQRT_RESULT)
 
     /**
-     * Square Root Parameter Input 
+     * Square Root Parameter Input
      */
     REG_RW(0x040002B8, u64, SQRT_PARAM)
 
     /**
-     * Graphics Power Control Register 
+     * Graphics Power Control Register
+     *
+     * 0     Enable Flag for both LCDs (0=Disable) (Prohibited, see notes)
+     * 1     2D Graphics Engine A      (0=Disable) (Ports 008h-05Fh, Pal 5000000h)
+     * 2     3D Rendering Engine       (0=Disable) (Ports 320h-3FFh)
+     * 3     3D Geometry Engine        (0=Disable) (Ports 400h-6FFh)
+     * 4-8   Not used
+     * 9     2D Graphics Engine B      (0=Disable) (Ports 1008h-105Fh, Pal 5000400h)
+     * 10-14 Not used
+     * 15    Display Swap (0=Send Display A to Lower Screen, 1=To Upper Screen)
+     * 16-31 Not used
+     *
+     * Use SwapBuffers command once after enabling Rendering/Geometry Engine.
+     * Improper use of Bit0 may damage the hardware?
+     * When disabled, corresponding ports become read-only, corresponding (palette-) memory becomes read-only-zero-filled.
      */
-    REG_RW(0x04000304, u8, POWCNT1)
+    REG_RW(0x04000304, u32, POWCNT1)
     #endif
 
     // ARM9 3D Display Engine
@@ -910,7 +930,7 @@ namespace dsi::reg {
     /**
      * The different modes for VRAM bank A.
      */
-    volatile enum VramModeA: u8 {
+    _ENUM_VOLATILE enum VramModeA: u8 {
         A_Disable     = 0,
         A_Direct      = VRAM_ENABLE,
         A_Background0 = VRAM_ENABLE | 1 | (0 << 3),
@@ -928,7 +948,7 @@ namespace dsi::reg {
     /**
      * The different modes for VRAM bank B.
      */
-    volatile enum VramModeB: u8 {
+    _ENUM_VOLATILE enum VramModeB: u8 {
         B_Disable     = 0,
         B_Direct      = VRAM_ENABLE,
         B_Background0 = VRAM_ENABLE | 1 | (0 << 3),
@@ -946,7 +966,7 @@ namespace dsi::reg {
     /**
      * The different modes for VRAM bank C.
      */
-    volatile enum VramModeC: u8 {
+    _ENUM_VOLATILE enum VramModeC: u8 {
         C_Disable     = 0,
         C_Direct      = VRAM_ENABLE,
         C_Background0 = VRAM_ENABLE | 1 | (0 << 3),
@@ -964,7 +984,7 @@ namespace dsi::reg {
     /**
      * The different modes for VRAM bank D.
      */
-    volatile enum VramModeD: u8 {
+    _ENUM_VOLATILE enum VramModeD: u8 {
         D_Disable     = 0,
         D_Direct      = VRAM_ENABLE,
         D_Background0 = VRAM_ENABLE | 1 | (0 << 3),
@@ -982,7 +1002,7 @@ namespace dsi::reg {
     /**
      * The different modes for VRAM bank E.
      */
-    volatile enum VramModeE: u8 {
+    _ENUM_VOLATILE enum VramModeE: u8 {
         E_Disable             = 0,
         E_Direct              = VRAM_ENABLE,
         E_Background          = VRAM_ENABLE | 1,
@@ -994,7 +1014,7 @@ namespace dsi::reg {
     /**
      * The different modes for VRAM bank F.
      */
-    volatile enum VramModeF: u8 {
+    _ENUM_VOLATILE enum VramModeF: u8 {
         F_Disable              = 0,
         F_Direct               = VRAM_ENABLE,
         F_Background0          = VRAM_ENABLE | 1 | (0 << 3),
@@ -1018,7 +1038,7 @@ namespace dsi::reg {
     /**
      * The different modes for VRAM bank G.
      */
-    volatile enum VramModeG: u8 {
+    _ENUM_VOLATILE enum VramModeG: u8 {
         G_Disable              = 0,
         G_Direct               = VRAM_ENABLE,
         G_Background0          = VRAM_ENABLE | 1 | (0 << 3),
@@ -1042,7 +1062,7 @@ namespace dsi::reg {
     /**
      * The different modes for VRAM bank H.
      */
-    volatile enum VramModeH: u8 {
+    _ENUM_VOLATILE enum VramModeH: u8 {
         H_Disable              = 0,
         H_Direct               = VRAM_ENABLE,
         H_BackgroundB          = VRAM_ENABLE | 1,
@@ -1052,7 +1072,7 @@ namespace dsi::reg {
     /**
      * The different modes for VRAM bank I.
      */
-    volatile enum VramModeI: u8 {
+    _ENUM_VOLATILE enum VramModeI: u8 {
         I_Disable          = 0,
         I_Direct           = VRAM_ENABLE,
         I_BackgroundB      = VRAM_ENABLE | 1,

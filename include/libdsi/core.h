@@ -65,6 +65,34 @@ namespace dsi {
      */
     extern "C" void crashSystem(const char* message);
     #endif //ARM9
+
+    namespace sys   {
+        /**
+         * The different power modes, used for powerOn(u32) and powerOff(u32).
+         */
+        enum PowerModes: u32 {
+            POWER_LCD = 1, //always enabled, disabling can apparently cause hardware damage
+            POWER_2D_A = 1 << 1, //2D engine A
+            POWER_2D_B = 1 << 9, //2D engine B
+            POWER_3D_RENDERING = 1 << 2, //3D rendering engine
+            POWER_3D_GEMOETRY = 1 << 3, //3D geometry engine
+            POWER_SWAP_DISPLAYS = 1 << 15 //if enabled, engine A output is sent to upper screen
+        };
+
+        /**
+         * Powers on the given components.
+         *
+         * @param val the components to enable, see PowerModes
+         */
+        void powerOn(u32 val);
+
+        /**
+         * Powers off the given components.
+         *
+         * @param val the components to disable, see PowerModes
+         */
+        void powerOff(u32 val);
+    }
 }
 
 #endif //LIBDSI_CORE_H

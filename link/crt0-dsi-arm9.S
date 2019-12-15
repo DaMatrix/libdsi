@@ -202,6 +202,8 @@ _crt0_init:
     cmp r11, #1
     bne NotDSi_error
 
+    bl enable_twl_clock
+
     mov r0, #0 //argc
     mov r1, #0 //argv
 
@@ -221,6 +223,19 @@ NotDSi_error:
     ldr r0, =NotDSi_errormsg
     ldr r4, =crashSystem
     blx r4
+
+    .section .itcm
+enable_twl_clock:
+    ldr r0, =0x04004004 //SCFG_CLK
+    ldrh r1, [r0]
+    orr r1, r1, #1
+    mov r2, #8 //cycles to wait
+    strh r1, [r0]
+
+_enable_twl_clock_loop:
+    subs r2, r2, #1
+    bne _enable_twl_clock_loop
+    bx lr
 
     .section .rodata
 NotDSi_errormsg:
