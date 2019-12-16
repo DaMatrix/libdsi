@@ -9,6 +9,21 @@
 #define _ENUM_VOLATILE
 #endif
 
+#define REG_R(ADDRESS, TYPE, NAME) static volatile const TYPE& NAME = *((volatile TYPE*) ADDRESS);
+#define REG_W(ADDRESS, TYPE, NAME) static volatile TYPE& NAME = *((volatile TYPE*) ADDRESS);
+#define REG_RW(ADDRESS, TYPE, NAME) static volatile TYPE& NAME = *((volatile TYPE*) ADDRESS);
+
+#ifdef __JETBRAINS_IDE__
+//basically just hides some erroneous compile errors from CLion
+#define BLOCK_R(ADDRESS, SIZE, TYPE, NAME) static const TYPE (&NAME)[SIZE / sizeof(TYPE)] = nullptr;
+#define BLOCK_W(ADDRESS, SIZE, TYPE, NAME) static TYPE (&NAME)[SIZE / sizeof(TYPE)] = nullptr;
+#define BLOCK_RW(ADDRESS, SIZE, TYPE, NAME) static TYPE (&NAME)[SIZE / sizeof(TYPE)] = nullptr;
+#else
+#define BLOCK_R(ADDRESS, SIZE, TYPE, NAME) static const TYPE (&NAME)[SIZE / sizeof(TYPE)] = (TYPE (&)[SIZE / sizeof(TYPE)]) *((TYPE*) ADDRESS);
+#define BLOCK_W(ADDRESS, SIZE, TYPE, NAME) static TYPE (&NAME)[SIZE / sizeof(TYPE)] = (TYPE (&)[SIZE / sizeof(TYPE)]) *((TYPE*) ADDRESS);
+#define BLOCK_RW(ADDRESS, SIZE, TYPE, NAME) static TYPE (&NAME)[SIZE / sizeof(TYPE)] = (TYPE (&)[SIZE / sizeof(TYPE)]) *((TYPE*) ADDRESS);
+#endif
+
 /**
  * Definitions of all NDS registers, along with some basic documentation.
  *
@@ -21,9 +36,66 @@
  * All the macro calls have a fully namespaced type because CLion shows up with errors otherwise.
  */
 namespace dsi::reg {
-    #define REG_R(ADDRESS, TYPE, NAME) static volatile const TYPE& NAME = *((volatile TYPE*) ADDRESS);
-    #define REG_W(ADDRESS, TYPE, NAME) static volatile TYPE& NAME = *((volatile TYPE*) ADDRESS);
-    #define REG_RW(ADDRESS, TYPE, NAME) static volatile TYPE& NAME = *((volatile TYPE*) ADDRESS);
+    //TODO: move this stuff somewhere else
+    /**
+     * Extended Palettes
+     * When allocating extended palettes, the allocated memory is not mapped to the CPU bus, so the CPU can access extended palette only when
+     * temporarily de-allocating it.
+     *
+     * Color 0 of all standard/extended palettes is transparent, color 0 of BG standard palette 0 is used as backdrop. extended palette memory must
+     * be allocated to VRAM.
+     *
+     * BG Extended Palette enabled in DISPCNT Bit 30, when enabled,
+     *  standard palette --> 16-color tiles (with 16bit bgmap entries) (text)
+     *                       256-color tiles (with 8bit bgmap entries) (rot/scal)
+     *                       256-color bitmaps
+     *                       backdrop-color (color 0)
+     *  extended palette --> 256-color tiles (with 16bit bgmap entries)(text,rot/scal)
+     *
+     * Allocated VRAM is split into 4 slots of 8K each (32K used in total), normally BG0..3 are using Slot 0..3, however BG0 and BG1 can be optionally
+     * changed to BG0=Slot2, and BG1=Slot3 via BG0CNT and BG1CNT.
+     *
+     * OBJ Extended Palette enabled in DISPCNT Bit 31, when enabled,
+     *
+     *  16 colors x 16 palettes --> standard palette memory (=256 colors)
+     *  256 colors x 16 palettes --> extended palette memory (=4096 colors)
+     *
+     * Extended OBJ palette memory must be allocated to VRAM F, G, or I (which are 16K) of which only the first 8K are used for extended
+     * palettes (=1000h 16bit entries).
+     */
+    BLOCK_RW(0x05000000, 0x200, u16, BG_PALETTE_A)
+    BLOCK_RW(0x05000200, 0x200, u16, OBJ_PALETTE_A)
+    BLOCK_RW(0x05000400, 0x200, u16, BG_PALETTE_B)
+    BLOCK_RW(0x05000600, 0x200, u16, OBJ_PALETTE_B)
+
+    /**
+     * The total size of all palette memory.
+     */
+    constexpr u32 SIZE_PALETTE = sizeof(BG_PALETTE_A) + sizeof(OBJ_PALETTE_A) + sizeof(BG_PALETTE_B) + sizeof(OBJ_PALETTE_B);
+
+    BLOCK_RW(0x07000000, 0x400, u16, OAM_A)
+    BLOCK_RW(0x07000400, 0x400, u16, OAM_B)
+
+    /**
+     * The total size of all OAM.
+     */
+    constexpr u32 SIZE_OAM = sizeof(OAM_A) + sizeof(OAM_B);
+
+    BLOCK_RW(0x06800000, 0x20000, u16, VRAM_A)
+    BLOCK_RW(0x06820000, 0x20000, u16, VRAM_B)
+    BLOCK_RW(0x06840000, 0x20000, u16, VRAM_C)
+    BLOCK_RW(0x06860000, 0x20000, u16, VRAM_D)
+    BLOCK_RW(0x06880000, 0x10000, u16, VRAM_E)
+    BLOCK_RW(0x06890000, 0x4000, u16, VRAM_F)
+    BLOCK_RW(0x06894000, 0x4000, u16, VRAM_G)
+    BLOCK_RW(0x06898000, 0x8000, u16, VRAM_H)
+    BLOCK_RW(0x068A0000, 0x4000, u16, VRAM_I)
+
+    /**
+     * The total size of all VRAM banks.
+     */
+    constexpr u32 SIZE_VRAM = sizeof(VRAM_A) + sizeof(VRAM_B) + sizeof(VRAM_C) + sizeof(VRAM_D) + sizeof(VRAM_E)
+                              + sizeof(VRAM_F) + sizeof(VRAM_G) + sizeof(VRAM_H) + sizeof(VRAM_I);
 
     /**
      * 2D Engine A+B - DISPSTAT - General LCD Status (Read/Write)
@@ -1175,22 +1247,22 @@ namespace dsi::reg {
          * ARM9 area contains all 32K of shared-WRAM (plus mirrors).
          * ARM7 area contains mirrors of ARM7-WRAM.
          */
-                ARM9_32K_ARM7_0K      = 0,
+            ARM9_32K_ARM7_0K      = 0,
         /**
          * ARM9 area contains the 2nd 16K of shared-WRAM (plus mirrors).
          * ARM7 area contains the 1st 16K of shared-WRAM (plus mirrors).
          */
-                ARM9_16K_2_ARM7_16K_1 = 1,
+            ARM9_16K_2_ARM7_16K_1 = 1,
         /**
          * ARM9 area contains the 1st 16K of shared-WRAM (plus mirrors).
          * ARM7 area contains the 2nd 16K of shared-WRAM (plus mirrors).
          */
-                ARM9_16K_1_ARM7_16K_2 = 2,
+            ARM9_16K_1_ARM7_16K_2 = 2,
         /**
          * ARM9 area contains undefined data.
          * ARM7 area contains all 32K of shared-WRAM (plus mirrors).
          */
-                ARM9_0K_ARM7_32K      = 3
+            ARM9_0K_ARM7_32K      = 3
     };
 
     /**
@@ -1362,10 +1434,14 @@ namespace dsi::reg {
     REG_RW(0x0400405C, u32, MKB8)
 
     //TODO: there are a LOT more registers that need adding, and more documentation that should be put into the comments for the registers that are already there
-
-    #undef REG_RW
-    #undef REG_W
-    #undef REG_R
 }
+
+#undef BLOCK_RW
+#undef BLOCK_W
+#undef BLOCK_R
+
+#undef REG_RW
+#undef REG_W
+#undef REG_R
 
 #endif //LIBDSI_REGISTERS_H

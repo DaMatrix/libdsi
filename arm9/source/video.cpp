@@ -12,9 +12,9 @@ namespace dsi::video {
         reg::VRAMCNT_H = reg::H_Direct;
         reg::VRAMCNT_I = reg::I_Direct;
 
-        mem::fastClear((void*) 0x05000000, 0x800); //clear palettes
-        mem::fastClear((void*) 0x07000000, 0x800); //clear OAM
-        mem::fastClear((void*) 0x06000000, 0xA4000); //clear VRAM
+        mem::fastClear(&reg::BG_PALETTE_A, reg::SIZE_PALETTE);
+        mem::fastClear(&reg::OAM_A, reg::SIZE_OAM);
+        mem::fastClear(&reg::VRAM_A, reg::SIZE_VRAM);
 
         reg::VRAMCNT_A = reg::A_Background0;
         reg::VRAMCNT_B = reg::B_Object0;
@@ -31,11 +31,19 @@ namespace dsi::video {
         reg::POWCNT1 ^= sys::POWER_SWAP_DISPLAYS;
     }
 
+    void topDisplay(Display display)     {
+        if (display == DISPLAY_A)   {
+            reg::POWCNT1 |= sys::POWER_SWAP_DISPLAYS;
+        } else if (display == DISPLAY_B)    {
+            reg::POWCNT1 &= ~sys::POWER_SWAP_DISPLAYS;
+        }
+    }
+
     void resetBrightness(Display display) {
-        if (display & DISPLAY_TOP)  {
+        if (display & DISPLAY_A)  {
             reg::MASTER_BRIGHT_A = 0;
         }
-        if (display & DISPLAY_BOTTOM)   {
+        if (display & DISPLAY_B)   {
             reg::MASTER_BRIGHT_B = 0;
         }
     }
@@ -50,11 +58,38 @@ namespace dsi::video {
             value = (1 << 14) | (u32) (brightness > 16 ? 16 : brightness);
         }
 
-        if (display & DISPLAY_TOP)  {
+        if (display & DISPLAY_A)  {
             reg::MASTER_BRIGHT_A = value;
         }
-        if (display & DISPLAY_BOTTOM)   {
+        if (display & DISPLAY_B)   {
             reg::MASTER_BRIGHT_B = value;
+        }
+    }
+
+    void setDisplayMode(Display display, DisplayMode mode)  {
+        if (display & DISPLAY_A)    {
+            reg::DISPCNT_A = (reg::DISPCNT_A & ~mask(2, 16)) | (mode << 16);
+        }
+        if (display & DISPLAY_B)    {
+            reg::DISPCNT_B = (reg::DISPCNT_B & ~mask(2, 16)) | (mode << 16);
+        }
+    }
+
+    void setBackgroundMode(Display display, BackgroundMode mode)    {
+        if (display & DISPLAY_A)    {
+            reg::DISPCNT_A = (reg::DISPCNT_A & ~mask(3)) | mode;
+        }
+        if (display & DISPLAY_B)    {
+            reg::DISPCNT_B = (reg::DISPCNT_B & ~mask(3)) | mode;
+        }
+    }
+
+    void setBackdrop(Display display, argb16 color) {
+        if (display & DISPLAY_A)    {
+            reg::BG_PALETTE_A[0] = color;
+        }
+        if (display & DISPLAY_B)    {
+            reg::BG_PALETTE_B[0] = color;
         }
     }
 }

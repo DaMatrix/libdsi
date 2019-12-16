@@ -58,26 +58,27 @@ namespace dsi {
     }
 
     extern "C" void crashSystem(const char* message) {
-        register u32 _lr asm("lr");
-        u32 lr = _lr - 2 * (lr & 1);
-        const char* lr_mode = lr & 1 ? "THUMB" : "ARM";
+        u32 lr;
+        asm volatile("mov %0, lr" : "=r" (lr));
+        auto lr_mode = lr & 1 ? "THUMB" : "ARM";
+        lr -= 4 - 3 * (lr & 1);
 
         initSystem();
 
         //TODO: replace all of these things
         sys::powerOn(sys::POWER_2D_A | sys::POWER_2D_B);
-        videoSetMode(MODE_0_2D);
+        video::setBackgroundMode(video::DISPLAY_A, video::BG_MODE_0);
+        video::setDisplayMode(video::DISPLAY_A, video::DISPLAY_MODE_2D);
         consoleDemoInit();
 
-        setBackdropColor(ARGB16(1, 25, 0, 0));
-        setBackdropColorSub(ARGB16(1, 25, 0, 0));
+        video::setBackdrop(video::DISPLAY_BOTH, argb16(1, 25, 0, 0));
 
         iprintf("\x1b[97m\x1b[1;1HError at 0x%08x (%s)\n", lr, lr_mode);
         if (message != nullptr) {
             iprintf("\x1b[3;1H%s\n", message);
         }
 
-        video::swapDisplays();
+        video::topDisplay(video::DISPLAY_B);
 
 #if false
         while (true) {

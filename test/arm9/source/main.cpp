@@ -23,7 +23,7 @@ int main() {
     auto buf = bgGetGfxPtr(bgInit(3, BgType_Bmp16, BgSize_B16_256x256, 0, 0));
     //auto buf = DISPLAY_TOP;
 
-    video::setBrightness(video::DISPLAY_TOP, -15);
+    video::setBrightness(video::DISPLAY_A, -15);
 
     if (true) doMain(buf);
 
