@@ -7,7 +7,7 @@
 
     .syntax unified
 
-#if defined(ARM9)
+#ifdef ARM9
     .arch armv5te
     .cpu arm946e-s
 #elif defined(ARM7)

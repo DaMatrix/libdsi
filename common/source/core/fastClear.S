@@ -2,7 +2,9 @@
 
     .arm
 #ifdef ARM9
-    .section .itcm
+    .section .itcm.fastClear
+#else
+    .section .text.fastClear
 #endif
 
     .align 4

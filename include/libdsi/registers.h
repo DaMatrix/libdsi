@@ -36,7 +36,6 @@
  * All the macro calls have a fully namespaced type because CLion shows up with errors otherwise.
  */
 namespace dsi::reg {
-    //TODO: move this stuff somewhere else
     /**
      * Extended Palettes
      * When allocating extended palettes, the allocated memory is not mapped to the CPU bus, so the CPU can access extended palette only when
