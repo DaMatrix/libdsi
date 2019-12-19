@@ -34,6 +34,8 @@ namespace dsi {
     typedef std::int64_t  s64;
     typedef std::uint64_t u64;
 
+    typedef void (* Void)();
+
     template<typename T> constexpr T mask(T bits) { return (1 << bits) - 1; }
     template<typename T> constexpr T mask(T bits, T offset) { return ((1 << bits) - 1) << offset; }
 
@@ -48,7 +50,7 @@ namespace dsi {
      * 10-14 Blue channel (0-31)
      * 15    Alpha channel (0: transparent, 1: opaque)
      */
-    struct argb16   {
+    struct argb16 {
         const u16 color;
 
         argb16(u16 color): color(color) {}

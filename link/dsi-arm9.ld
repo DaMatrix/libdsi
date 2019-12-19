@@ -9,16 +9,16 @@ ENTRY(_start)
 
 /* TODO: redo this */
 
-__ewram_end	=	ORIGIN(ewram) + LENGTH(ewram);
-__eheap_end	=	ORIGIN(ewram) + LENGTH(ewram);
+__ewram_end	 =	ORIGIN(ewram) + LENGTH(ewram);
+__eheap_end	 =	ORIGIN(ewram) + LENGTH(ewram);
 
-__dtcm_top	=	ORIGIN(dtcm) + LENGTH(dtcm);
-__irq_flags	=	__dtcm_top - 0x08;
-__irq_vector	=	__dtcm_top - 0x04;
+__dtcm_top	 =	ORIGIN(dtcm) + LENGTH(dtcm);
+__irq_flags	 =	__dtcm_top - 0x08;
+__irq_vector =	__dtcm_top - 0x04;
 
-__sp_svc	=	__dtcm_top - 0x100;
-__sp_irq	=	__sp_svc - 0x100;
-__sp_usr	=	__sp_irq - 0x100;
+__sp_svc	 =	__dtcm_top - 0x100;
+__sp_irq	 =	__sp_svc - 0x100;
+__sp_usr	 =	__sp_irq - 0x100;
 
 PHDRS {
 	main    PT_LOAD FLAGS(7);
