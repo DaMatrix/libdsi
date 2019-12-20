@@ -38,9 +38,20 @@ namespace dsi {
 
         video::resetVRAM();
 
+        #ifdef ARM9
+        //intr::init();
+
         //libnds stuff that all needs to be replaced
         irqInit();
         fifoInit();
+        #else
+        //intr::init();
+
+        //libnds stuff that all needs to be replaced
+        irqInit();
+        fifoInit();
+        #endif
+
 
         fifoSetValue32Handler(FIFO_SYSTEM, systemValueHandler, nullptr);
         fifoSetDatamsgHandler(FIFO_SYSTEM, systemMsgHandler, nullptr);
@@ -65,7 +76,6 @@ namespace dsi {
 
         initSystem();
 
-        //TODO: replace all of these things
         sys::powerOn(sys::POWER_2D_A | sys::POWER_2D_B);
         video::setBackgroundMode(video::DISPLAY_A, video::BG_MODE_0);
         video::setDisplayMode(video::DISPLAY_A, video::DISPLAY_MODE_2D);
@@ -88,6 +98,7 @@ namespace dsi {
 #else
         while (true) bios::vBlankIntrWait();
 #endif
+        while (true);
     }
 
     namespace sys   {

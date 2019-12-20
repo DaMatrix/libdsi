@@ -1,7 +1,7 @@
 #include <libdsi/asm.h>
 
 #ifdef ARM9
-    .section .itcm
+    .section .itcm.stdRootHandler, "ax"
 #endif
 
 ASM_FUNC stdRootHandler
@@ -10,12 +10,13 @@ ASM_FUNC stdRootHandler
     //disable interrupts, or return immedately if interrupts are disabled
     ldr r1, [r12, #0x208]
     cmp r1, #0
-    bxeq lr
+    //bxeq lr
+    moveq pc, lr
     mov r0, #0
     str r0, [r12, #0x208]
 
     //save contents of spsr, old IME, 0x04000000 and lr
-    mrs    r0, spsr
+    mrs r0, spsr
     push {r0, r1, r12, lr}
 
     //read IE and IF registers (0x04000210 and 0x04000214, respectively)
@@ -39,7 +40,7 @@ ASM_FUNC stdRootHandler
 
     //read IE2 and IF2 registers (0x04000218 and 0x0400021C, respectively)
     //r3 has already been incremented by 8 due to write-back mode on ldmia when reading IE and IF
-    ldmia r3, {r1, r2}
+    ldmia r3!, {r1, r2}
     ands r1, r1, r2
 
     //immediately return if no aux interrupts are ready either
@@ -48,9 +49,10 @@ ASM_FUNC stdRootHandler
     //load table and flags addresses if any aux interrupts are ready
     ldr r0, =__irq_flagsaux
     ldr r2, =__interruptHandlers7
-#else
+#endif
 
 _stdRootHandler_update_flags:
+    push {r3}
     //from gbatek:
 
     //DTCM+3FF8h - NDS9 - IRQ Check Bits (hardcoded DTCM address)
@@ -64,6 +66,8 @@ _stdRootHandler_update_flags:
     orr r3, r3, r1
     str r3, [r0]
 
+    mov r12, #1
+
     //find bit offset of pending interrupt
 #ifdef ARM9
     //fast version for ARM9, counts the number of leading zeroes in r1 to find a waiting interrupt in a single cycle
@@ -75,7 +79,6 @@ _stdRootHandler_update_flags:
 #else
     //(much) slower version for ARM7 (since CLZ only exists on ARM9), simply iterates from 0-31 and checks for non-zero bits in r1
     mov r0, #32
-    mov r12, #1
 _stdRootHandler_find_handler_loop:
     sub r0, r0, #1
 
@@ -86,17 +89,56 @@ _stdRootHandler_find_handler_loop:
     beq _stdRootHandler_find_handler_loop
 #endif
 
+    //write bit to IF to clear it
+    pop {r3}
+    lsl r1, r12, r0
+    str r1, [r3, #-4]
+
     //load interrupt handler address into r2 (effectively r2[r0])
     ldr r0, [r2, r0, lsl #2]
 
     //skip if handler is nullptr
     cmp r0, #0
-    bxeq lr
+    beq _stdRootHandler_wrap_up
 
-    //TODO: call handler, restore stuff
+    //store old cpsr value
+    mrs r1, cpsr
+    mov r2, r1
+    bic r1, r1, #0xDF
+    orr r1, r1, #0x1F
+    msr cpsr, r1
+
+    //we have to store the old cpsr value in a separate register and push after updating it because we're now in system mode and have a different stack
+    //same goes for lr, we push it to system stack
+    push {r2, lr}
+
+#ifdef ARM9
+    blx r0
+#else
+    bl _stdRootHandler_arm7_blx_r0
+#endif
+
+_stdRootHandler_post_handler:
+    //pop old cpsr and system mode lr from system stack
+    pop {r1, lr}
+
+    //restore old cpsr, we're now back in interrupt mode
+    msr cpsr, r1
 
 _stdRootHandler_wrap_up:
     //pop old spsr, old IME, 0x04000000 and lr
     pop {r0, r1, r12, lr}
 
-    bx lr
+    //restore old spsr
+    msr spsr, r0
+
+    //restore old IME
+    str r1, [r12, #0x208]
+
+    //bx lr
+    mov pc, lr
+
+#ifdef ARM7
+_stdRootHandler_arm7_blx_r0:
+    bx r0
+#endif

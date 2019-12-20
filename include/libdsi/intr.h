@@ -16,6 +16,8 @@ namespace dsi::intr {
      * @param handler the new root handler to use
      */
     void setRootHandler(Void handler);
+
+    void set(u32 interrupt, Void handler);
 }
 
 #endif //LIBDSI_INTR_H
