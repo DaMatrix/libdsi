@@ -4,16 +4,16 @@
 extern "C" void stdRootHandler();
 extern "C" void stdRootHandler_test();
 
-extern "C" volatile dsi::u32& __irq_flags;
-extern "C" volatile dsi::Void& __irq_vector;
+//extern "C" volatile dsi::u32 __irq_flags;
+extern "C" volatile dsi::Void __irq_vector;
 
-/*
 #ifdef ARM9
 //place interrupt handlers in dtcm on ARM9
-__attribute__((section(".dtcm")))
+//__attribute__((section(".dtcm.__interruptHandlers")))
 #endif
 dsi::Void __interruptHandlers[32];
 
+/*
 #ifdef ARM7
 //additional interrupt handlers for ARM7
 dsi::Void* __interruptHandlers7[32];
@@ -34,7 +34,8 @@ namespace dsi::intr {
         reg::IF = ~0;
 
         //setRootHandler(stdRootHandler);
-        setRootHandler(stdRootHandler_test);
+        //setRootHandler(stdRootHandler_test);
+        setRootHandler(IntrMain);
 
         test_init_irq();
 
@@ -47,9 +48,9 @@ namespace dsi::intr {
         //mem::fastClear(__interruptHandlers7, sizeof(__interruptHandlers7));
 #endif
 
-        reg::IME = 1;
-        //setRootHandler(IntrMain);
+        //reg::IME = 1;
     }
+
 
     void setRootHandler(Void handler)    {
         __irq_vector = handler;

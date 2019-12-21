@@ -23,8 +23,12 @@ extern time_t* punixTime;
 //int __libnds_gtod(struct _reent* ptr, struct timeval* tp, struct timezone* tz);
 #endif
 
+extern dsi::Void __interruptHandlers[32];
+
 namespace dsi {
     extern "C" void initSystem() {
+        reg::IME = 0;
+
         for (u32 i = 0; i < 4; i++) { dma::channel(0)->erase(); }
 
         //clear display registers
@@ -39,10 +43,10 @@ namespace dsi {
         video::resetVRAM();
 
         #ifdef ARM9
-        //intr::init();
+        intr::init();
 
         //libnds stuff that all needs to be replaced
-        irqInit();
+        //irqInit();
         fifoInit();
         #else
         //intr::init();
@@ -51,7 +55,6 @@ namespace dsi {
         irqInit();
         fifoInit();
         #endif
-
 
         fifoSetValue32Handler(FIFO_SYSTEM, systemValueHandler, nullptr);
         fifoSetDatamsgHandler(FIFO_SYSTEM, systemMsgHandler, nullptr);
@@ -66,6 +69,8 @@ namespace dsi {
         extern char* fake_heap_end;
         transfer->bootcode = (__bootstub*) fake_heap_end;
         irqEnable(IRQ_VBLANK);
+
+        reg::IME = 1;
     }
 
     extern "C" void crashSystem(const char* message) {
@@ -74,7 +79,7 @@ namespace dsi {
         auto lr_mode = lr & 1 ? "THUMB" : "ARM";
         lr -= 4 - 3 * (lr & 1);
 
-        initSystem();
+        //initSystem();
 
         sys::powerOn(sys::POWER_2D_A | sys::POWER_2D_B);
         video::setBackgroundMode(video::DISPLAY_A, video::BG_MODE_0);
@@ -87,6 +92,8 @@ namespace dsi {
         if (message != nullptr) {
             iprintf("\x1b[3;1H%s\n", message);
         }
+
+        //iprintf("%08x\n", &__interruptHandlers);
 
         video::topDisplay(video::DISPLAY_B);
 

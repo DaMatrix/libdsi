@@ -226,7 +226,15 @@ NotDSi_error:
 
     .section .itcm
 enable_twl_clock:
-    ldr r0, =0x04004004 //SCFG_CLK
+    //avoid breaking stuff?!?
+    ldr r0, =__dsimode
+    cmp r0, #1
+    ldrne r0, =NotDSi_clock_errormsg
+    ldrne r4, =crashSystem
+    blxne r4
+
+    //SCFG_CLK
+    ldr r0, =0x04004004
     ldrh r1, [r0]
     orr r1, r1, #1
     mov r2, #8 //cycles to wait
@@ -240,5 +248,7 @@ _enable_twl_clock_loop:
     .section .rodata
 NotDSi_errormsg:
     .string "Must be run in DSi mode!"
+NotDSi_clock_errormsg:
+    .string "Attempted to set TWL speed in NDS mode!"
 
     .end

@@ -7,7 +7,7 @@
 #endif
 
 #ifdef ARM9
-	.section .itcm,"ax",%progbits
+	.section .itcm.test_init_irq, "ax"
 #endif
 
 	.extern	irqTable
@@ -23,6 +23,10 @@ _test_init_irq_body:
     subs r3, r3, #1
     bne _test_init_irq_body
     bx lr
+
+#ifdef ARM9
+	.section .itcm.stdRootHandler_test, "ax"
+#endif
 
 	.global	stdRootHandler_test, __cpsr_mask
 @---------------------------------------------------------------------------------

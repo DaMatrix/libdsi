@@ -845,7 +845,7 @@ namespace dsi::reg {
     #endif
 
     // Memory and Interrupt control (ARM7 and ARM9)
-    #if defined(ARM7) || defined(ARM9)
+    #ifdef DSI
 
     /**
      * External Memory Control/Status
