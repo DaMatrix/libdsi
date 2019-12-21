@@ -23,11 +23,9 @@ __attribute__((section(".bss"))) bool __crash_isCrashing;
 
 enum DisplayMode: i32 {
     MODE_REGISTERS,
-    MODE_CPSR,
-    MODE_SPSR,
+    MODE_PS,
 #ifdef _CRASH_DEBUG
-    MODE_CURRENT_CPSR,
-    MODE_CURRENT_SPSR,
+    MODE_CURRENT_PS,
 #endif
     NUM_MODES
 };
@@ -46,17 +44,18 @@ __attribute__((target("arm"),noinline)) u32 getSPSR()    {
 }
 #endif
 
+void _crash_displayPSR(const char* name, u32 val);
+
 extern "C" void _crash_doCrash(const char* message, u32 sp) {
-    //_do_initSystem(__crash_isCrashing);
+    initSystem();
     __crash_isCrashing = true;
 
     sys::powerOn(sys::POWER_2D_A | sys::POWER_2D_B);
 
-    auto topConsole    = (PrintConsole*) malloc(sizeof(PrintConsole));
-    auto bottomConsole = (PrintConsole*) malloc(sizeof(PrintConsole));
+    PrintConsole topConsole, bottomConsole;
 
-    mem::fastCopy(consoleGetDefault(), topConsole, sizeof(PrintConsole));
-    mem::fastCopy(consoleGetDefault(), bottomConsole, sizeof(PrintConsole));
+    mem::fastCopy(consoleGetDefault(), &topConsole, sizeof(PrintConsole));
+    mem::fastCopy(consoleGetDefault(), &bottomConsole, sizeof(PrintConsole));
 
     video::setBackgroundMode(video::DISPLAY_A, video::BG_MODE_0);
     video::setDisplayMode(video::DISPLAY_A, video::DISPLAY_MODE_2D);
@@ -68,14 +67,14 @@ extern "C" void _crash_doCrash(const char* message, u32 sp) {
     //vramSetBankC(VRAM_C_SUB_BG);
     reg::VRAMCNT_C = reg::C_BackgroundB;
 
-    consoleInit(topConsole, topConsole->bgLayer, BgType_Text4bpp, BgSize_T_256x256, topConsole->mapBase, topConsole->gfxBase, true, true);
-    consoleInit(bottomConsole, bottomConsole->bgLayer, BgType_Text4bpp, BgSize_T_256x256, bottomConsole->mapBase, bottomConsole->gfxBase, false, true);
+    consoleInit(&topConsole, topConsole.bgLayer, BgType_Text4bpp, BgSize_T_256x256, topConsole.mapBase, topConsole.gfxBase, true, true);
+    consoleInit(&bottomConsole, bottomConsole.bgLayer, BgType_Text4bpp, BgSize_T_256x256, bottomConsole.mapBase, bottomConsole.gfxBase, false, true);
 
     video::setBackdrop(video::DISPLAY_BOTH, argb16(1, 25, 0, 0));
 
     video::topDisplay(video::DISPLAY_A);
 
-    consoleSelect(topConsole);
+    consoleSelect(&topConsole);
     iprintf("\x1b[97m\n");
     {
         u32 lr = __crash_snapshot.registers[14];
@@ -91,8 +90,6 @@ extern "C" void _crash_doCrash(const char* message, u32 sp) {
         "  A: Page forward\n"
         "  B: Page back\n"
     );
-
-    consoleSelect(bottomConsole);
 
     u32 renderedMode = 0;
     i32 currentMode  = 0;
@@ -119,7 +116,7 @@ extern "C" void _crash_doCrash(const char* message, u32 sp) {
 
         if (renderedMode != (1 << currentMode)) {
             //we need to update the screen
-            consoleSelect(bottomConsole);
+            consoleSelect(&bottomConsole);
             consoleClear();
             iprintf("\x1b[97m\n");
 
@@ -145,69 +142,72 @@ extern "C" void _crash_doCrash(const char* message, u32 sp) {
                     break;
                 }
 #ifdef _CRASH_DEBUG
-                case MODE_CURRENT_CPSR:
-                case MODE_CURRENT_SPSR:
+                case MODE_CURRENT_PS:
 #endif
-                case MODE_CPSR:
-                case MODE_SPSR: {
-                    title = currentMode == MODE_CPSR ? "CPSR            " : "SPSR            ";
-                    u32 val = currentMode == MODE_CPSR ? __crash_snapshot.cpsr : __crash_snapshot.spsr;
+                case MODE_PS: {
+                    title = "PS Registers    ";
+                    u32 vals[2];
+                    vals[0] = __crash_snapshot.cpsr;
+                    vals[1] = __crash_snapshot.spsr;
 #ifdef _CRASH_DEBUG
-                    if (currentMode == MODE_CURRENT_CPSR) {
-                        title = "Current CPSR    ";
-                        val = getCPSR();
-                    } else if (currentMode == MODE_CURRENT_SPSR) {
-                        title = "Current SPSR    ";
-                        val = getSPSR();
+                    if (currentMode == MODE_CURRENT_PS) {
+                        title = "Current PS      ";
+                        vals[0] = getCPSR();
+                        vals[1] = getSPSR();
                     }
 #endif
-                    iprintf(" 0x%08x\n\n", val);
-                    iprintf(" N=%u Z=%u C=%u V=%u Q=%u I=%u F=%u\n", (val >> 31) & 1, (val >> 30) & 1, (val >> 29) & 1, (val >> 28) & 1, (val >> 27) & 1, (val >> 7) & 1, (val >> 6) & 1);
-                    const char* mode = "Invalid?!?";
-                    switch (val & mask(5)) {
-                        case 0x10:
-                            mode = "User";
-                            break;
-                        case 0x11:
-                            mode = "Fast Interrupt";
-                            break;
-                        case 0x12:
-                            mode = "Interrupt";
-                            break;
-                        case 0x13:
-                            mode = "Supervisor";
-                            break;
-                        case 0x16:
-                            mode = "Monitor";
-                            break;
-                        case 0x17:
-                            mode = "Abort";
-                            break;
-                        case 0x1A:
-                            mode = "Hypervisor";
-                            break;
-                        case 0x1B:
-                            mode = "Undefined";
-                            break;
-                        case 0x1F:
-                            mode = "System";
-                            break;
-                    }
-                    iprintf(" Mode=0x%02x (%s)\n", val & mask(5), mode);
-                    iprintf(" Execution State=%s\n", val & bit(5) ? "THUMB" : "ARM");
-                    iprintf(" Endianness=%s\n", val & bit(9) ? "Big" : "Little");
+                    _crash_displayPSR("CPSR", vals[0]);
+                    _crash_displayPSR("SPSR", vals[1]);
                     break;
                 }
                 default:
                     iprintf("Unknown mode: %d", currentMode);
             }
 
-            consoleSelect(topConsole);
-            iprintf("\x1b[22;1H%s", title);
+            consoleSelect(&topConsole);
+            iprintf("\x1b[22;1H%d/%d: %s", currentMode + 1, NUM_MODES, title);
 
             renderedMode = (u32) (1 << currentMode);
         }
 
         bios::vBlankIntrWait();
     }
+}
+
+void _crash_displayPSR(const char* name, u32 val)   {
+    iprintf(" %s=0x%08x\n\n", name, val);
+    iprintf(" N=%u Z=%u C=%u V=%u Q=%u I=%u F=%u\n", (val >> 31) & 1, (val >> 30) & 1, (val >> 29) & 1, (val >> 28) & 1, (val >> 27) & 1, (val >> 7) & 1, (val >> 6) & 1);
+    const char* mode = "Invalid?!?";
+    switch (val & mask(5)) {
+        case 0x10:
+            mode = "User";
+            break;
+        case 0x11:
+            mode = "Fast Interrupt";
+            break;
+        case 0x12:
+            mode = "Interrupt";
+            break;
+        case 0x13:
+            mode = "Supervisor";
+            break;
+        case 0x16:
+            mode = "Monitor";
+            break;
+        case 0x17:
+            mode = "Abort";
+            break;
+        case 0x1A:
+            mode = "Hypervisor";
+            break;
+        case 0x1B:
+            mode = "Undefined";
+            break;
+        case 0x1F:
+            mode = "System";
+            break;
+    }
+    iprintf(" Mode=0x%02x (%s)\n", val & mask(5), mode);
+    iprintf(" Execution State=%s\n", val & bit(5) ? "THUMB" : "ARM");
+    iprintf(" Endianness=%s\n\n\n", val & bit(9) ? "Big" : "Little");
 }

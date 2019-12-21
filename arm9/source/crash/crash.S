@@ -61,8 +61,6 @@ ASM_FUNC crashSystem
     //switch to internal stack
     ldr r0, =_switch_to_internal_stack
     blx r0
-    //ldr sp, =__internal_dummy_stack
-    //add sp, sp, #0x400
 
     //copy entire DTCM to snapshot
     ldr r4, =fastCopy

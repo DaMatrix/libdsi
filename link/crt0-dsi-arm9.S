@@ -188,15 +188,12 @@ _crt0_init:
     ldr r3, =__libc_init_array
     blx r3
 
-    ldr r0, =enable_twl_clock
-    blx r0
-
     //display error message if not running on DSi
     cmp r11, #1
     bne NotDSi_error
 
-    //ldr r0, =enable_twl_clock
-    //blx r0
+    ldr r0, =enable_twl_clock
+    blx r0
 
     mov r0, #0 //argc
     mov r1, #0 //argv
