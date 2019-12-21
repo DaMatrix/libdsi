@@ -48,7 +48,6 @@ namespace dsi::intr {
         reg::IME = 1;
     }
 
-
     void setRootHandler(Void handler)    {
         __irq_vector = handler;
     }

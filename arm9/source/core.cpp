@@ -22,10 +22,12 @@ extern time_t* punixTime;
 //int __libnds_gtod(struct _reent* ptr, struct timeval* tp, struct timezone* tz);
 #endif
 
-//extern dsi::Void __interruptHandlers[32];
-
 namespace dsi {
     extern "C" void initSystem() {
+        _do_initSystem(false);
+    }
+
+    extern "C" void _do_initSystem(bool safe) {
         //reg::IME = 0;
 
         for (u32 i = 0; i < 4; i++) { dma::channel(0)->erase(); }
@@ -37,15 +39,15 @@ namespace dsi {
 
         video::resetBrightness(video::DISPLAY_BOTH);
 
-        //TODO: replace all of these things
-
         video::resetVRAM();
 
         #ifdef ARM9
-        intr::init();
+        if (safe)   {
+            irqInit();
+        } else {
+            intr::init();
+        }
 
-        //libnds stuff that all needs to be replaced
-        //irqInit();
         fifoInit();
         #else
         //intr::init();

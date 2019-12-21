@@ -11,12 +11,20 @@ struct Snapshot {
     u32 registers[16];
     u32 cpsr;
     u32 spsr;
+    u32 stack[0x4000 >> 2];
 };
 
 __attribute__((section(".bss"))) Snapshot __crash_snapshot;
+__attribute__((section(".bss"))) bool __crash_isCrashing;
 
-extern "C" __attribute__((target("arm"))) void _crash_doCrash(const char* message) {
-    dsi::initSystem();
+constexpr i32 MODE_REGISTERS = 0;
+constexpr i32 MODE_CPSR      = 1;
+constexpr i32 MODE_SPSR      = 2;
+
+constexpr u32 NUM_MODES = 3;
+
+extern "C" void _crash_doCrash(const char* message, u32 sp, u32 intended_sp) {
+    _do_initSystem(__crash_isCrashing);
 
     sys::powerOn(sys::POWER_2D_A | sys::POWER_2D_B);
 
@@ -47,26 +55,123 @@ extern "C" __attribute__((target("arm"))) void _crash_doCrash(const char* messag
     iprintf("\x1b[97m\n");
     {
         u32 lr = __crash_snapshot.registers[14];
-        iprintf(" Error at 0x%08x (%s)\n", lr - 4 + 3 * (lr & 1), lr & 1 ? "THUMB" : "ARM");
+        iprintf(" Error at 0x%08x (%s)\n", lr - 4 + 3 * (__crash_snapshot.cpsr & bit(5)), __crash_snapshot.cpsr & bit(5) ? "THUMB" : "ARM");
     }
 
     if (message != nullptr) {
         iprintf("\n %s\n", message);
     }
 
+    iprintf(
+        "\x1b[18;1HSnapshot Controls:\n"
+        "  A: Page forward\n"
+        "  B: Page back\n"
+    );
+
     consoleSelect(bottomConsole);
-    iprintf("\x1b[97m\n");
 
-    iprintf(" CPSR 0x%08x\n", __crash_snapshot.cpsr);
-    iprintf(" SPSR 0x%08x\n", __crash_snapshot.spsr);
+    u32 renderedMode = 0;
+    i32 currentMode  = 0;
 
-    for (u32 i = 0; i <= 12; i++)    {
-        iprintf(" r%-3d 0x%08x\n", i, __crash_snapshot.registers[i]);
+    u32 held    = 0;
+    u32 pressed = 0;
+    u32 repeat = 0;
+
+    while (true) {
+        scanKeys();
+        held = keysHeld();
+        pressed = keysDown();
+        repeat = keysDownRepeat();
+
+        if (pressed & KEY_A) {
+            if (++currentMode >= NUM_MODES)  {
+                currentMode = 0;
+            }
+        } else if (pressed & KEY_B) {
+            if (--currentMode < 0)  {
+                currentMode = NUM_MODES - 1;
+            }
+        }
+
+        if (renderedMode != (1 << currentMode)) {
+            //we need to update the screen
+            consoleSelect(bottomConsole);
+            consoleClear();
+            iprintf("\x1b[97m\n");
+
+            const char* title = "                ";
+
+            switch (currentMode) {
+                case MODE_REGISTERS: {
+                    title = "Registers       ";
+
+                    for (u32 i = 0; i <= 12; i++) {
+                        iprintf(" r%-3d 0x%08x\n", i, __crash_snapshot.registers[i]);
+                    }
+
+                    iprintf(" SP   0x%08x\n", __crash_snapshot.registers[13]);
+                    iprintf(" LR   0x%08x\n", __crash_snapshot.registers[14]);
+                    iprintf(" PC   0x%08x\n\n", __crash_snapshot.registers[15]);
+
+                    iprintf(" CPSR 0x%08x\n", __crash_snapshot.cpsr);
+                    iprintf(" SPSR 0x%08x\n", __crash_snapshot.spsr);
+
+                    iprintf("\n Current SP 0x%08x\n Should be  0x%08x\n", sp, intended_sp);
+                    break;
+                }
+                case MODE_CPSR:
+                case MODE_SPSR: {
+                    title = currentMode == MODE_CPSR ? "CPSR            " : "SPSR            ";
+                    u32 val = currentMode == MODE_CPSR ? __crash_snapshot.cpsr : __crash_snapshot.spsr;
+                    iprintf(" 0x%08x\n\n", val);
+                    iprintf(" N=%u Z=%u C=%u V=%u Q=%u I=%u F=%u\n", (val >> 31) & 1, (val >> 30) & 1, (val >> 29) & 1, (val >> 28) & 1, (val >> 27) & 1, (val >> 7) & 1, (val >> 6) & 1);
+                    const char* mode = "Invalid?!?";
+                    switch (val & mask(5)) {
+                        case 0x10:
+                            mode = "User";
+                            break;
+                        case 0x11:
+                            mode = "Fast Interrupt";
+                            break;
+                        case 0x12:
+                            mode = "Interrupt";
+                            break;
+                        case 0x13:
+                            mode = "Supervisor";
+                            break;
+                        case 0x16:
+                            mode = "Monitor";
+                            break;
+                        case 0x17:
+                            mode = "Abort";
+                            break;
+                        case 0x1A:
+                            mode = "Hypervisor";
+                            break;
+                        case 0x1B:
+                            mode = "Undefined";
+                            break;
+                        case 0x1F:
+                            mode = "System";
+                            break;
+                    }
+                    iprintf(" Mode=0x%02x (%s)\n", val & mask(5), mode);
+                    iprintf(" Execution State=%s\n", val & bit(5) ? "THUMB" : "ARM");
+                    iprintf(" Endianness=%s\n", val & bit(9) ? "Big" : "Little");
+
+                    iprintf("\n DTCM end:    0x%08x\n DTCM start:  0x%08x\n DTCM size:   0x%08x\n", dtcmEnd(), dtcmStart(), dtcmSize());
+                    break;
+                }
+                default:
+                    iprintf("Unknown mode: %d", currentMode);
+            }
+
+            consoleSelect(topConsole);
+            iprintf("\x1b[22;1H%s", title);
+
+            renderedMode = (u32) (1 << currentMode);
+        }
+
+        bios::vBlankIntrWait();
     }
-
-    iprintf(" SP   0x%08x\n", __crash_snapshot.registers[13]);
-    iprintf(" LR   0x%08x\n", __crash_snapshot.registers[14]);
-    iprintf(" PC   0x%08x\n", __crash_snapshot.registers[15]);
-
-    while (true) { bios::vBlankIntrWait(); }
 }

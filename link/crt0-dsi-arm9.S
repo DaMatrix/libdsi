@@ -16,18 +16,8 @@ ASM_FUNC _start
     // set temporary stack
     //
 
-    //arm svc mode
-    mov r0, #0x13
-    msr cpsr, r0
-    mov r1, #0x03000000
-    sub r1, r1, #0x1000
-    mov sp, r1
-
-    //arm system mode
-    mov r0, #0x1F
-    msr cpsr, r0
-    sub r1, r1, #0x100
-    mov sp, r1
+    ldr r3, =_switch_to_internal_stack
+    blx r3
 
     //
     // setup memory protection
@@ -41,19 +31,19 @@ ASM_FUNC _start
     // set actual stack
     //
 
-    //arm irq mode
+    //arm interrupt mode
     mov r0, #0x12
-    msr cpsr, r0
+    SET_CPSR(r0)
     ldr sp, =__sp_irq
 
-    //arm svc mode
+    //arm supervisor mode
     mov r0, #0x13
-    msr cpsr, r0
+    SET_CPSR(r0)
     ldr sp, =__sp_svc
 
     //arm system mode
     mov r0, #0x1F
-    msr cpsr, r0
+    SET_CPSR(r0)
     ldr sp, =__sp_usr
 
     //check for current console mode
@@ -198,12 +188,15 @@ _crt0_init:
     ldr r3, =__libc_init_array
     blx r3
 
+    ldr r0, =enable_twl_clock
+    blx r0
+
     //display error message if not running on DSi
     cmp r11, #1
     bne NotDSi_error
 
-    ldr r0, =enable_twl_clock
-    blx r0
+    //ldr r0, =enable_twl_clock
+    //blx r0
 
     mov r0, #0 //argc
     mov r1, #0 //argv
@@ -224,6 +217,63 @@ NotDSi_error:
     ldr r0, =NotDSi_errormsg
     ldr r4, =crashSystem
     blx r4
+
+    .section .text
+ASM_FUNC _switch_to_internal_stack
+    //save original cpsr
+    GET_CPSR(r2)
+
+    //libnds sets stack begin to 0x03000000, which is either the end of main RAM for DSi or the end of the 4th main RAM mirror on normal DS/DS lite
+    //TODO: decide whether or not this approach is better
+
+#if true
+    //libdsi method
+    ldr r1, =__internal_dummy_stack
+
+    //arm interrupt mode
+    mov r0, #0x12
+    SET_CPSR(r0)
+    mov sp, r1
+
+    //arm supervisor mode
+    mov r0, #0x13
+    SET_CPSR(r0)
+    sub r1, r1, #0x400
+    mov sp, r1
+
+    //arm system mode
+    mov r0, #0x1F
+    SET_CPSR(r0)
+    sub r1, r1, #0x400
+    mov sp, r1
+#else
+    //libnds method
+
+    //arm interrupt mode
+    mov r0, #0x12
+    SET_CPSR(r0)
+    mov r1, #0x03000000
+    sub r1, r1, #0x1000
+    mov sp, r1
+
+    //arm supervisor mode
+    mov r0, #0x13
+    SET_CPSR(r0)
+    sub r1, r1, #0x100
+    mov sp, r1
+
+    //arm system mode
+    mov r0, #0x1F
+    SET_CPSR(r0)
+    sub r1, r1, #0x100
+    mov sp, r1
+#endif
+
+    //restore original cpsr
+    SET_CPSR(r2)
+
+    //return
+    bx lr
 
     .section .itcm
 enable_twl_clock:

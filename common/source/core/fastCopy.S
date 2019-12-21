@@ -2,9 +2,9 @@
 
     .arm
 #ifdef ARM9
-    .section .itcm
+    .section .itcm.fastCopy, "ax"
 #else
-    .section .text
+    .section .text.fastCopy, "ax"
 #endif
 
     .align 4

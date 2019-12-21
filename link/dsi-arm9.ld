@@ -12,7 +12,9 @@ ENTRY(_start)
 __ewram_end	 =	ORIGIN(ewram) + LENGTH(ewram);
 __eheap_end	 =	ORIGIN(ewram) + LENGTH(ewram);
 
-__dtcm_top	 =	ORIGIN(dtcm) + LENGTH(dtcm);
+__dtcm_start =	ORIGIN(dtcm);
+__dtcm_size	 =	LENGTH(dtcm);
+__dtcm_top	 =	__dtcm_start + __dtcm_size;
 __irq_flags	 =	__dtcm_top - 0x08;
 __irq_vector =	__dtcm_top - 0x04;
 

@@ -15,4 +15,27 @@
 #include <libdsi/arm9/video.h>
 #include <libdsi/arm9/wifi9.h>
 
+namespace dsi {
+    namespace _internal {
+        extern "C" u32 __dtcm_start;
+        extern "C" u32 __dtcm_top;
+        extern "C" u32 __dtcm_size;
+    }
+
+    /**
+     * @return the bottom address of DTCM
+     */
+    constexpr u32 dtcmStart() { return (u32) &_internal::__dtcm_start; }
+
+    /**
+     * @return the top address of DTCM
+     */
+    constexpr u32 dtcmEnd() { return (u32) &_internal::__dtcm_top; }
+
+    /**
+     * @return the size of DTCM
+     */
+    constexpr u32 dtcmSize() { return (u32) &_internal::__dtcm_size; }
+}
+
 #endif //LIBDSI_LIBDSI9_H

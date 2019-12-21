@@ -2,9 +2,9 @@
 
     .arm
 #ifdef ARM9
-    .section .itcm.fastFill
+    .section .itcm.fastFill, "ax"
 #else
-    .section .text.fastFill
+    .section .text.fastFill, "ax"
 #endif
 
     .align 4

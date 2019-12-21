@@ -58,6 +58,17 @@ namespace dsi {
      */
     extern "C" void initSystem();
 
+    extern "C" void _do_initSystem(bool safe);
+
+    /**
+     * Crashes the system, resetting most things and displaying a full-screen error message on both displays.
+     *
+     * This method will never return.
+     *
+     * Identical to crashSystem(const char*), but never displays a message.
+     */
+    extern "C" void crashSystemNoMsg();
+
     /**
      * Crashes the system, resetting most things and displaying a full-screen error message on both displays.
      *

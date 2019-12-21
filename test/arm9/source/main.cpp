@@ -13,7 +13,7 @@ int main() {
     iprintf("%08x %08x\n", mem::fastCopy, mem::fastClear);
     iprintf(isDSiMode() ? "DSi mode!\n" : "NTR mode...\n");
 
-    powerOn(POWER_ALL_2D);
+    sys::powerOn(sys::POWER_2D_A | sys::POWER_2D_B);
     iprintf("%08x\n", reg::DISPCNT_A);
     //videoSetMode(MODE_3_2D);
     reg::DISPCNT_A = MODE_3_2D;
