@@ -38,6 +38,7 @@ namespace dsi {
 
     template<typename T> constexpr T mask(T bits) { return (1 << bits) - 1; }
     template<typename T> constexpr T mask(T bits, T offset) { return ((1 << bits) - 1) << offset; }
+    template<typename T> constexpr T bit(T offset) { return 1 << offset; }
 
     /**
      * An ARGB16 color.

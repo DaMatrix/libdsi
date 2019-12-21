@@ -66,21 +66,21 @@ namespace dsi::video {
         }
     }
 
-    void setDisplayMode(Display display, DisplayMode mode)  {
-        if (display & DISPLAY_A)    {
-            reg::DISPCNT_A = (reg::DISPCNT_A & ~mask(2, 16)) | (mode << 16);
-        }
-        if (display & DISPLAY_B)    {
-            reg::DISPCNT_B = (reg::DISPCNT_B & ~mask(2, 16)) | (mode << 16);
-        }
-    }
-
     void setBackgroundMode(Display display, BackgroundMode mode)    {
         if (display & DISPLAY_A)    {
             reg::DISPCNT_A = (reg::DISPCNT_A & ~mask(3)) | mode;
         }
         if (display & DISPLAY_B)    {
             reg::DISPCNT_B = (reg::DISPCNT_B & ~mask(3)) | mode;
+        }
+    }
+
+    void setDisplayMode(Display display, DisplayMode mode)  {
+        if (display & DISPLAY_A)    {
+            reg::DISPCNT_A = (reg::DISPCNT_A & ~mask(2, 16)) | (mode << 16);
+        }
+        if (display & DISPLAY_B)    {
+            reg::DISPCNT_B = (reg::DISPCNT_B & ~mask(2, 16)) | (mode << 16);
         }
     }
 

@@ -5,8 +5,8 @@
 
 namespace dsi::video {
     enum Display: u8 {
-        DISPLAY_A    = 1,
-        DISPLAY_B    = 2,
+        DISPLAY_A    = bit(0),
+        DISPLAY_B    = bit(1),
         DISPLAY_BOTH = DISPLAY_A | DISPLAY_B
     };
 
@@ -48,21 +48,6 @@ namespace dsi::video {
      */
     void setBrightness(Display display, i32 brightness);
 
-    enum DisplayMode: u8 {
-        DISPLAY_MODE_WHITE       = 0, //blank white screen
-        DISPLAY_MODE_2D          = 1, //normal BG and object layers
-        DISPLAY_MODE_BITMAP_VRAM = 2, //engine A only: display a bitmap stored in VRAM
-        DISPLAY_MODE_BITMAP_DMA  = 3  //engine A only: display a bitmap stored in main memory, transferred to display using DMA
-    };
-
-    /**
-     * Sets the display mode for the given display.
-     *
-     * @param display the display to set the display mode for
-     * @param mode    the new display mode to set
-     */
-    void setDisplayMode(Display display, DisplayMode mode);
-
     enum BackgroundMode: u8 {
         //why does CLion think this needs continuation indentation
 
@@ -84,6 +69,21 @@ namespace dsi::video {
      * @param mode    the new background mode to set
      */
     void setBackgroundMode(Display display, BackgroundMode mode);
+
+    enum DisplayMode: u8 {
+        DISPLAY_MODE_WHITE       = 0, //blank white screen
+        DISPLAY_MODE_2D          = 1, //normal BG and object layers
+        DISPLAY_MODE_BITMAP_VRAM = 2, //engine A only: display a bitmap stored in VRAM
+        DISPLAY_MODE_BITMAP_DMA  = 3  //engine A only: display a bitmap stored in main memory, transferred to display using DMA
+    };
+
+    /**
+     * Sets the display mode for the given display.
+     *
+     * @param display the display to set the display mode for
+     * @param mode    the new display mode to set
+     */
+    void setDisplayMode(Display display, DisplayMode mode);
 
     /**
      * Sets the backdrop color for the given display.

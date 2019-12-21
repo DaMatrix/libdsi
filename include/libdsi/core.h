@@ -62,6 +62,8 @@ namespace dsi {
      * Crashes the system, resetting most things and displaying a full-screen error message on both displays.
      *
      * This method will never return.
+     *
+     * @param message a message to display to the user. If nullptr, a message will not be displayed.
      */
     extern "C" void crashSystem(const char* message);
     #endif //ARM9

@@ -202,7 +202,8 @@ _crt0_init:
     cmp r11, #1
     bne NotDSi_error
 
-    bl enable_twl_clock
+    ldr r0, =enable_twl_clock
+    blx r0
 
     mov r0, #0 //argc
     mov r1, #0 //argv
@@ -226,12 +227,14 @@ NotDSi_error:
 
     .section .itcm
 enable_twl_clock:
+#if true
     //avoid breaking stuff?!?
     ldr r0, =__dsimode
     cmp r0, #1
     ldrne r0, =NotDSi_clock_errormsg
     ldrne r4, =crashSystem
     blxne r4
+#endif
 
     //SCFG_CLK
     ldr r0, =0x04004004

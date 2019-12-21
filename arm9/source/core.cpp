@@ -1,6 +1,5 @@
 #include <dsi.h>
 
-
 #if true //libnds hackery (temporary)
 #include <nds.h>
 #include <stdio.h>
@@ -23,11 +22,11 @@ extern time_t* punixTime;
 //int __libnds_gtod(struct _reent* ptr, struct timeval* tp, struct timezone* tz);
 #endif
 
-extern dsi::Void __interruptHandlers[32];
+//extern dsi::Void __interruptHandlers[32];
 
 namespace dsi {
     extern "C" void initSystem() {
-        reg::IME = 0;
+        //reg::IME = 0;
 
         for (u32 i = 0; i < 4; i++) { dma::channel(0)->erase(); }
 
@@ -43,10 +42,10 @@ namespace dsi {
         video::resetVRAM();
 
         #ifdef ARM9
-        intr::init();
+        //intr::init();
 
         //libnds stuff that all needs to be replaced
-        //irqInit();
+        irqInit();
         fifoInit();
         #else
         //intr::init();
@@ -69,43 +68,6 @@ namespace dsi {
         extern char* fake_heap_end;
         transfer->bootcode = (__bootstub*) fake_heap_end;
         irqEnable(IRQ_VBLANK);
-
-        reg::IME = 1;
-    }
-
-    extern "C" void crashSystem(const char* message) {
-        u32 lr;
-        asm volatile("mov %0, lr" : "=r" (lr));
-        auto lr_mode = lr & 1 ? "THUMB" : "ARM";
-        lr -= 4 - 3 * (lr & 1);
-
-        //initSystem();
-
-        sys::powerOn(sys::POWER_2D_A | sys::POWER_2D_B);
-        video::setBackgroundMode(video::DISPLAY_A, video::BG_MODE_0);
-        video::setDisplayMode(video::DISPLAY_A, video::DISPLAY_MODE_2D);
-        consoleDemoInit();
-
-        video::setBackdrop(video::DISPLAY_BOTH, argb16(1, 25, 0, 0));
-
-        iprintf("\x1b[97m\x1b[1;1HError at 0x%08x (%s)\n", lr, lr_mode);
-        if (message != nullptr) {
-            iprintf("\x1b[3;1H%s\n", message);
-        }
-
-        //iprintf("%08x\n", &__interruptHandlers);
-
-        video::topDisplay(video::DISPLAY_B);
-
-#if false
-        while (true) {
-            for (int i = 0; i < 60; i++) bios::vBlankIntrWait();
-            video::swapDisplays();
-        }
-#else
-        while (true) bios::vBlankIntrWait();
-#endif
-        while (true);
     }
 
     namespace sys   {
