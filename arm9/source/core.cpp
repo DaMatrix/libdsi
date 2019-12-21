@@ -42,10 +42,10 @@ namespace dsi {
         video::resetVRAM();
 
         #ifdef ARM9
-        //intr::init();
+        intr::init();
 
         //libnds stuff that all needs to be replaced
-        irqInit();
+        //irqInit();
         fifoInit();
         #else
         //intr::init();

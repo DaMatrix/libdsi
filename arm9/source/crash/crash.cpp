@@ -7,33 +7,24 @@
 
 using namespace dsi;
 
-extern "C" void _crash_doCrash(const char* message, const u32* sp, const u32* stackBase)    {
-    u32 lr;
-    asm volatile("mov %0, lr" : "=r" (lr));
-    auto lr_mode = lr & 1 ? "THUMB" : "ARM";
-    lr -= 4 - 3 * (lr & 1);
+struct Snapshot {
+    u32 registers[16];
+    u32 cpsr;
+    u32 spsr;
+};
 
+__attribute__((section(".bss"))) Snapshot __crash_snapshot;
+
+extern "C" __attribute__((target("arm"))) void _crash_doCrash(const char* message) {
     dsi::initSystem();
 
     sys::powerOn(sys::POWER_2D_A | sys::POWER_2D_B);
-    /*video::setBackgroundMode(video::DISPLAY_A, video::BG_MODE_0);
-    video::setDisplayMode(video::DISPLAY_A, video::DISPLAY_MODE_2D);
-    consoleDemoInit();*/
 
-    //TODO: libnds stuff that needs to be eliminated
-    auto topConsole = (PrintConsole*) malloc(sizeof(PrintConsole));
+    auto topConsole    = (PrintConsole*) malloc(sizeof(PrintConsole));
     auto bottomConsole = (PrintConsole*) malloc(sizeof(PrintConsole));
 
-    if (true) {
-        mem::fastCopy(consoleGetDefault(), topConsole, sizeof(PrintConsole));
-        mem::fastCopy(consoleGetDefault(), bottomConsole, sizeof(PrintConsole));
-    } else if (false)   {
-        memcpy(topConsole, consoleGetDefault(), sizeof(PrintConsole));
-        memcpy(bottomConsole, consoleGetDefault(), sizeof(PrintConsole));
-    } else if (false)    {
-        bios::cpuFastSet_copy(consoleGetDefault(), topConsole, (sizeof(PrintConsole) + 3) >> 2);
-        bios::cpuFastSet_copy(consoleGetDefault(), bottomConsole, (sizeof(PrintConsole) + 3) >> 2);
-    }
+    mem::fastCopy(consoleGetDefault(), topConsole, sizeof(PrintConsole));
+    mem::fastCopy(consoleGetDefault(), bottomConsole, sizeof(PrintConsole));
 
     video::setBackgroundMode(video::DISPLAY_A, video::BG_MODE_0);
     video::setDisplayMode(video::DISPLAY_A, video::DISPLAY_MODE_2D);
@@ -53,39 +44,29 @@ extern "C" void _crash_doCrash(const char* message, const u32* sp, const u32* st
     video::topDisplay(video::DISPLAY_A);
 
     consoleSelect(topConsole);
-    iprintf("\x1b[97m\x1b[1;1HError at 0x%08x (%s)\n", lr, lr_mode);
-    if (message != nullptr) {
-        iprintf("\x1b[3;1H%s\n", message);
+    iprintf("\x1b[97m\n");
+    {
+        u32 lr = __crash_snapshot.registers[14];
+        iprintf(" Error at 0x%08x (%s)\n", lr - 4 + 3 * (lr & 1), lr & 1 ? "THUMB" : "ARM");
     }
 
-    while (true) bios::vBlankIntrWait();
-}
-
-#if false
-extern "C" void crashSystem(const char* message) {
-    u32 lr;
-    asm volatile("mov %0, lr" : "=r" (lr));
-    auto lr_mode = lr & 1 ? "THUMB" : "ARM";
-    lr -= 4 - 3 * (lr & 1);
-
-    initSystem();
-
-    sys::powerOn(sys::POWER_2D_A | sys::POWER_2D_B);
-    video::setBackgroundMode(video::DISPLAY_A, video::BG_MODE_0);
-    video::setDisplayMode(video::DISPLAY_A, video::DISPLAY_MODE_2D);
-    consoleDemoInit();
-
-    video::setBackdrop(video::DISPLAY_BOTH, argb16(1, 25, 0, 0));
-
-    iprintf("\x1b[97m\x1b[1;1HError at 0x%08x (%s)\n", lr, lr_mode);
     if (message != nullptr) {
-        iprintf("\x1b[3;1H%s\n", message);
+        iprintf("\n %s\n", message);
     }
 
-    //iprintf("%08x\n", &__interruptHandlers);
+    consoleSelect(bottomConsole);
+    iprintf("\x1b[97m\n");
 
-    video::topDisplay(video::DISPLAY_B);
+    iprintf(" CPSR 0x%08x\n", __crash_snapshot.cpsr);
+    iprintf(" SPSR 0x%08x\n", __crash_snapshot.spsr);
 
-    while (true) bios::vBlankIntrWait();
+    for (u32 i = 0; i <= 12; i++)    {
+        iprintf(" r%-3d 0x%08x\n", i, __crash_snapshot.registers[i]);
+    }
+
+    iprintf(" SP   0x%08x\n", __crash_snapshot.registers[13]);
+    iprintf(" LR   0x%08x\n", __crash_snapshot.registers[14]);
+    iprintf(" PC   0x%08x\n", __crash_snapshot.registers[15]);
+
+    while (true) { bios::vBlankIntrWait(); }
 }
-#endif

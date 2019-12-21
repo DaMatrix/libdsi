@@ -34,21 +34,18 @@ namespace dsi::intr {
         reg::IF = ~0;
 
         //setRootHandler(stdRootHandler);
-        //setRootHandler(stdRootHandler_test);
-        setRootHandler(IntrMain);
+        setRootHandler(stdRootHandler_test);
+        //setRootHandler(IntrMain);
 
         test_init_irq();
 
         //clear handlers
-        /*for (u32 i = 0; i < 32; i++)    {
-            __interruptHandlers[i] = nullptr;
-        }*/
         //mem::fastClear(__interruptHandlers, sizeof(__interruptHandlers));
 #ifdef ARM7
         //mem::fastClear(__interruptHandlers7, sizeof(__interruptHandlers7));
 #endif
 
-        //reg::IME = 1;
+        reg::IME = 1;
     }
 
 

@@ -23,4 +23,9 @@
 \name:
 .endm
 
+#define LOAD_CPSR(DST) mrs DST, cpsr
+#define STORE_CPSR(SRC) msr cpsr, SRC
+#define LOAD_SPSR(DST) mrs DST, spsr
+#define STORE_SPSR(SRC) msr spsr, SRC
+
 #endif // LIBDSI_ASM_H
