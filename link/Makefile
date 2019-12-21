@@ -8,10 +8,10 @@ clean:
 	@rm -f $(OUTFILES)
 
 %7.o: %7.S
-	@$(CC) -x assembler-with-cpp -marm -I$(TOPDIR)/include -DARM7 -c $< -o $@
+	@$(CC) -x assembler-with-cpp -marm -I$(TOPDIR)/include -DDSI -DARM7 -c $< -o $@
 
 %9.o: %9.S
-	@$(CC) -x assembler-with-cpp -marm -I$(TOPDIR)/include -DARM9 -c $< -o $@
+	@$(CC) -x assembler-with-cpp -marm -I$(TOPDIR)/include -DDSI -DARM9 -c $< -o $@
 
 dsi-arm7.specs: .FORCE
 	@echo "%rename link                old_link" > $@

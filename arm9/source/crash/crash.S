@@ -7,6 +7,10 @@ ASM_FUNC crashSystem
     //store r1 and pc on stack
     push {r1, pc}
 
+    //disable all interrupts (set Interrupt Master Enable to 0)
+    mov r1, #0x04000000
+    str r1, [r1, #0x208]
+
     //load and store cpsr on stack
     //GET_CPSR(r1)
     //push {r1}
@@ -52,9 +56,13 @@ ASM_FUNC crashSystem
     add r1, r1, #(16 << 2)
     stmia r1!, {r4, r5}
 
+    mov r11, r0
+
     //switch to internal stack
     ldr r0, =_switch_to_internal_stack
     blx r0
+    //ldr sp, =__internal_dummy_stack
+    //add sp, sp, #0x400
 
     //copy entire DTCM to snapshot
     ldr r4, =fastCopy
@@ -64,8 +72,8 @@ ASM_FUNC crashSystem
     blx r4
 
     //ldr r2, =__sp_usr
+    mov r0, r11
     mov r1, sp
-    ldr r2, =__internal_dummy_stack
     ldr r4, =_crash_doCrash
     bx r4
 

@@ -9,6 +9,8 @@ using namespace dsi;
 extern "C" void doMain(void* buf);
 
 int main() {
+    crashSystem("Debug crash!");
+
     consoleDemoInit();
     iprintf("%08x %08x\n", mem::fastCopy, mem::fastClear);
     iprintf(isDSiMode() ? "DSi mode!\n" : "NTR mode...\n");

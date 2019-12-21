@@ -5,6 +5,10 @@
 #include <stdio.h>
 #endif
 
+#if true //debug stuff
+#define _CRASH_DEBUG
+#endif
+
 using namespace dsi;
 
 struct Snapshot {
@@ -17,14 +21,34 @@ struct Snapshot {
 __attribute__((section(".bss"))) Snapshot __crash_snapshot;
 __attribute__((section(".bss"))) bool __crash_isCrashing;
 
-constexpr i32 MODE_REGISTERS = 0;
-constexpr i32 MODE_CPSR      = 1;
-constexpr i32 MODE_SPSR      = 2;
+enum DisplayMode: i32 {
+    MODE_REGISTERS,
+    MODE_CPSR,
+    MODE_SPSR,
+#ifdef _CRASH_DEBUG
+    MODE_CURRENT_CPSR,
+    MODE_CURRENT_SPSR,
+#endif
+    NUM_MODES
+};
 
-constexpr u32 NUM_MODES = 3;
+#ifdef _CRASH_DEBUG
+__attribute__((target("arm"),noinline)) u32 getCPSR()    {
+    u32 cpsr;
+    asm volatile("mrs %0, cpsr" : "=r" (cpsr));
+    return cpsr;
+}
 
-extern "C" void _crash_doCrash(const char* message, u32 sp, u32 intended_sp) {
-    _do_initSystem(__crash_isCrashing);
+__attribute__((target("arm"),noinline)) u32 getSPSR()    {
+    u32 spsr;
+    asm volatile("mrs %0, spsr" : "=r" (spsr));
+    return spsr;
+}
+#endif
+
+extern "C" void _crash_doCrash(const char* message, u32 sp) {
+    //_do_initSystem(__crash_isCrashing);
+    __crash_isCrashing = true;
 
     sys::powerOn(sys::POWER_2D_A | sys::POWER_2D_B);
 
@@ -116,13 +140,27 @@ extern "C" void _crash_doCrash(const char* message, u32 sp, u32 intended_sp) {
                     iprintf(" CPSR 0x%08x\n", __crash_snapshot.cpsr);
                     iprintf(" SPSR 0x%08x\n", __crash_snapshot.spsr);
 
-                    iprintf("\n Current SP 0x%08x\n Should be  0x%08x\n", sp, intended_sp);
+                    iprintf("\n Current SP 0x%08x\n", sp);
+                    //iprintf("\n Current SP 0x%08x\n Should be  0x%08x\n", sp, intended_sp);
                     break;
                 }
+#ifdef _CRASH_DEBUG
+                case MODE_CURRENT_CPSR:
+                case MODE_CURRENT_SPSR:
+#endif
                 case MODE_CPSR:
                 case MODE_SPSR: {
                     title = currentMode == MODE_CPSR ? "CPSR            " : "SPSR            ";
                     u32 val = currentMode == MODE_CPSR ? __crash_snapshot.cpsr : __crash_snapshot.spsr;
+#ifdef _CRASH_DEBUG
+                    if (currentMode == MODE_CURRENT_CPSR) {
+                        title = "Current CPSR    ";
+                        val = getCPSR();
+                    } else if (currentMode == MODE_CURRENT_SPSR) {
+                        title = "Current SPSR    ";
+                        val = getSPSR();
+                    }
+#endif
                     iprintf(" 0x%08x\n\n", val);
                     iprintf(" N=%u Z=%u C=%u V=%u Q=%u I=%u F=%u\n", (val >> 31) & 1, (val >> 30) & 1, (val >> 29) & 1, (val >> 28) & 1, (val >> 27) & 1, (val >> 7) & 1, (val >> 6) & 1);
                     const char* mode = "Invalid?!?";
@@ -158,8 +196,6 @@ extern "C" void _crash_doCrash(const char* message, u32 sp, u32 intended_sp) {
                     iprintf(" Mode=0x%02x (%s)\n", val & mask(5), mode);
                     iprintf(" Execution State=%s\n", val & bit(5) ? "THUMB" : "ARM");
                     iprintf(" Endianness=%s\n", val & bit(9) ? "Big" : "Little");
-
-                    iprintf("\n DTCM end:    0x%08x\n DTCM start:  0x%08x\n DTCM size:   0x%08x\n", dtcmEnd(), dtcmStart(), dtcmSize());
                     break;
                 }
                 default:

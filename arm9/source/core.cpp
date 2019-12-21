@@ -28,7 +28,7 @@ namespace dsi {
     }
 
     extern "C" void _do_initSystem(bool safe) {
-        //reg::IME = 0;
+        reg::IME = 0;
 
         for (u32 i = 0; i < 4; i++) { dma::channel(0)->erase(); }
 

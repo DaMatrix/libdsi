@@ -223,12 +223,10 @@ ASM_FUNC _switch_to_internal_stack
     //save original cpsr
     GET_CPSR(r2)
 
-    //libnds sets stack begin to 0x03000000, which is either the end of main RAM for DSi or the end of the 4th main RAM mirror on normal DS/DS lite
-    //TODO: decide whether or not this approach is better
-
-#if true
+#ifndef DSI //always false
     //libdsi method
     ldr r1, =__internal_dummy_stack
+    add r1, r1, #(1024 * 3)
 
     //arm interrupt mode
     mov r0, #0x12
@@ -247,12 +245,12 @@ ASM_FUNC _switch_to_internal_stack
     sub r1, r1, #0x400
     mov sp, r1
 #else
-    //libnds method
+    //libnds sets stack begin to 0x03000000, which is either the end of main RAM for DSi or the end of the 4th main RAM mirror on normal DS/DS lite
+    mov r1, #0x03000000
 
     //arm interrupt mode
     mov r0, #0x12
     SET_CPSR(r0)
-    mov r1, #0x03000000
     sub r1, r1, #0x1000
     mov sp, r1
 
