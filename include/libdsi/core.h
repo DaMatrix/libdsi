@@ -9,14 +9,16 @@
 #define __DSI_DO_STRINGIZE(expr) #expr
 
 #define __DSI_CURRENT_LINE __DSI_STRINGIZE(__LINE__)
-#define __DSI_CURRENT_FILE __DSI_STRINGIZE(__FILE__)
-#define __DSI_CURRENT_FUNC __DSI_STRINGIZE(__func__)
+#define __DSI_CURRENT_FILE __FILE__
+//#define __DSI_CURRENT_FUNC __PRETTY_FUNCTION__ //TODO: make this work? (apparently this isn't a preprocessor macro for some reason)
 
 #define __DSI_OVERLOAD_MACRO_2(ARG1, ARG2, NAME, ...) NAME
 
 #ifdef ARM9
-#define __DSI_ASSERT_MSG(EXPR, MSG) if (!(EXPR)) dsi::crashSystem("At " __DSI_CURRENT_FILE ":" __DSI_CURRENT_LINE " (" __DSI_CURRENT_FUNC "): " MSG);
-#define __DSI_ASSERT_NOMSG(EXPR, MSG) if (!(EXPR)) dsi::crashSystem("Assertion failed at " __DSI_CURRENT_FILE ":" __DSI_CURRENT_LINE " (" __DSI_CURRENT_FUNC ")");
+//#define __DSI_ASSERT_MSG(EXPR, MSG) if (!(EXPR)) dsi::crashSystem("At " __DSI_CURRENT_FILE ":" __DSI_CURRENT_LINE " (" __DSI_CURRENT_FUNC "): " MSG);
+//#define __DSI_ASSERT_NOMSG(EXPR) if (!(EXPR)) dsi::crashSystem("Assertion failed at " __DSI_CURRENT_FILE ":" __DSI_CURRENT_LINE " (" __DSI_CURRENT_FUNC ")");
+#define __DSI_ASSERT_MSG(EXPR, MSG) if (!(EXPR)) dsi::crashSystem("Assertion failed at " __DSI_CURRENT_FILE ":" __DSI_CURRENT_LINE ": " MSG);
+#define __DSI_ASSERT_NOMSG(EXPR) if (!(EXPR)) dsi::crashSystem("Assertion failed at " __DSI_CURRENT_FILE ":" __DSI_CURRENT_LINE);
 #endif
 
 //actual macros

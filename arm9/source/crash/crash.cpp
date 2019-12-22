@@ -97,7 +97,7 @@ extern "C" void _crash_doCrash(const char* message, u32 sp) {
         "  B: Page back\n"
     );
 
-    //intr::set(intr::VBLANK, (Void) _crash_vblank_handler);
+    intr::set(intr::VBLANK, (Void) _crash_vblank_handler);
 
     u32 renderedMode = 0;
     i32 currentMode  = 0;

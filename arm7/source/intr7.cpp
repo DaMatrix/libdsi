@@ -12,6 +12,12 @@ namespace dsi::intr {
     }
 
     void set(Interrupt interrupt, Void handler) {
-        //TODO
+        //TODO: DSI_ASSERT((interrupt & 0x1F) == interrupt, "Invalid interrupt!")
+
+        if (interrupt & 0x20) {
+            __interruptHandlers7[interrupt] = handler;
+        } else {
+            __interruptHandlers[interrupt] = handler;
+        }
     }
 }
