@@ -46,6 +46,12 @@ __attribute__((target("arm"),noinline)) u32 getSPSR()    {
 
 void _crash_displayPSR(const char* name, u32 val);
 
+u32 cntr = 0;
+
+void _crash_vblank_handler()   {
+    iprintf("\x1b[16;1HFrame: %u\n", ++cntr);
+}
+
 extern "C" void _crash_doCrash(const char* message, u32 sp) {
     initSystem();
     __crash_isCrashing = true;
@@ -90,6 +96,8 @@ extern "C" void _crash_doCrash(const char* message, u32 sp) {
         "  A: Page forward\n"
         "  B: Page back\n"
     );
+
+    //intr::set(intr::VBLANK, (Void) _crash_vblank_handler);
 
     u32 renderedMode = 0;
     i32 currentMode  = 0;

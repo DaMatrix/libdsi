@@ -220,7 +220,7 @@ ASM_FUNC _switch_to_internal_stack
     //save original cpsr
     GET_CPSR(r2)
 
-#ifndef DSI //always false
+#ifdef DSI //always true
     //libdsi method
     ldr r1, =__internal_dummy_stack
     add r1, r1, #(1024 * 3)

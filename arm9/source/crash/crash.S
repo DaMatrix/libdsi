@@ -15,13 +15,6 @@ ASM_FUNC crashSystem
     //GET_CPSR(r1)
     //push {r1}
 
-    //check if __crash_isCrashing is set
-    //can probably only happen if a bug occurs internally while causing a crash
-    //ldr r1, =__crash_isCrashing
-    //ldrb r1, [r1]
-    //cmp r1, #0
-    //bne _crashSystem_recursive_error
-
     //stack snapshot is in main ram
     //r1 contains base address of snapshot
     ldr r1, =__crash_snapshot

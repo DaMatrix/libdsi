@@ -2,13 +2,12 @@
 
 #if true //libnds hackery (temporary)
 #include <nds.h>
-#include <stdio.h>
 
 struct __TransferRegion {
-    vs16 touchX, touchY;
-    vs16 touchXpx, touchYpx;
-    vs16 touchZ1, touchZ2;
-    vu16 buttons;
+    vs16   touchX, touchY;
+    vs16   touchXpx, touchYpx;
+    vs16   touchZ1, touchZ2;
+    vu16   buttons;
     time_t unixTime;
     struct __bootstub* bootcode;
 };
@@ -20,6 +19,9 @@ extern time_t* punixTime;
 
 //void __libnds_exit(int rc);
 //int __libnds_gtod(struct _reent* ptr, struct timeval* tp, struct timezone* tz);
+
+extern "C" void fifoInternalSendInterrupt();
+extern "C" void fifoInternalRecvInterrupt();
 #endif
 
 namespace dsi {
@@ -42,23 +44,22 @@ namespace dsi {
         video::resetVRAM();
 
         #ifdef ARM9
-        if (safe)   {
-            irqInit();
-        } else {
-            intr::init();
-        }
+        intr::init();
 
         fifoInit();
+
+        intr::set(intr::IPC_SEND_FIFO_EMPTY, fifoInternalSendInterrupt);
+        intr::set(intr::IPC_RECV_FIFO_NOT_EMPTY, fifoInternalRecvInterrupt);
         #else
         //intr::init();
 
         //libnds stuff that all needs to be replaced
         irqInit();
         fifoInit();
-        #endif
 
         fifoSetValue32Handler(FIFO_SYSTEM, systemValueHandler, nullptr);
         fifoSetDatamsgHandler(FIFO_SYSTEM, systemMsgHandler, nullptr);
+        #endif
 
         transfer->buttons = 0xFFFF;
 
@@ -72,12 +73,12 @@ namespace dsi {
         irqEnable(IRQ_VBLANK);
     }
 
-    namespace sys   {
-        void powerOn(u32 val)   {
+    namespace sys {
+        void powerOn(u32 val) {
             reg::POWCNT1 |= val;
         }
 
-        void powerOff(u32 val)   {
+        void powerOff(u32 val) {
             reg::POWCNT1 &= ~(val & ~POWER_LCD);
         }
     }

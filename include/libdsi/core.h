@@ -4,6 +4,26 @@
 #include <libdsi/types.h>
 #include <libdsi/version.h>
 
+//internal macros
+#define __DSI_STRINGIZE(expr) __DSI_DO_STRINGIZE(expr)
+#define __DSI_DO_STRINGIZE(expr) #expr
+
+#define __DSI_CURRENT_LINE __DSI_STRINGIZE(__LINE__)
+#define __DSI_CURRENT_FILE __DSI_STRINGIZE(__FILE__)
+#define __DSI_CURRENT_FUNC __DSI_STRINGIZE(__func__)
+
+#define __DSI_OVERLOAD_MACRO_2(ARG1, ARG2, NAME, ...) NAME
+
+#ifdef ARM9
+#define __DSI_ASSERT_MSG(EXPR, MSG) if (!(EXPR)) dsi::crashSystem("At " __DSI_CURRENT_FILE ":" __DSI_CURRENT_LINE " (" __DSI_CURRENT_FUNC "): " MSG);
+#define __DSI_ASSERT_NOMSG(EXPR, MSG) if (!(EXPR)) dsi::crashSystem("Assertion failed at " __DSI_CURRENT_FILE ":" __DSI_CURRENT_LINE " (" __DSI_CURRENT_FUNC ")");
+#endif
+
+//actual macros
+#ifdef ARM9
+#define DSI_ASSERT(...) __DSI_OVERLOAD_MACRO_2(__VA_ARGS__, __DSI_ASSERT_MSG, __DSI_ASSERT_NOMSG)(__VA_ARGS__)
+#endif
+
 namespace dsi {
     namespace mem {
         /**
@@ -77,6 +97,15 @@ namespace dsi {
      * @param message a message to display to the user. If nullptr, a message will not be displayed.
      */
     extern "C" void crashSystem(const char* message);
+
+    /**
+     * Asserts that a given condition is true.
+     *
+     * If it is false, crashes the system with the given error message.
+     * @param condition the condition to assert
+     * @param msg
+     */
+    void assert(bool condition, const char* msg);
     #endif //ARM9
 
     namespace sys   {
