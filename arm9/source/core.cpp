@@ -14,7 +14,6 @@ struct __TransferRegion {
 
 #define transfer ((__TransferRegion*)(0x02FFF000))
 
-bool __dsimode; //set in crt0
 extern time_t* punixTime;
 
 //void __libnds_exit(int rc);
@@ -24,42 +23,32 @@ extern "C" void fifoInternalSendInterrupt();
 extern "C" void fifoInternalRecvInterrupt();
 #endif
 
+bool __dsimode; //set in crt0
+
 namespace dsi {
     extern "C" void initSystem() {
-        _do_initSystem(false);
-    }
-
-    extern "C" void _do_initSystem(bool safe) {
         reg::IME = 0;
 
         for (u32 i = 0; i < 4; i++) { dma::channel(0)->erase(); }
 
+        sys::powerOn(sys::POWER_2D_A | sys::POWER_2D_B | sys::POWER_3D_GEMOETRY | sys::POWER_3D_RENDERING);
+
         //clear display registers
         mem::fastClear((void*) 0x04000000, 0x56);
-        mem::fastClear((void*) 0x04001000, 0x56); //TODO: figure out why libnds uses 0x04001008 here and then uses videoSetModeSub
-        //videoSetModeSub(0);
+        mem::fastClear((void*) 0x04001000, 0x56); //TODO: this makes no sense?
+
+        sys::powerOff(sys::POWER_3D_GEMOETRY | sys::POWER_3D_RENDERING);
 
         video::resetBrightness(video::DISPLAY_BOTH);
 
         video::resetVRAM();
 
-        #ifdef ARM9
         intr::init();
 
         fifoInit();
 
         intr::set(intr::IPC_SEND_FIFO_EMPTY, fifoInternalSendInterrupt);
         intr::set(intr::IPC_RECV_FIFO_NOT_EMPTY, fifoInternalRecvInterrupt);
-        #else
-        //intr::init();
-
-        //libnds stuff that all needs to be replaced
-        irqInit();
-        fifoInit();
-
-        fifoSetValue32Handler(FIFO_SYSTEM, systemValueHandler, nullptr);
-        fifoSetDatamsgHandler(FIFO_SYSTEM, systemMsgHandler, nullptr);
-        #endif
 
         transfer->buttons = 0xFFFF;
 

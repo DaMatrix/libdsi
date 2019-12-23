@@ -28,6 +28,8 @@ int main() {
 #elif false
     crashSystem("Debug crash!");
 #elif true
+    video::topDisplay(video::DISPLAY_A);
+
     consoleDemoInit();
     iprintf("%08x %08x\n", mem::fastCopy, mem::fastClear);
     iprintf(isDSiMode() ? "DSi mode!\n" : "NTR mode...\n");

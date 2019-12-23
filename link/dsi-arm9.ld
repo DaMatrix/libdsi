@@ -18,6 +18,9 @@ __dtcm_top	 =	__dtcm_start + __dtcm_size;
 __irq_flags	 =	__dtcm_top - 0x08;
 __irq_vector =	__dtcm_top - 0x04;
 
+__debug_vector   = 0x2FFFD9C;
+__debug_stacktop = 0x2FFFD98;
+
 __sp_svc	 =	__dtcm_top - 0x100;
 __sp_irq	 =	__sp_svc - 0x100;
 __sp_usr	 =	__sp_irq - 0x100;

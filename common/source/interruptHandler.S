@@ -4,13 +4,16 @@
     .section .itcm.stdRootHandler, "ax"
 #endif
 
+//this took me forever to figure out, eventually learned by reading nocash's magic floor source code that the bios interrupt handler seems to do quite a
+//bit (such as pushing r0-r3 to stack) before calling the user interrupt handler
+//see MAGICFLR.A22 lines 907-945
 ASM_FUNC stdRootHandler
     mov r12, #0x04000000
 
     //disable interrupts, or return immedately if interrupts are disabled
     ldr r1, [r12, #0x208]
     cmp r1, #0
-    //bxeq lr
+    bxeq lr
     moveq pc, lr
     mov r0, #0
     str r0, [r12, #0x208]
@@ -128,9 +131,6 @@ _stdRootHandler_post_handler:
 _stdRootHandler_wrap_up:
     //pop old spsr, old IME, 0x04000000 and lr
     pop {r0, r1, r12, lr}
-
-    //restore old spsr
-    msr spsr, r0
 
     //restore old IME
     str r1, [r12, #0x208]

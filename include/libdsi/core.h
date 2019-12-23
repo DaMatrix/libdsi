@@ -80,8 +80,6 @@ namespace dsi {
      */
     extern "C" void initSystem();
 
-    extern "C" void _do_initSystem(bool safe);
-
     /**
      * Crashes the system, resetting most things and displaying a full-screen error message on both displays.
      *
@@ -99,15 +97,6 @@ namespace dsi {
      * @param message a message to display to the user. If nullptr, a message will not be displayed.
      */
     extern "C" void crashSystem(const char* message);
-
-    /**
-     * Asserts that a given condition is true.
-     *
-     * If it is false, crashes the system with the given error message.
-     * @param condition the condition to assert
-     * @param msg
-     */
-    void assert(bool condition, const char* msg);
     #endif //ARM9
 
     namespace sys   {

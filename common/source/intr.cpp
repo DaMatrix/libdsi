@@ -4,8 +4,10 @@
 extern "C" void stdRootHandler();
 extern "C" void stdRootHandler_test();
 
-//extern "C" volatile dsi::u32 __irq_flags;
+extern "C" volatile dsi::u32 __irq_flags;
 extern "C" volatile dsi::Void __irq_vector;
+
+extern "C" volatile dsi::Void __debug_vector;
 
 extern "C" void IntrMain();
 
@@ -21,11 +23,14 @@ namespace dsi::intr {
         reg::IE = 0;
         reg::IF = ~0;
 
-        setRootHandler(stdRootHandler);
-        //setRootHandler(stdRootHandler_test);
-        //setRootHandler(IntrMain);
+        __debug_vector = nullptr;
 
+#if true
+        setRootHandler(stdRootHandler);
+#else
+        setRootHandler(stdRootHandler_test);
         test_init_irq();
+#endif
 
         _internal::clearHandlers();
 
