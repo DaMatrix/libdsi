@@ -2,7 +2,6 @@
 
 #include <nds.h>
 #include <stdio.h>
-#include <stdlib.h>
 
 using namespace dsi;
 
@@ -15,21 +14,6 @@ void vblankCauseError() {
 }
 
 int main() {
-#if false
-    sys::powerOn(sys::POWER_2D_A | sys::POWER_2D_B);
-
-    auto topConsole    = (PrintConsole*) malloc(sizeof(PrintConsole));
-    auto bottomConsole = (PrintConsole*) malloc(sizeof(PrintConsole));
-
-    mem::fastCopy(consoleGetDefault(), topConsole, sizeof(PrintConsole));
-    mem::fastCopy(consoleGetDefault(), bottomConsole, sizeof(PrintConsole));
-
-    video::setBackgroundMode(video::DISPLAY_A, video::BG_MODE_0);
-    video::setDisplayMode(video::DISPLAY_A, video::DISPLAY_MODE_2D);
-    reg::VRAMCNT_A = reg::A_Background0;
-#elif false
-    crashSystem("Debug crash!");
-#elif true
     video::topDisplay(video::DISPLAY_A);
 
     consoleDemoInit();
@@ -51,11 +35,6 @@ int main() {
 
     doMain(buf);
 
-    if (false)  {
-        crashSystem("Debug crash!");
-    } else {
-        intr::set(intr::VBLANK, vblankCauseError);
-        while (true);
-    }
-#endif
+    intr::set(intr::VBLANK, vblankCauseError);
+    while (true) {}
 }

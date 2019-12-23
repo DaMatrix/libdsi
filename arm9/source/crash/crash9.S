@@ -63,15 +63,15 @@ ASM_FUNC crashSystem
     ldr r0, =__dtcm_start
     mov r1, r11 //restore old r1 from r11 (from before we changed stacks)
     ldr r2, =__dtcm_size
-    ldr r4, =fastCopy
-    blx r4
+    bl fastCopy
+
+    //write user message to snapshot
+    str r10, [r1], #4
 
     //switch back to dtcm stack (old stack will be overwritten, but it doesn't matter since we've already snapshotted it)
     bl switchToDTCMStack
 
-    //restore old r0 from r10 (from before we changed stacks)
-    mov r0, r10
-
     //display crash screen
-    ldr r4, =_crash_doCrash
+    ldr lr, =_crash_doCrash
+    ldr r4, =resetSystem
     bx r4

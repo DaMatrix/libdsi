@@ -3,6 +3,14 @@
     .arm
     .align 4
 
+    .section .text.getSP, "ax"
+ASM_FUNC getSP
+    //copy sp into r0
+    mov r0, sp
+
+    //return
+    bx lr
+
     .section .text.getCPSR, "ax"
 ASM_FUNC getCPSR
     //load cpsr into r0

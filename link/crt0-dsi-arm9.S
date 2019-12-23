@@ -80,30 +80,24 @@ ASM_FUNC _start
     //we can branch to them directly since they're within the 32MiB range (user code is at 0x02000000-0x02FFFFFF, itcm has mirrors everywhere in range
     //0x00000000-0x01FFFFFF, but we only use 0x01000000-0x01FFFFFF, so in the worst theoretically possible case they're still under 32MiB away)
 
-    //i take it back, it would appear that doing a normal branch to fastCopy/fastClear/fastSet causes a branch to the function's code in main ram rather
-    //than in itcm?!?
-
-    ldr r4, =fastCopy
-    ldr r5, =fastClear
-
     //vectors (also goes into itcm)
     ldr r0, =__vectors_lma
     ldr r1, =__vectors_start
     ldr r2, =__vectors_end
     sub r2, r2, r1
-    blx r4
+    bl fastCopy
 
     //clear dtcm (not really needed per se, but can't hurt and is super fast because everything is in itcm or dtcm)
     ldr r0, =__dtcm_start
     ldr r1, =__dtcm_size
-    blx r5
+    bl fastClear
 
     //copy data in dtcm to dtcm
     ldr r0, =__dtcm_lma
     ldr r1, =__dtcm_start
     ldr r2, =__dtcm_end
     sub r2, r2, r1
-    blx r4
+    bl fastCopy
 
     //don't copy arm9i stuff if not on DSi
     cmp r11, #1
@@ -115,7 +109,7 @@ ASM_FUNC _start
     ldr r1, =__arm9i_start__
     ldr r2, =__arm9i_end__
     sub r2, r2, r1
-    blx r4
+    bl fastCopy
 
 _crt0_bss:
     //switch to debug stack because internal stack is in bss, which is about to be cleared by the following code
@@ -125,13 +119,13 @@ _crt0_bss:
     ldr r0, =__bss_start__
     ldr r1, =__bss_end__
     sub r1, r1, r0
-    blx r5
+    bl fastClear
 
     //clear sbss
     ldr r0, =__sbss_start
     ldr r1, =__sbss_end
     sub r1, r1, r0
-    blx r5
+    bl fastClear
 
     //don't clear arm9i bss if not on DSi
     cmp r11, #1
@@ -141,17 +135,12 @@ _crt0_bss:
     ldr r0, =__twl_bss_start__
     ldr r1, =__twl_bss_end__
     sub r1, r1, r0
-    blx r5
+    bl fastClear
 
     //cmp r11, #1
     //ldrne r10, =__end__ // (DS mode) heap start
     //ldreq r10, =__twl_end__ // (DSi mode) heap start
     ldr r10, =__twl_end__
-
-    //set DSi mode flag
-    //TODO: remove this for libnds separation
-    ldr r9, =__dsimode
-    strb r11, [r9]
 
     ldr r0, =_libnds_argv
 
@@ -168,6 +157,11 @@ _crt0_bss:
     str r8, [r1]
 
 _crt0_init:
+    //set DSi mode flag
+    //TODO: remove this for libnds separation
+    ldr r9, =__dsimode
+    strb r11, [r9]
+
     //switch back to dtcm stack
     bl switchToDTCMStack
 

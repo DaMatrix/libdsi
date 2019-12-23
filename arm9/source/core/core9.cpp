@@ -26,7 +26,7 @@ extern "C" void fifoInternalRecvInterrupt();
 //bool __dsimode; //set in crt0
 
 //allocate space in bss for an internal stack used during init and error handling
-dsi::u8 __internal_dummy_stack[1024 * 3];
+__attribute__((section(".bss"))) dsi::u8 __internal_dummy_stack[1024 * 3];
 
 namespace dsi {
     extern "C" void resetSystem() {
@@ -46,8 +46,6 @@ namespace dsi {
         video::resetBrightness(video::DISPLAY_BOTH);
 
         sys::powerOff(sys::POWER_3D_GEMOETRY | sys::POWER_3D_RENDERING);
-
-        //video::resetBrightness(video::DISPLAY_BOTH);
 
         video::resetVRAM();
 

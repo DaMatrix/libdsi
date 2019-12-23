@@ -16,6 +16,7 @@ struct Snapshot {
     u32 cpsr;
     u32 spsr;
     u32 stack[0x4000 >> 2];
+    const char* message;
 };
 
 __attribute__((section(".bss"))) Snapshot __crash_snapshot;
@@ -33,7 +34,7 @@ enum DisplayMode: i32 {
 
 void _crash_displayPSR(const char* name, u32 val);
 
-extern "C" void _crash_doCrash(const char* message, u32 sp) {
+extern "C" void _crash_doCrash() {
     __crash_isCrashing = true;
     sys::resetSystem();
 
@@ -66,8 +67,8 @@ extern "C" void _crash_doCrash(const char* message, u32 sp) {
         iprintf(" Error at 0x%08x (%s)\n", lr - 4 + 3 * (__crash_snapshot.cpsr & bit(5)), __crash_snapshot.cpsr & bit(5) ? "THUMB" : "ARM");
     }
 
-    if (message != nullptr) {
-        iprintf("\n %s\n", message);
+    if (__crash_snapshot.message != nullptr) {
+        iprintf("\n %s\n", __crash_snapshot.message);
     }
 
     //iprintf("DSi mode: %u\nSCFG_A9ROM: 0x%08x\n", sys::checkDSiMode(), *((u32*) 0x04004000));
@@ -159,8 +160,7 @@ extern "C" void _crash_doCrash(const char* message, u32 sp) {
                     iprintf(" CPSR 0x%08x\n", __crash_snapshot.cpsr);
                     iprintf(" SPSR 0x%08x\n", __crash_snapshot.spsr);
 
-                    iprintf("\n Current SP 0x%08x\n", sp);
-                    //iprintf("\n Current SP 0x%08x\n Should be  0x%08x\n", sp, intended_sp);
+                    iprintf("\n Current SP 0x%08x\n", sys::getSP());
                     break;
                 }
 #ifdef _CRASH_DEBUG

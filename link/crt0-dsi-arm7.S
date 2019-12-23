@@ -7,8 +7,8 @@
 
 ASM_FUNC _start
     //disable all interrupts (set Interrupt Master Enable to 0)
-    mov r0, #0x04000000
-    str r0, [r0, #0x208]
+    mov r12, #0x04000000
+    str r12, [r12, #0x208]
 
     //
     // set stack
@@ -56,23 +56,20 @@ ASM_FUNC _start
     cmp r10, #1
     bne _crt0_bss
 
-    //arm9i code+data
-    ldr r0, =0x02ffe1d8
+    //arm7i code+data
+    ldr r0, =0x02FFE1D8
     ldr r0, [r0]
     ldr r1, =__arm7i_start__
     ldr r2, =__arm7i_end__
     sub r2, r2, r1
-    ldr r4, =fastCopy
-    bl _blx_r4_stub
+    bl fastCopy
 
 _crt0_bss:
-    ldr r4, =fastClear
-
     //clear bss
     ldr r0, =__bss_start__
     ldr r1, =__bss_end__
     sub r1, r1, r0
-    bl _blx_r4_stub
+    bl fastClear
 
     //don't clear arm7i bss if not on DSi
     cmp r10, #1
@@ -82,40 +79,40 @@ _crt0_bss:
     ldr r0, =__twl_bss_start__
     ldr r1, =__twl_bss_end__
     sub r1, r1, r0
-    bl _blx_r4_stub
+    bl fastClear
 
+_crt0_init:
     //set DSi mode flag
     //TODO: remove this for libnds separation
     ldr r1, =__dsimode
     strb r10, [r1]
 
-    //run system init
-    //ldr r4, =resetSystem
-    //bl _blx_r4_stub
-    bl resetSystem
-
     //run libc init (static constructors)
     ldr r4, =__libc_init_array
     bl _blx_r4_stub
 
-    //load values for calling main method into registers
-    ldr r4, =main
-    ldr lr, =__libnds_exit
-
-    mov r0, #0 //argc
-    mov r1, #0 //argv
-
-_crt0_init:
     //finish arm9 sync (arm9 has been spinlocking the whole time)
-    mov r9, #0
-    mov r12, #0x4000000 // tell arm9 we are ready
-    str r9, [r12, #0x180]
+    mov r12, #0x4000000
+    str r0, [r12, #0x180]
 
     //if not in DSi mode, we can now just wait forever
     cmp r10, #1
     bne NotDSi_infinite_wait
 
-    //otherwise, branch to main method, crt0 is now complete
+    //run system init
+    bl resetSystem
+
+    //set r0 (argc) to 0 and r1 (argv) to nullptr
+    mov r0, #0
+    mov r1, #0
+
+    //main method should link back to __libnds_exit
+    //TODO: use my own exit handler for libnds separation
+    ldr lr, =__libnds_exit
+
+    //branch to main method, crt0 is now complete
+    ldr r4, =main
+
 _blx_r4_stub:
     bx r4
 
@@ -125,7 +122,6 @@ arm7lma:
 
 __sync_start:
     push {lr}
-    mov r12, #0x4000000
     mov r9, #0x0
     bl _arm9_sync_loop
     mov r9, #(0x9<<8)

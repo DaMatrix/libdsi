@@ -121,6 +121,11 @@ namespace dsi {
         void powerOff(u32 val);
 
         /**
+         * @return the current value of the SP register
+         */
+        extern "C" u32 getSP();
+
+        /**
          * @return the current value of the CPSR register
          */
         extern "C" u32 getCPSR();
