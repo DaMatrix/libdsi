@@ -36,7 +36,6 @@ int main() {
 
     sys::powerOn(sys::POWER_2D_A | sys::POWER_2D_B);
     iprintf("%08x\n", reg::DISPCNT_A);
-    //videoSetMode(MODE_3_2D);
     reg::DISPCNT_A = MODE_3_2D;
     iprintf("%08x\n", REG_DISPCNT);
 

@@ -13,13 +13,6 @@ ASM_FUNC _start
     str r0, [r0, #0x208]
 
     //
-    // set temporary stack
-    //
-
-    ldr r3, =_switch_to_internal_stack
-    blx r3
-
-    //
     // setup memory protection
     //
 
@@ -31,20 +24,11 @@ ASM_FUNC _start
     // set actual stack
     //
 
-    //arm interrupt mode
-    mov r0, #0x12
-    SET_CPSR(r0)
-    ldr sp, =__sp_irq
+    bl _switch_to_itcm_stack
 
-    //arm supervisor mode
-    mov r0, #0x13
-    SET_CPSR(r0)
-    ldr sp, =__sp_svc
-
-    //arm system mode
+    //switch to system mode
     mov r0, #0x1F
     SET_CPSR(r0)
-    ldr sp, =__sp_usr
 
     //check for current console mode
     mov r12, #0x4000000
@@ -239,6 +223,31 @@ ASM_FUNC _switch_to_internal_stack
     SET_CPSR(r0)
     sub r1, r1, #0x400
     mov sp, r1
+
+    //restore original cpsr
+    SET_CPSR(r2)
+
+    //return
+    bx lr
+
+ASM_FUNC _switch_to_itcm_stack
+    //save original cpsr
+    GET_CPSR(r2)
+
+    //arm interrupt mode
+    mov r0, #0x12
+    SET_CPSR(r0)
+    ldr sp, =__sp_irq
+
+    //arm supervisor mode
+    mov r0, #0x13
+    SET_CPSR(r0)
+    ldr sp, =__sp_svc
+
+    //arm system mode
+    mov r0, #0x1F
+    SET_CPSR(r0)
+    ldr sp, =__sp_usr
 
     //restore original cpsr
     SET_CPSR(r2)

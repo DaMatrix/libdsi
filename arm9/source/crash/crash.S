@@ -55,23 +55,19 @@ ASM_FUNC crashSystem
     ldr r0, =_switch_to_internal_stack
     blx r0
 
-    //copy entire DTCM to snapshot
+    //copy entire dtcm to snapshot
     ldr r4, =fastCopy
     ldr r0, =__dtcm_start
     //r1 is already the target address
     ldr r2, =__dtcm_size
     blx r4
 
+    //switch back to itcm stack (old stack will probably be overwritten, who cares)
+    ldr r0, =_switch_to_itcm_stack
+    blx r0
+
     //ldr r2, =__sp_usr
     mov r0, r11
     mov r1, sp
     ldr r4, =_crash_doCrash
     bx r4
-
-_crashSystem_recursive_error:
-    //__crash_isCrashing was set! something is horribly wrong...
-    ldr r1, =_asm_vBlankIntrWait
-
-    //link back to top of function for infinite loop lol
-    mov lr, r1
-    bx r1

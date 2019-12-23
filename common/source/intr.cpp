@@ -9,8 +9,6 @@ extern "C" volatile dsi::Void __irq_vector;
 
 extern "C" volatile dsi::Void __debug_vector;
 
-extern "C" void IntrMain();
-
 extern "C" void test_init_irq();
 
 namespace dsi::intr {

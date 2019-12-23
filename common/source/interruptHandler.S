@@ -8,22 +8,22 @@
 //bit (such as pushing r0-r3 to stack) before calling the user interrupt handler
 //see MAGICFLR.A22 lines 907-945
 ASM_FUNC stdRootHandler
-    mov r12, #0x04000000
+    //register base
+    mov r0, #0x04000000
 
-    //disable interrupts, or return immedately if interrupts are disabled
-    ldr r1, [r12, #0x208]
-    cmp r1, #0
-    bxeq lr
+    //load IME into r0
+    ldr r1, [r0, #0x208]
+
+    //check if IME lsb is set, and, if somehow it isn't, immediately return from interrupt handler
+    ands r1, r1, #1
     moveq pc, lr
-    mov r0, #0
-    str r0, [r12, #0x208]
 
-    //save contents of spsr, old IME, 0x04000000 and lr
-    mrs r0, spsr
-    push {r0, r1, r12, lr}
+    //disable IME
+    mov r1, #0
+    str r1, [r0, #0x208]
 
     //read IE and IF registers (0x04000210 and 0x04000214, respectively)
-    add r3, r12, #0x210
+    add r3, r0, #0x210
     ldmia r3!, {r1, r2}
     ands r1, r1, r2
 
@@ -104,16 +104,8 @@ _stdRootHandler_find_handler_loop:
     cmp r0, #0
     beq _stdRootHandler_wrap_up
 
-    //store old cpsr value
-    mrs r1, cpsr
-    mov r2, r1
-    bic r1, r1, #0xDF
-    orr r1, r1, #0x1F
-    msr cpsr, r1
-
-    //we have to store the old cpsr value in a separate register and push after updating it because we're now in system mode and have a different stack
-    //same goes for lr, we push it to system stack
-    push {r2, lr}
+    //back up lr
+    push {lr}
 
 #ifdef ARM9
     blx r0
@@ -121,21 +113,20 @@ _stdRootHandler_find_handler_loop:
     bl _stdRootHandler_arm7_blx_r0
 #endif
 
-_stdRootHandler_post_handler:
-    //pop old cpsr and system mode lr from system stack
-    pop {r1, lr}
-
-    //restore old cpsr, we're now back in interrupt mode
-    msr cpsr, r1
+    //restore lr
+    pop {lr}
 
 _stdRootHandler_wrap_up:
-    //pop old spsr, old IME, 0x04000000 and lr
-    pop {r0, r1, r12, lr}
+    //register base
+    mov r0, #0x04000000
 
-    //restore old IME
-    str r1, [r12, #0x208]
+    //set IME to 1
+    //we can't have gotten this far if IME was 0 before, so there you have it
+    //if anyone is trying to be clever by storing extra info in bits 1-31 of IME they can HECK off
+    mov r1, #1
+    str r1, [r0, #0x208]
 
-    //bx lr
+    //return lol
     mov pc, lr
 
 #ifdef ARM7

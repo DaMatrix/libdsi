@@ -46,15 +46,17 @@ __attribute__((target("arm"),noinline)) u32 getSPSR()    {
 
 void _crash_displayPSR(const char* name, u32 val);
 
-u32 cntr = 0;
+volatile u32 cntr = 0;
 
-void _crash_vblank_handler()   {
-    iprintf("\x1b[16;1HFrame: %u\n", ++cntr);
+__attribute__((target("arm"))) void _crash_vblank_handler()   {
+    u32 _vblankSp;
+    asm volatile("mov %0, sp" : "=r" (_vblankSp));
+    iprintf("\x1b[14;1HFrame: %u\n VBlank SP: 0x%08x\n VBlank CPSR: 0x%08x\n", ++cntr, _vblankSp, getCPSR());
 }
 
 extern "C" void _crash_doCrash(const char* message, u32 sp) {
-    initSystem();
     __crash_isCrashing = true;
+    initSystem();
 
     sys::powerOn(sys::POWER_2D_A | sys::POWER_2D_B);
 
