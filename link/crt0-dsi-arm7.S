@@ -14,20 +14,11 @@ ASM_FUNC _start
     // set stack
     //
 
-    //arm irq mode
-    mov r0, #0x12
-    msr cpsr, r0
-    ldr sp, =__sp_irq
+    bl _configure_stack
 
-    //arm svc mode
-    mov r0, #0x13
-    msr cpsr, r0
-    ldr sp, =__sp_svc
-
-    //arm system mode
+    //switch to system mode
     mov r0, #0x1F
     msr cpsr, r0
-    ldr sp, =__sp_usr
 
     //
     // sync with arm9
@@ -98,6 +89,10 @@ _crt0_bss:
     ldr r1, =__dsimode
     strb r10, [r1]
 
+    //run system init
+    ldr r4, =initSystem
+    bl _blx_r4_stub
+
     //run libc init (static constructors)
     ldr r4, =__libc_init_array
     bl _blx_r4_stub
@@ -162,5 +157,30 @@ NotDSi_infinite_wait:
 _NotDSi_do_infinite_wait:
     bl _blx_r4_stub
     b _NotDSi_do_infinite_wait
+
+ASM_FUNC _configure_stack
+    //save original cpsr
+    GET_CPSR(r1)
+
+    //arm interrupt mode
+    mov r0, #0x12
+    msr cpsr, r0
+    ldr sp, =__sp_irq
+
+    //arm supervisor mode
+    mov r0, #0x13
+    msr cpsr, r0
+    ldr sp, =__sp_svc
+
+    //arm system mode
+    mov r0, #0x1F
+    msr cpsr, r0
+    ldr sp, =__sp_usr
+
+    //restore original cpsr
+    SET_CPSR(r1)
+
+    //return
+    bx lr
 
     .end

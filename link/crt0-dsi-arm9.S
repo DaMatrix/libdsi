@@ -82,7 +82,9 @@ ASM_FUNC _start
     lsr r2, r2, #2
     swi 0x0C0000 //CpuFastSet
 
-    ldr r4, =fastCopy //fastCopy is now located in ITCM, so we can use it instead of bugged BIOS CpuFastSet function
+    //fastCopy and fastClear is now located in itcm, so we can use them instead of bugged BIOS CpuFastSet function
+    ldr r4, =fastCopy
+    ldr r5, =fastClear
 
     //vectors (also goes into itcm)
     ldr r0, =__vectors_lma
@@ -90,6 +92,11 @@ ASM_FUNC _start
     ldr r2, =__vectors_end
     sub r2, r2, r1
     blx r4
+
+    //clear dtcm (not really needed per se, but can't hurt and is super fast because everything is in itcm or dtcm)
+    ldr r0, =__dtcm_start
+    ldr r1, =__dtcm_size
+    blx r5
 
     //dtcm
     //TODO: is this even needed? DTCM should really only be used for stack
@@ -112,19 +119,17 @@ ASM_FUNC _start
     blx r4
 
 _crt0_bss:
-    ldr r4, =fastClear
-
     //clear bss
     ldr r0, =__bss_start__
     ldr r1, =__bss_end__
     sub r1, r1, r0
-    blx r4
+    blx r5
 
     //clear sbss
     ldr r0, =__sbss_start
     ldr r1, =__sbss_end
     sub r1, r1, r0
-    blx r4
+    blx r5
 
     //don't clear arm9i bss if not on DSi
     cmp r11, #1
@@ -134,7 +139,7 @@ _crt0_bss:
     ldr r0, =__twl_bss_start__
     ldr r1, =__twl_bss_end__
     sub r1, r1, r0
-    blx r4
+    blx r5
 
     //cmp r11, #1
     //ldrne r10, =__end__ // (DS mode) heap start
@@ -176,6 +181,7 @@ _crt0_init:
     cmp r11, #1
     bne NotDSi_error
 
+    //enable 134mhz clock if in dsi mode
     ldr r0, =enable_twl_clock
     blx r0
 
@@ -257,14 +263,12 @@ ASM_FUNC _switch_to_itcm_stack
 
     .section .itcm
 enable_twl_clock:
-#if true
     //avoid breaking stuff?!?
     ldr r0, =__dsimode
     cmp r0, #1
     ldrne r0, =NotDSi_clock_errormsg
     ldrne r4, =crashSystem
     blxne r4
-#endif
 
     //SCFG_CLK
     ldr r0, =0x04004004

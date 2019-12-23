@@ -1,7 +1,7 @@
 #ifndef LIBDSI_H
 #define LIBDSI_H
 
-#include <libdsi/core.h>
+#include <libdsi/core9.h>
 
 #ifdef ARM9
 #include <libdsi/arm9/dsi9.h>

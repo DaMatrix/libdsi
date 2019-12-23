@@ -23,7 +23,7 @@ extern "C" void fifoInternalSendInterrupt();
 extern "C" void fifoInternalRecvInterrupt();
 #endif
 
-bool __dsimode; //set in crt0
+//bool __dsimode; //set in crt0
 
 namespace dsi {
     extern "C" void initSystem() {

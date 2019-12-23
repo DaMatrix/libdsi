@@ -89,8 +89,9 @@ extern "C" void _crash_doCrash(const char* message, u32 sp) {
     u32 repeat  = 0;
 
     constexpr u32 NUM_STACK_ROWS = 22;
-    constexpr u32 MAX_STACK_POS = 0x4000 / 4 - NUM_STACK_ROWS;
-    u32 stackIndex = MAX_STACK_POS;
+    constexpr u32 STACK_SIZE = 0x4000 / 4;
+    constexpr u32 STACK_MASK = STACK_SIZE - 1;
+    u32 stackIndex = STACK_SIZE - NUM_STACK_ROWS;
     u32 scrollingStack = 0;
 
     while (true) {
@@ -112,8 +113,8 @@ extern "C" void _crash_doCrash(const char* message, u32 sp) {
         } else if (currentMode == MODE_STACK)   {
             if (held & KEY_UP)   {
                 if (pressed & KEY_UP || scrollingStack == KEY_UP) {
-                    if (++stackIndex >= MAX_STACK_POS) {
-                        stackIndex = MAX_STACK_POS;
+                    if (++stackIndex >= STACK_SIZE) {
+                        stackIndex = 0;
                     }
                     needsRender = true;
                 }
@@ -123,7 +124,7 @@ extern "C" void _crash_doCrash(const char* message, u32 sp) {
             } else if (held & KEY_DOWN)   {
                 if (pressed & KEY_DOWN || scrollingStack == KEY_DOWN) {
                     if (--stackIndex < 0) {
-                        stackIndex = 0;
+                        stackIndex = STACK_SIZE - 1;
                     }
                     needsRender = true;
                 }
@@ -184,11 +185,8 @@ extern "C" void _crash_doCrash(const char* message, u32 sp) {
                 case MODE_STACK: {
                     title = "DTCM (Stack)    ";
                     for (u32 i = 0; i < NUM_STACK_ROWS; i++)    {
-                        iprintf(
-                            " 0x%08x: 0x%08x\n",
-                            dtcmStart() + (stackIndex + (NUM_STACK_ROWS - i - 1)) * 4,
-                            __crash_snapshot.stack[stackIndex + (NUM_STACK_ROWS - i - 1)]
-                        );
+                        u32 off = (stackIndex + (NUM_STACK_ROWS - i - 1)) & STACK_MASK;
+                        iprintf(" 0x%08x: 0x%08x\n", dtcmStart() + (off << 2), __crash_snapshot.stack[off]);
                     }
                     break;
                 }

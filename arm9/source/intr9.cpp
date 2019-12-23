@@ -1,7 +1,7 @@
 #include <dsi.h>
 
-//place interrupt handlers in itcm on ARM9
-__attribute__((section(".itcm.__interruptHandlers"))) dsi::Void __interruptHandlers[32];
+//place interrupt handlers in dtcm on ARM9
+__attribute__((section(".dtcm.__interruptHandlers"))) dsi::Void __interruptHandlers[32];
 
 namespace dsi::intr {
     namespace _internal {

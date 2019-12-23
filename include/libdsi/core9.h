@@ -72,7 +72,6 @@ namespace dsi {
         extern "C" void fastFillHalfWords(u16 value, void* dst, u32 size);
     }
 
-    #ifdef ARM9
     /**
      * Initializes the system.
      *
@@ -97,7 +96,6 @@ namespace dsi {
      * @param message a message to display to the user. If nullptr, a message will not be displayed.
      */
     extern "C" void crashSystem(const char* message);
-    #endif //ARM9
 
     namespace sys   {
         /**

@@ -1,4 +1,4 @@
-#include "main.h"
+#include "main9.h"
 
 #include <nds.h>
 #include <stdio.h>
