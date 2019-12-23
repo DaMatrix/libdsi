@@ -1,13 +1,14 @@
 #include <libdsi/asm.h>
 
     .arm
+    .align 4
+
 #ifdef ARM9
     .section .itcm.fastCopy, "ax"
 #else
     .section .text.fastCopy, "ax"
 #endif
 
-    .align 4
 ASM_FUNC fastCopy
     movs r3, r2, lsr#5
     beq _fastCopy_words_check

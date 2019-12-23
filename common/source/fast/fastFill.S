@@ -1,13 +1,14 @@
 #include <libdsi/asm.h>
 
     .arm
+    .align 4
+
 #ifdef ARM9
     .section .itcm.fastFill, "ax"
 #else
     .section .text.fastFill, "ax"
 #endif
 
-    .align 4
 ASM_FUNC fastFillHalfWords
     orr r0, r0, r0, lsl#16
 

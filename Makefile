@@ -19,6 +19,7 @@ export VERSION			:=	$(LIBDSI_MAJOR).$(LIBDSI_MINOR).$(LIBDSI_REVISION)$(LIBDSI_S
 export CFLAGS		:=	-mthumb -mthumb-interwork -Wall -ffunction-sections -fdata-sections -fomit-frame-pointer -flto=1 -fno-fat-lto-objects -ffast-math -DDSI
 export CXXFLAGS		:=	-fno-rtti
 export ASFLAGS		:=
+#export LDFLAGS		:=	-Wl,--nmagic -Wl,-Map,$(notdir $*).map -fuse-linker-plugin -Wl,-print-gc-sections -Wl,--trace-symbol=checkDSiMode
 export LDFLAGS		:=	-Wl,--nmagic -Wl,-Map,$(notdir $*).map -fuse-linker-plugin
 
 export CFLAGS_7		:=	-DARM7 -march=armv4t -mcpu=arm7tdmi -mtune=arm7tdmi

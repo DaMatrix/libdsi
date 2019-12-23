@@ -9,8 +9,12 @@
 
 ASM_FUNC _start
     //disable all interrupts (set Interrupt Master Enable to 0)
-    mov r0, #0x04000000
-    str r0, [r0, #0x208]
+    mov r12, #0x04000000
+    str r12, [r12, #0x208]
+
+    //switch to internal stack
+    ldr r3, =switchToInternalStack
+    blx r3
 
     //
     // setup memory protection
@@ -20,22 +24,14 @@ ASM_FUNC _start
     ldr r3, =__libnds_mpu_setup
     blx r3
 
-    //
-    // set actual stack
-    //
-
-    bl _switch_to_itcm_stack
-
     //switch to system mode
     mov r0, #0x1F
     SET_CPSR(r0)
 
     //check for current console mode
-    mov r12, #0x4000000
-    ldrb r11, [r12, r12, lsr#12]
-    and r11, r11, #0x3
-    cmp r11, #1
-    movne r11, #0 //only accept DSi mode, everything else is invalid
+    ldr r3, =checkDSiMode
+    blx r3
+    mov r11, r0
 
     //
     // ARM7 sync
@@ -119,6 +115,10 @@ ASM_FUNC _start
     blx r4
 
 _crt0_bss:
+    //switch to debug stack because internal stack is in bss, which is about to be cleared by the following code
+    ldr r3, =switchToDebugStack
+    blx r3
+
     //clear bss
     ldr r0, =__bss_start__
     ldr r1, =__bss_end__
@@ -153,6 +153,7 @@ _crt0_bss:
 
     ldr r0, =_libnds_argv
 
+    //TODO: these symbols are being discarded by ld gc-sections?!?!?!?
     // reset heap base
     ldr r2, [r0, #20] // newheap base
     cmp r2, #0
@@ -165,6 +166,10 @@ _crt0_bss:
     str r8, [r1]
 
 _crt0_init:
+    //switch back to dtcm stack
+    ldr r3, =switchToDTCMStack
+    blx r3
+
     //load secure area address
     ldr r0, =__secure_area__ //TODO: i can set this to 0 without causing issues, figure out why actually deleting it or the line in securearea.c prevents the ROM from loading
     mov r0, #0
@@ -179,10 +184,12 @@ _crt0_init:
 
     //display error message if not running on DSi
     cmp r11, #1
-    bne NotDSi_error
+    ldrne r0, =_arm9_crt0_ntr_errormsg
+    ldrne r4, =crashSystem
+    blxne r4
 
     //enable 134mhz clock if in dsi mode
-    ldr r0, =enable_twl_clock
+    ldr r0, =enableClockDSi
     blx r0
 
     mov r0, #0 //argc
@@ -200,92 +207,48 @@ IPCSync:
     bne IPCSync
     bx lr
 
-NotDSi_error:
-    ldr r0, =NotDSi_errormsg
-    ldr r4, =crashSystem
-    blx r4
+    .section .itcm.enableClockDSi, "ax"
+ASM_FUNC enableClockDSi
+    //store lr before dsi mode check
+    push {lr}
 
-    .section .text
-ASM_FUNC _switch_to_internal_stack
-    //save original cpsr
-    GET_CPSR(r2)
+    //check if we are in dsi mode
+    ldr r0, =checkDSiMode
+    blx r0
 
-    ldr r1, =__internal_dummy_stack
-    add r1, r1, #(1024 * 3)
+    //if not, crash system (shouldn't be possible to get here since we already crash before this is called, but better safe than sorry
+    ldrne r0, =_arm9_crt0_clock_errormsg
+    ldrne r3, =crashSystem
+    blxne r3
 
-    //arm interrupt mode
-    mov r0, #0x12
-    SET_CPSR(r0)
-    mov sp, r1
+    //restore lr
+    pop {lr}
 
-    //arm supervisor mode
-    mov r0, #0x13
-    SET_CPSR(r0)
-    sub r1, r1, #0x400
-    mov sp, r1
-
-    //arm system mode
-    mov r0, #0x1F
-    SET_CPSR(r0)
-    sub r1, r1, #0x400
-    mov sp, r1
-
-    //restore original cpsr
-    SET_CPSR(r2)
-
-    //return
-    bx lr
-
-ASM_FUNC _switch_to_itcm_stack
-    //save original cpsr
-    GET_CPSR(r2)
-
-    //arm interrupt mode
-    mov r0, #0x12
-    SET_CPSR(r0)
-    ldr sp, =__sp_irq
-
-    //arm supervisor mode
-    mov r0, #0x13
-    SET_CPSR(r0)
-    ldr sp, =__sp_svc
-
-    //arm system mode
-    mov r0, #0x1F
-    SET_CPSR(r0)
-    ldr sp, =__sp_usr
-
-    //restore original cpsr
-    SET_CPSR(r2)
-
-    //return
-    bx lr
-
-    .section .itcm
-enable_twl_clock:
-    //avoid breaking stuff?!?
-    ldr r0, =__dsimode
-    cmp r0, #1
-    ldrne r0, =NotDSi_clock_errormsg
-    ldrne r4, =crashSystem
-    blxne r4
-
-    //SCFG_CLK
+    //scfg_clk register
     ldr r0, =0x04004004
     ldrh r1, [r0]
     orr r1, r1, #1
-    mov r2, #8 //cycles to wait
+
+    //we need to wait at least 8 cycles after switching clock speeds
+    mov r2, #8
+
+    //actually change speeds
     strh r1, [r0]
 
+    //loop until r2 is 0 (actually this is 16 cycles...)
 _enable_twl_clock_loop:
     subs r2, r2, #1
     bne _enable_twl_clock_loop
+    
+    //return
     bx lr
 
+    //string constants
     .section .rodata
-NotDSi_errormsg:
+_arm9_crt0_ntr_errormsg:
     .string "Must be run in DSi mode!"
-NotDSi_clock_errormsg:
+    
+_arm9_crt0_clock_errormsg:
     .string "Attempted to set TWL speed in NDS mode!"
 
     .end

@@ -1,6 +1,7 @@
 #include <libdsi/asm.h>
 
     .thumb
+    .align 4
 
     .section .text._asm_div, "ax"
 ASM_FUNC _asm_div

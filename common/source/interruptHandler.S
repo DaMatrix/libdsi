@@ -1,5 +1,8 @@
 #include <libdsi/asm.h>
 
+    .arm
+    .align 4
+
 #ifdef ARM9
     .section .itcm.stdRootHandler, "ax"
 #endif

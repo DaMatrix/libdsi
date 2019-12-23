@@ -6,7 +6,7 @@
 #endif
 
 #include <libdsi/bios.h>
-#include <libdsi/core9.h>
+#include <libdsi/core.h>
 #include <libdsi/dma.h>
 #include <libdsi/fifo.h>
 #include <libdsi/intr.h>

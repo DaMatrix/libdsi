@@ -57,7 +57,7 @@ ASM_FUNC crashSystem
     SET_CPSR(r0)
 
     //switch to internal stack
-    ldr r0, =_switch_to_internal_stack
+    ldr r0, =switchToInternalStack
     blx r0
 
     //copy entire dtcm to snapshot
@@ -67,12 +67,10 @@ ASM_FUNC crashSystem
     ldr r2, =__dtcm_size
     blx r4
 
-    //switch back to itcm stack (old stack will probably be overwritten, who cares)
-    ldr r0, =_switch_to_itcm_stack
+    //switch back to dtcm stack (old stack will be overwritten, but it doesn't matter since we've already snapshotted it)
+    ldr r0, =switchToDTCMStack
     blx r0
 
-    //ldr r2, =__sp_usr
     mov r0, r10
-    mov r1, sp
     ldr r4, =_crash_doCrash
     bx r4

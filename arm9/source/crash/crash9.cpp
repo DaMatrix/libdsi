@@ -72,6 +72,8 @@ extern "C" void _crash_doCrash(const char* message, u32 sp) {
         iprintf("\n %s\n", message);
     }
 
+    iprintf("DSi mode: %u\nSCFG_A9ROM: 0x%08x\n", sys::checkDSiMode(), *((u32*) 0x04004000));
+
     iprintf(
         "\x1b[15;1HSnapshot Controls:\n"
         "  A: Page forward\n"

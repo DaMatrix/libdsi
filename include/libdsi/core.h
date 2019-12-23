@@ -14,17 +14,13 @@
 
 #define __DSI_OVERLOAD_MACRO_2(ARG1, ARG2, NAME, ...) NAME
 
-#ifdef ARM9
 //#define __DSI_ASSERT_MSG(EXPR, MSG) if (!(EXPR)) dsi::crashSystem("At " __DSI_CURRENT_FILE ":" __DSI_CURRENT_LINE " (" __DSI_CURRENT_FUNC "): " MSG);
 //#define __DSI_ASSERT_NOMSG(EXPR) if (!(EXPR)) dsi::crashSystem("Assertion failed at " __DSI_CURRENT_FILE ":" __DSI_CURRENT_LINE " (" __DSI_CURRENT_FUNC ")");
 #define __DSI_ASSERT_MSG(EXPR, MSG) if (!(EXPR)) dsi::crashSystem("Assertion failed at " __DSI_CURRENT_FILE ":" __DSI_CURRENT_LINE ": " MSG);
 #define __DSI_ASSERT_NOMSG(EXPR) if (!(EXPR)) dsi::crashSystem("Assertion failed at " __DSI_CURRENT_FILE ":" __DSI_CURRENT_LINE);
-#endif
 
 //actual macros
-#ifdef ARM9
 #define DSI_ASSERT(...) __DSI_OVERLOAD_MACRO_2(__VA_ARGS__, __DSI_ASSERT_MSG, __DSI_ASSERT_NOMSG)(__VA_ARGS__)
-#endif
 
 namespace dsi {
     namespace mem {
@@ -125,14 +121,77 @@ namespace dsi {
         void powerOff(u32 val);
 
         /**
-         * @return the current value of the CPSR register (T bit may be incorrect)
+         * @return the current value of the CPSR register (T bit will probably be incorrect)
          */
-        u32 getCPSR();
+        extern "C" u32 getCPSR();
 
         /**
-         * @return the current value of the SPSR register (T bit may be incorrect)
+         * @return the current value of the SPSR register (T bit will probably be incorrect)
          */
-        u32 getSPSR();
+        extern "C" u32 getSPSR();
+
+        /**
+         * Checks if the system is currently running in DSi mode.
+         *
+         * By the time user code starts running, it should be impossible for this to return anything other than true.
+         *
+         * This will also update the condition flags, allowing use of "eq" if DSi mode is active and "ne" if it is not.
+         *
+         * @return whether or not the system is currently running in DSi mode
+         */
+        extern "C" bool checkDSiMode();
+
+        /**
+         * Switches to the internal stack, a 3x3KiB region in the bss section used during setup.
+         */
+        extern "C" void switchToInternalStack();
+
+        /**
+         * Switches to the DTCM stack, which is the actual stack used by user code.
+         *
+         * Generally this should be the only stack that is used, due to DTCM being significantly faster than other memory regions.
+         */
+        extern "C" void switchToDTCMStack();
+
+        /**
+         * Switches to the debug stack, a small region hard-coded into the BIOS intended to be used by the debug interrupt handler.
+         *
+         * The stack base is different for ARM7 and ARM9:
+         * ARM9: 0x02FFFD9C
+         * ARM7: 0x0380FFDC
+         */
+        extern "C" void switchToDebugStack();
+
+        /**
+         * The different ARM CPU modes.
+         */
+        enum CPUMode {
+            MODE_USER = 0x10,
+            MODE_FIQ = 0x11,
+            MODE_FAST_INTERRUPT = MODE_FIQ,
+            MODE_IRQ = 0x12,
+            MODE_INTERRUPT = MODE_IRQ,
+            MODE_SWI = 0x13,
+            MODE_SUPVERVISOR = MODE_SWI,
+            MODE_ABORT = 0x17,
+            MODE_UNDEFINED = 0x1B,
+            MODE_SYSTEM = 0x1F
+        };
+
+        /**
+         * @return the current ARM CPU mode
+         */
+        extern "C" CPUMode getCurrentMode();
+
+        /**
+         * Switches to the given ARM CPU mode.
+         *
+         * This is highly likely to cause issues of some kind due to e.g. the stack pointer being replaced. Should probably not be called from anything
+         * except assembly...
+         *
+         * @param mode the new mode to switch to
+         */
+        extern "C" void switchToMode(CPUMode mode);
     }
 }
 
