@@ -49,13 +49,13 @@ namespace dsi::video {
     }
 
     void setBrightness(Display display, i32 brightness)  {
-        u32 value;
+        u16 value = 0;
         if (brightness == 0)    {
             return resetBrightness(display);
         } else if (brightness < 0)  {
-            value = (2 << 14) | (u32) (brightness < -16 ? 16 : -brightness);
+            value = (u16) ((2 << 14) | (brightness < -16 ? 16 : -brightness));
         } else if (brightness > 0)  {
-            value = (1 << 14) | (u32) (brightness > 16 ? 16 : brightness);
+            value = (u16) ((1 << 14) | (brightness > 16 ? 16 : brightness));
         }
 
         if (display & DISPLAY_A)  {

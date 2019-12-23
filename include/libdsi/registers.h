@@ -9,9 +9,9 @@
 #define _ENUM_VOLATILE
 #endif
 
-#define REG_R(ADDRESS, TYPE, NAME) static volatile const TYPE& NAME = *((volatile TYPE*) ADDRESS);
-#define REG_W(ADDRESS, TYPE, NAME) static volatile TYPE& NAME = *((volatile TYPE*) ADDRESS);
-#define REG_RW(ADDRESS, TYPE, NAME) static volatile TYPE& NAME = *((volatile TYPE*) ADDRESS);
+#define REG_R(ADDRESS, TYPE, NAME) static volatile const TYPE& NAME = *((volatile TYPE*) (ADDRESS));
+#define REG_W(ADDRESS, TYPE, NAME) static volatile TYPE& NAME = *((volatile TYPE*) (ADDRESS));
+#define REG_RW(ADDRESS, TYPE, NAME) static volatile TYPE& NAME = *((volatile TYPE*) (ADDRESS));
 
 #ifdef __JETBRAINS_IDE__
 //basically just hides some erroneous compile errors from CLion
@@ -19,9 +19,9 @@
 #define BLOCK_W(ADDRESS, SIZE, TYPE, NAME) static TYPE (&NAME)[SIZE / sizeof(TYPE)] = nullptr;
 #define BLOCK_RW(ADDRESS, SIZE, TYPE, NAME) static TYPE (&NAME)[SIZE / sizeof(TYPE)] = nullptr;
 #else
-#define BLOCK_R(ADDRESS, SIZE, TYPE, NAME) static const TYPE (&NAME)[SIZE / sizeof(TYPE)] = (TYPE (&)[SIZE / sizeof(TYPE)]) *((TYPE*) ADDRESS);
-#define BLOCK_W(ADDRESS, SIZE, TYPE, NAME) static TYPE (&NAME)[SIZE / sizeof(TYPE)] = (TYPE (&)[SIZE / sizeof(TYPE)]) *((TYPE*) ADDRESS);
-#define BLOCK_RW(ADDRESS, SIZE, TYPE, NAME) static TYPE (&NAME)[SIZE / sizeof(TYPE)] = (TYPE (&)[SIZE / sizeof(TYPE)]) *((TYPE*) ADDRESS);
+#define BLOCK_R(ADDRESS, SIZE, TYPE, NAME) static const TYPE (&NAME)[SIZE / sizeof(TYPE)] = (TYPE (&)[SIZE / sizeof(TYPE)]) *((TYPE*) (ADDRESS));
+#define BLOCK_W(ADDRESS, SIZE, TYPE, NAME) static TYPE (&NAME)[SIZE / sizeof(TYPE)] = (TYPE (&)[SIZE / sizeof(TYPE)]) *((TYPE*) (ADDRESS));
+#define BLOCK_RW(ADDRESS, SIZE, TYPE, NAME) static TYPE (&NAME)[SIZE / sizeof(TYPE)] = (TYPE (&)[SIZE / sizeof(TYPE)]) *((TYPE*) (ADDRESS));
 #endif
 
 /**
@@ -301,7 +301,7 @@ namespace dsi::reg {
     /**
      * 2D Engine A - Master Brightness Up/Down
      */
-    REG_RW(0x0400006C, u32, MASTER_BRIGHT_A)
+    REG_RW(0x0400006C, u16, MASTER_BRIGHT_A)
     #endif
 
     // ARM9 Display Engine B
@@ -485,7 +485,7 @@ namespace dsi::reg {
     /**
      * 2D Engine B - Master Brightness Up/Down
      */
-    REG_RW(0x0400006C + 0x1000, u32, MASTER_BRIGHT_B)
+    REG_RW(0x0400006C + 0x1000, u16, MASTER_BRIGHT_B)
     #endif
 
     // ARM9 DMA and Timers

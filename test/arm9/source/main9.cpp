@@ -34,7 +34,9 @@ int main() {
 
     consoleDemoInit();
     iprintf("%08x %08x\n", mem::fastCopy, mem::fastClear);
-    iprintf(isDSiMode() ? "DSi mode!\n" : "NTR mode...\n");
+    iprintf(sys::checkDSiMode() ? "DSi mode!\n" : "NTR mode...\n");
+
+    iprintf(sys::getCPSR() & bit(5) ? "THUMB Mode!\n" : "ARM Mode!\n");
 
     sys::powerOn(sys::POWER_2D_A | sys::POWER_2D_B);
     iprintf("%08x\n", reg::DISPCNT_A);

@@ -13,24 +13,22 @@ ASM_FUNC _start
     str r12, [r12, #0x208]
 
     //switch to internal stack
-    ldr r3, =switchToInternalStack
-    blx r3
+    bl switchToInternalStack
 
     //
     // setup memory protection
     //
 
     //TODO: rewrite this for full libnds separation
-    ldr r3, =__libnds_mpu_setup
-    blx r3
+    ldr r4, =__libnds_mpu_setup
+    blx r4
 
     //switch to system mode
     mov r0, #0x1F
     SET_CPSR(r0)
 
     //check for current console mode
-    ldr r3, =checkDSiMode
-    blx r3
+    bl checkDSiMode
     mov r11, r0
 
     //
@@ -78,7 +76,13 @@ ASM_FUNC _start
     lsr r2, r2, #2
     swi 0x0C0000 //CpuFastSet
 
-    //fastCopy and fastClear is now located in itcm, so we can use them instead of bugged BIOS CpuFastSet function
+    //fastCopy and fastClear are now located in itcm, so we can use them instead of bugged BIOS CpuFastSet function
+    //we can branch to them directly since they're within the 32MiB range (user code is at 0x02000000-0x02FFFFFF, itcm has mirrors everywhere in range
+    //0x00000000-0x01FFFFFF, but we only use 0x01000000-0x01FFFFFF, so in the worst theoretically possible case they're still under 32MiB away)
+
+    //i take it back, it would appear that doing a normal branch to fastCopy/fastClear/fastSet causes a branch to the function's code in main ram rather
+    //than in itcm?!?
+
     ldr r4, =fastCopy
     ldr r5, =fastClear
 
@@ -94,8 +98,7 @@ ASM_FUNC _start
     ldr r1, =__dtcm_size
     blx r5
 
-    //dtcm
-    //TODO: is this even needed? DTCM should really only be used for stack
+    //copy data in dtcm to dtcm
     ldr r0, =__dtcm_lma
     ldr r1, =__dtcm_start
     ldr r2, =__dtcm_end
@@ -116,8 +119,7 @@ ASM_FUNC _start
 
 _crt0_bss:
     //switch to debug stack because internal stack is in bss, which is about to be cleared by the following code
-    ldr r3, =switchToDebugStack
-    blx r3
+    bl switchToDebugStack
 
     //clear bss
     ldr r0, =__bss_start__
@@ -167,38 +169,41 @@ _crt0_bss:
 
 _crt0_init:
     //switch back to dtcm stack
-    ldr r3, =switchToDTCMStack
-    blx r3
+    bl switchToDTCMStack
 
     //load secure area address
-    ldr r0, =__secure_area__ //TODO: i can set this to 0 without causing issues, figure out why actually deleting it or the line in securearea.c prevents the ROM from loading
+    //TODO: i can set this to 0 without causing issues, figure out why actually deleting it or the line in securearea.c hangs
+    ldr r0, =__secure_area__
     mov r0, #0
 
-    //run system init
-    ldr r3, =initSystem
-    blx r3
-
     //run libc init (static constructors)
-    ldr r3, =__libc_init_array
-    blx r3
+    ldr r4, =__libc_init_array
+    blx r4
 
-    //display error message if not running on DSi
+    //check if we are in dsi mode
     cmp r11, #1
+
+    //if not, crash system (shouldn't be possible to get here since we already crash before this is called, but better safe than sorry
     ldrne r0, =_arm9_crt0_ntr_errormsg
-    ldrne r4, =crashSystem
-    blxne r4
+    blne crashSystem
 
     //enable 134mhz clock if in dsi mode
-    ldr r0, =enableClockDSi
-    blx r0
+    bl enableClockDSi
 
-    mov r0, #0 //argc
-    mov r1, #0 //argv
+    //run system init
+    bl resetSystem
+
+    //set r0 (argc) to 0 and r1 (argv) to nullptr
+    mov r0, #0
+    mov r1, #0
+
+    //main method should link back to __libnds_exit
+    //TODO: use my own exit handler for libnds separation
+    ldr lr, =__libnds_exit
 
     //run main method
-    ldr r3, =main
-    ldr lr, =__libnds_exit
-    bx r3
+    ldr r4, =main
+    bx r4
 
 IPCSync:
     ldr r10, [r12, #0x180]
@@ -209,21 +214,6 @@ IPCSync:
 
     .section .itcm.enableClockDSi, "ax"
 ASM_FUNC enableClockDSi
-    //store lr before dsi mode check
-    push {lr}
-
-    //check if we are in dsi mode
-    ldr r0, =checkDSiMode
-    blx r0
-
-    //if not, crash system (shouldn't be possible to get here since we already crash before this is called, but better safe than sorry
-    ldrne r0, =_arm9_crt0_clock_errormsg
-    ldrne r3, =crashSystem
-    blxne r3
-
-    //restore lr
-    pop {lr}
-
     //scfg_clk register
     ldr r0, =0x04004004
     ldrh r1, [r0]
@@ -247,8 +237,5 @@ _enable_twl_clock_loop:
     .section .rodata
 _arm9_crt0_ntr_errormsg:
     .string "Must be run in DSi mode!"
-    
-_arm9_crt0_clock_errormsg:
-    .string "Attempted to set TWL speed in NDS mode!"
 
     .end

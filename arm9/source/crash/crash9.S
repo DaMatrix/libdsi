@@ -11,10 +11,6 @@ ASM_FUNC crashSystem
     mov r1, #0x04000000
     str r1, [r1, #0x208]
 
-    //load and store cpsr on stack
-    //GET_CPSR(r1)
-    //push {r1}
-
     //stack snapshot is in main ram
     //r1 contains base address of snapshot
     ldr r1, =__crash_snapshot
@@ -32,9 +28,6 @@ ASM_FUNC crashSystem
     str r12, [r1, #(12 << 2)]
     str lr, [r1, #(14 << 2)]
 
-    //pop old cpsr off stack (into r6)
-    //pop {r6}
-
     //pop old value of r1 and pc off stack again (into r4 and r5) and put it in the stack snapshot as well
     pop {r4, r5}
     str r4, [r1, #(1 << 2)]
@@ -43,12 +36,19 @@ ASM_FUNC crashSystem
     //store sp into stack snapshot now that r1 and pc have been popped again
     str sp, [r1, #(13 << 2)]
 
-    //store old cpsr and spsr into snapshot
+    //get old cpsr and spsr
     GET_CPSR(r4)
     GET_SPSR(r5)
+
+    //set T bit of old cpsr based on lr
+    and r3, lr, #1
+    orr r4, r4, r3, lsl #5
+
+    //store old cpsr and spsr into snapshot
     add r1, r1, #(16 << 2)
     stmia r1!, {r4, r5}
 
+    //move r0 and r1 to r10 and r11 to prevent them from being destroyed by switchToInternalStack and fastCopy afterwards
     mov r10, r0
     mov r11, r1
 
@@ -57,20 +57,21 @@ ASM_FUNC crashSystem
     SET_CPSR(r0)
 
     //switch to internal stack
-    ldr r0, =switchToInternalStack
-    blx r0
+    bl switchToInternalStack
 
     //copy entire dtcm to snapshot
-    ldr r4, =fastCopy
     ldr r0, =__dtcm_start
-    mov r1, r11
+    mov r1, r11 //restore old r1 from r11 (from before we changed stacks)
     ldr r2, =__dtcm_size
+    ldr r4, =fastCopy
     blx r4
 
     //switch back to dtcm stack (old stack will be overwritten, but it doesn't matter since we've already snapshotted it)
-    ldr r0, =switchToDTCMStack
-    blx r0
+    bl switchToDTCMStack
 
+    //restore old r0 from r10 (from before we changed stacks)
     mov r0, r10
+
+    //display crash screen
     ldr r4, =_crash_doCrash
     bx r4

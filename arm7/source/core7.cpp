@@ -3,7 +3,7 @@
 bool __dsimode; //set in crt0
 
 namespace dsi {
-    extern "C" void initSystem() {
+    extern "C" void resetSystem() {
         reg::IME = 0;
 
         for (u32 i = 0; i < 4; i++) { dma::channel(0)->erase(); }

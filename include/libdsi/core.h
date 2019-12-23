@@ -69,13 +69,6 @@ namespace dsi {
     }
 
     /**
-     * Initializes the system.
-     *
-     * Should probably never be called by user code.
-     */
-    extern "C" void initSystem();
-
-    /**
      * Crashes the system, resetting most things and displaying a full-screen error message on both displays.
      *
      * This method will never return.
@@ -94,6 +87,13 @@ namespace dsi {
     extern "C" void crashSystem(const char* message);
 
     namespace sys   {
+        /**
+         * Initializes the system.
+         *
+         * Should probably never be called by user code.
+         */
+        extern "C" void resetSystem();
+
         /**
          * The different power modes, used for powerOn(u32) and powerOff(u32).
          */
@@ -121,12 +121,12 @@ namespace dsi {
         void powerOff(u32 val);
 
         /**
-         * @return the current value of the CPSR register (T bit will probably be incorrect)
+         * @return the current value of the CPSR register
          */
         extern "C" u32 getCPSR();
 
         /**
-         * @return the current value of the SPSR register (T bit will probably be incorrect)
+         * @return the current value of the SPSR register
          */
         extern "C" u32 getSPSR();
 

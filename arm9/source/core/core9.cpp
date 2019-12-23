@@ -29,20 +29,25 @@ extern "C" void fifoInternalRecvInterrupt();
 dsi::u8 __internal_dummy_stack[1024 * 3];
 
 namespace dsi {
-    extern "C" void initSystem() {
+    extern "C" void resetSystem() {
         reg::IME = 0;
 
         for (u32 i = 0; i < 4; i++) { dma::channel(0)->erase(); }
 
         sys::powerOn(sys::POWER_2D_A | sys::POWER_2D_B | sys::POWER_3D_GEMOETRY | sys::POWER_3D_RENDERING);
 
-        //clear display registers
+        //clear display registers for engine A
         mem::fastClear((void*) 0x04000000, 0x56);
-        mem::fastClear((void*) 0x04001000, 0x56); //TODO: this makes no sense?
+
+        //clear display registers for engine B
+        //this writes to an undefined register at 0x04001008, but that shouldn't cause any problems
+        mem::fastClear((void*) 0x04001000, 0x56);
+
+        video::resetBrightness(video::DISPLAY_BOTH);
 
         sys::powerOff(sys::POWER_3D_GEMOETRY | sys::POWER_3D_RENDERING);
 
-        video::resetBrightness(video::DISPLAY_BOTH);
+        //video::resetBrightness(video::DISPLAY_BOTH);
 
         video::resetVRAM();
 

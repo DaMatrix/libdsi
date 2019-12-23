@@ -90,8 +90,9 @@ _crt0_bss:
     strb r10, [r1]
 
     //run system init
-    ldr r4, =initSystem
-    bl _blx_r4_stub
+    //ldr r4, =resetSystem
+    //bl _blx_r4_stub
+    bl resetSystem
 
     //run libc init (static constructors)
     ldr r4, =__libc_init_array
