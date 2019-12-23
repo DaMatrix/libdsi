@@ -5,7 +5,7 @@
 #include <stdio.h>
 #endif
 
-#if true //debug stuff
+#if false //debug stuff
 #define _CRASH_DEBUG
 #endif
 
@@ -27,32 +27,11 @@ enum DisplayMode: i32 {
 #ifdef _CRASH_DEBUG
     MODE_CURRENT_PS,
 #endif
+    MODE_STACK,
     NUM_MODES
 };
 
-#ifdef _CRASH_DEBUG
-__attribute__((target("arm"),noinline)) u32 getCPSR()    {
-    u32 cpsr;
-    asm volatile("mrs %0, cpsr" : "=r" (cpsr));
-    return cpsr;
-}
-
-__attribute__((target("arm"),noinline)) u32 getSPSR()    {
-    u32 spsr;
-    asm volatile("mrs %0, spsr" : "=r" (spsr));
-    return spsr;
-}
-#endif
-
 void _crash_displayPSR(const char* name, u32 val);
-
-volatile u32 cntr = 0;
-
-__attribute__((target("arm"))) void _crash_vblank_handler()   {
-    u32 _vblankSp;
-    asm volatile("mov %0, sp" : "=r" (_vblankSp));
-    iprintf("\x1b[14;1HFrame: %u\n VBlank SP: 0x%08x\n VBlank CPSR: 0x%08x\n", ++cntr, _vblankSp, getCPSR());
-}
 
 extern "C" void _crash_doCrash(const char* message, u32 sp) {
     __crash_isCrashing = true;
@@ -94,19 +73,25 @@ extern "C" void _crash_doCrash(const char* message, u32 sp) {
     }
 
     iprintf(
-        "\x1b[18;1HSnapshot Controls:\n"
+        "\x1b[15;1HSnapshot Controls:\n"
         "  A: Page forward\n"
         "  B: Page back\n"
+        " Stack controls:\n"
+        "  Up: Scroll up\n"
+        "  Down: Scroll down\n"
     );
 
-    intr::set(intr::VBLANK, (Void) _crash_vblank_handler);
-
-    u32 renderedMode = 0;
+    bool needsRender = true;
     i32 currentMode  = 0;
 
     u32 held    = 0;
     u32 pressed = 0;
-    u32 repeat = 0;
+    u32 repeat  = 0;
+
+    constexpr u32 NUM_STACK_ROWS = 22;
+    constexpr u32 MAX_STACK_POS = 0x4000 / 4 - NUM_STACK_ROWS;
+    u32 stackIndex = MAX_STACK_POS;
+    u32 scrollingStack = 0;
 
     while (true) {
         scanKeys();
@@ -118,13 +103,39 @@ extern "C" void _crash_doCrash(const char* message, u32 sp) {
             if (++currentMode >= NUM_MODES)  {
                 currentMode = 0;
             }
+            needsRender = true;
         } else if (pressed & KEY_B) {
             if (--currentMode < 0)  {
                 currentMode = NUM_MODES - 1;
             }
+            needsRender = true;
+        } else if (currentMode == MODE_STACK)   {
+            if (held & KEY_UP)   {
+                if (pressed & KEY_UP || scrollingStack == KEY_UP) {
+                    if (++stackIndex >= MAX_STACK_POS) {
+                        stackIndex = MAX_STACK_POS;
+                    }
+                    needsRender = true;
+                }
+                if (!(pressed & KEY_UP) && repeat & KEY_UP) {
+                    scrollingStack = KEY_UP;
+                }
+            } else if (held & KEY_DOWN)   {
+                if (pressed & KEY_DOWN || scrollingStack == KEY_DOWN) {
+                    if (--stackIndex < 0) {
+                        stackIndex = 0;
+                    }
+                    needsRender = true;
+                }
+                if (!(pressed & KEY_DOWN) && repeat & KEY_DOWN) {
+                    scrollingStack = KEY_DOWN;
+                }
+            } else {
+                scrollingStack = 0;
+            }
         }
 
-        if (renderedMode != (1 << currentMode)) {
+        if (needsRender) {
             //we need to update the screen
             consoleSelect(&bottomConsole);
             consoleClear();
@@ -162,12 +173,23 @@ extern "C" void _crash_doCrash(const char* message, u32 sp) {
 #ifdef _CRASH_DEBUG
                     if (currentMode == MODE_CURRENT_PS) {
                         title = "Current PS      ";
-                        vals[0] = getCPSR();
-                        vals[1] = getSPSR();
+                        vals[0] = sys::getCPSR();
+                        vals[1] = sys::getSPSR();
                     }
 #endif
                     _crash_displayPSR("CPSR", vals[0]);
                     _crash_displayPSR("SPSR", vals[1]);
+                    break;
+                }
+                case MODE_STACK: {
+                    title = "DTCM (Stack)    ";
+                    for (u32 i = 0; i < NUM_STACK_ROWS; i++)    {
+                        iprintf(
+                            " 0x%08x: 0x%08x\n",
+                            dtcmStart() + (stackIndex + (NUM_STACK_ROWS - i - 1)) * 4,
+                            __crash_snapshot.stack[stackIndex + (NUM_STACK_ROWS - i - 1)]
+                        );
+                    }
                     break;
                 }
                 default:
@@ -177,7 +199,7 @@ extern "C" void _crash_doCrash(const char* message, u32 sp) {
             consoleSelect(&topConsole);
             iprintf("\x1b[22;1H%d/%d: %s", currentMode + 1, NUM_MODES, title);
 
-            renderedMode = (u32) (1 << currentMode);
+            needsRender = false;
         }
 
         bios::vBlankIntrWait();

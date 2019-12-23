@@ -49,7 +49,12 @@ ASM_FUNC crashSystem
     add r1, r1, #(16 << 2)
     stmia r1!, {r4, r5}
 
-    mov r11, r0
+    mov r10, r0
+    mov r11, r1
+
+    //switch to system mode
+    mov r0, #0x1F
+    SET_CPSR(r0)
 
     //switch to internal stack
     ldr r0, =_switch_to_internal_stack
@@ -58,7 +63,7 @@ ASM_FUNC crashSystem
     //copy entire dtcm to snapshot
     ldr r4, =fastCopy
     ldr r0, =__dtcm_start
-    //r1 is already the target address
+    mov r1, r11
     ldr r2, =__dtcm_size
     blx r4
 
@@ -67,7 +72,7 @@ ASM_FUNC crashSystem
     blx r0
 
     //ldr r2, =__sp_usr
-    mov r0, r11
+    mov r0, r10
     mov r1, sp
     ldr r4, =_crash_doCrash
     bx r4

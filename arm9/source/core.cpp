@@ -70,5 +70,17 @@ namespace dsi {
         void powerOff(u32 val) {
             reg::POWCNT1 &= ~(val & ~POWER_LCD);
         }
+
+        __attribute__((target("arm"), noinline)) u32 getCPSR()    {
+            u32 cpsr;
+            asm volatile("mrs %0, cpsr" : "=r" (cpsr));
+            return cpsr;
+        }
+
+        __attribute__((target("arm"), noinline)) u32 getSPSR()    {
+            u32 spsr;
+            asm volatile("mrs %0, spsr" : "=r" (spsr));
+            return spsr;
+        }
     }
 }

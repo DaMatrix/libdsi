@@ -125,6 +125,16 @@ namespace dsi {
          * @param val the components to disable, see PowerModes
          */
         void powerOff(u32 val);
+
+        /**
+         * @return the current value of the CPSR register (T bit may be incorrect)
+         */
+        u32 getCPSR();
+
+        /**
+         * @return the current value of the SPSR register (T bit may be incorrect)
+         */
+        u32 getSPSR();
     }
 }
 

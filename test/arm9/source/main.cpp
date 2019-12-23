@@ -8,8 +8,10 @@ using namespace dsi;
 
 extern "C" void doMain(void* buf);
 
-namespace jeff {
-    extern "C" volatile dsi::Void __irq_vector;
+extern u32 __sp_irq;
+
+void vblankCauseError() {
+    DSI_ASSERT(1 + 1 == 3, "Crash from VBlank!")
 }
 
 int main() {
@@ -45,10 +47,13 @@ int main() {
 
     video::setBrightness(video::DISPLAY_A, -15);
 
-    iprintf("0x%08x 0x%08x\n", &__irq_vector, *__irq_vector);
+    doMain(buf);
 
-    if (true) doMain(buf);
-
-    crashSystem("Debug crash!");
+    if (false)  {
+        crashSystem("Debug crash!");
+    } else {
+        intr::set(intr::VBLANK, vblankCauseError);
+        while (true);
+    }
 #endif
 }
