@@ -2,14 +2,11 @@
 #include <libdsi/registers.h>
 
 extern "C" void stdRootHandler();
-extern "C" void stdRootHandler_test();
 
 extern "C" volatile dsi::u32 __irq_flags;
 extern "C" volatile dsi::Void __irq_vector;
 
 extern "C" volatile dsi::Void __debug_vector;
-
-extern "C" void test_init_irq();
 
 namespace dsi::intr {
     namespace _internal {
@@ -22,13 +19,7 @@ namespace dsi::intr {
         reg::IF = ~0;
 
         __debug_vector = nullptr;
-
-#if true
         setRootHandler(stdRootHandler);
-#else
-        setRootHandler(stdRootHandler_test);
-        test_init_irq();
-#endif
 
         _internal::clearHandlers();
 
