@@ -1,7 +1,7 @@
 #include <dsi.h>
 
-__attribute__((section("twl_bss"))) dsi::Void __interruptHandlers[32];
-__attribute__((section("twl_bss"))) dsi::Void __interruptHandlers7[32];
+__attribute__((section(".twl_bss"))) dsi::Void __interruptHandlers[32];
+__attribute__((section(".twl_bss"))) dsi::Void __interruptHandlers7[32];
 
 namespace dsi::intr {
     namespace _internal {
@@ -12,7 +12,7 @@ namespace dsi::intr {
     }
 
     void set(Interrupt interrupt, Void handler) {
-        //TODO: DSI_ASSERT((interrupt & 0x1F) == interrupt, "Invalid interrupt!")
+        DSI_ASSERT((interrupt & 0x3F) == interrupt, "Invalid interrupt!")
 
         if (interrupt & 0x20) {
             __interruptHandlers7[interrupt] = handler;

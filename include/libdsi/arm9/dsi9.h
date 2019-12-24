@@ -5,13 +5,9 @@
 #error Must be used for ARM9!
 #endif
 
-#include <libdsi/bios.h>
-#include <libdsi/core.h>
-#include <libdsi/dma.h>
-#include <libdsi/fifo.h>
-#include <libdsi/intr.h>
-#include <libdsi/registers.h>
+#include <libdsi/common.h>
 
+#include <libdsi/arm9/exceptions.h>
 #include <libdsi/arm9/video.h>
 #include <libdsi/arm9/wifi9.h>
 

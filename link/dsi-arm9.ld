@@ -9,6 +9,13 @@ ENTRY(_start)
 
 /* TODO: redo this */
 
+MEMORY {
+	ewram : ORIGIN = 0x02000000, LENGTH = 15M - 512k
+	dtcm : ORIGIN = 0x0b000000, LENGTH = 16K
+	exceptionVectors : ORIGIN = 0x01000000, LENGTH = 64
+	itcm : ORIGIN = 0x01000040, LENGTH = 32K - 64
+}
+
 __ewram_end	 =	ORIGIN(ewram) + LENGTH(ewram);
 __eheap_end	 =	ORIGIN(ewram) + LENGTH(ewram);
 
@@ -26,11 +33,11 @@ __sp_irq	 =	__sp_svc - 0x100;
 __sp_usr	 =	__sp_irq - 0x100;
 
 PHDRS {
-	main    PT_LOAD FLAGS(7);
-	dtcm    PT_LOAD FLAGS(7);
-	itcm    PT_LOAD FLAGS(7);
-	vectors PT_LOAD FLAGS(7);
-	twl     PT_LOAD FLAGS(0x100007);
+	main PT_LOAD FLAGS(7);
+	dtcm PT_LOAD FLAGS(7);
+	itcm PT_LOAD FLAGS(7);
+	exceptionVectors PT_LOAD FLAGS(7);
+	twl PT_LOAD FLAGS(0x100007);
 }
 
 SECTIONS
@@ -195,14 +202,14 @@ SECTIONS
 		__itcm_end = ABSOLUTE(.);
 	} >itcm AT>ewram :itcm = 0xff
 
-	.vectors :
+	.exceptionVectors :
 	{
-		__vectors_lma = LOADADDR(.vectors);
+		__vectors_lma = LOADADDR(.exceptionVectors);
 		__vectors_start = ABSOLUTE(.);
-		KEEP(*(.vectors .vectors.*))
+		KEEP(*(.exceptionVectors .exceptionVectors.*))
 		. = ALIGN(4);
 		__vectors_end = ABSOLUTE(.);
-	} >vectors AT>ewram :vectors = 0xff
+	} >exceptionVectors AT>ewram :exceptionVectors = 0xff
 
 	.sbss __dtcm_end (NOLOAD):
 	{
@@ -226,7 +233,7 @@ SECTIONS
 		__end__ = ABSOLUTE(.) ;
 	} >ewram :NONE
 
-	.twl __end__ : AT(MAX(0x2400000,MAX(__end__,LOADADDR(.vectors)+SIZEOF(.vectors))))
+	.twl __end__ : AT(MAX(0x2400000,MAX(__end__,LOADADDR(.exceptionVectors)+SIZEOF(.exceptionVectors))))
 	{
 		__arm9i_lma__ = LOADADDR(.twl);
 		__arm9i_start__ = ABSOLUTE(.);

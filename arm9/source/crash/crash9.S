@@ -68,6 +68,9 @@ ASM_FUNC crashSystem
     //write user message to snapshot
     str r10, [r1], #4
 
+    mrc p15, 0, r10, c1, c0, 0
+    str r10, [r1], #4
+
     //switch back to dtcm stack (old stack will be overwritten, but it doesn't matter since we've already snapshotted it)
     bl switchToDTCMStack
 

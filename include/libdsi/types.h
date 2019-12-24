@@ -3,7 +3,7 @@
 
 #ifndef ARM7
 #ifndef ARM9
-#error Either ARM7 or ARM9 must be set!
+#error Either ARM7 or ARM9 must be defined!
 #endif
 #endif
 

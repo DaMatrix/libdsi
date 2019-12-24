@@ -26,7 +26,7 @@ dsi-arm9.specs: .FORCE
 	@echo "%rename link                old_link" > $@
 	@echo "" >> $@
 	@echo "*link:" >> $@
-	@echo "%(old_link) -T $(DEVKITARM)/arm-none-eabi/lib/dsi_arm9.mem%s -T $(LIBDSI_HOME)/link/dsi-arm9.ld%s --gc-sections" >> $@
+	@echo "%(old_link) -T $(LIBDSI_HOME)/link/dsi-arm9.ld%s --gc-sections" >> $@
 	@echo "" >> $@
 	@echo "*startfile:" >> $@
 	@echo "$(LIBDSI_HOME)/link/crt0-dsi-arm9%O%s crti%O%s crtbegin%O%s" >> $@

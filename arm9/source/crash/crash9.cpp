@@ -17,6 +17,7 @@ struct Snapshot {
     u32 spsr;
     u32 stack[0x4000 >> 2];
     const char* message;
+    u32 CP15;
 };
 
 __attribute__((section(".bss"))) Snapshot __crash_snapshot;
@@ -47,10 +48,8 @@ extern "C" void _crash_doCrash() {
     video::setDisplayMode(video::DISPLAY_A, video::DISPLAY_MODE_2D);
     reg::VRAMCNT_A = reg::A_Background0;
 
-    //video::setBackgroundMode(video::DISPLAY_B, video::BG_MODE_0);
-    //video::setDisplayMode(video::DISPLAY_B, video::DISPLAY_MODE_2D); //TODO: why do these two not work when they do for engine A?
-    videoSetModeSub(MODE_0_2D);
-    //vramSetBankC(VRAM_C_SUB_BG);
+    video::setBackgroundMode(video::DISPLAY_B, video::BG_MODE_0);
+    video::setDisplayMode(video::DISPLAY_B, video::DISPLAY_MODE_2D);
     reg::VRAMCNT_C = reg::C_BackgroundB;
 
     consoleInit(&topConsole, topConsole.bgLayer, BgType_Text4bpp, BgSize_T_256x256, topConsole.mapBase, topConsole.gfxBase, true, true);

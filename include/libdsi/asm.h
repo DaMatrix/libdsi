@@ -23,6 +23,12 @@
 \name:
 .endm
 
+.macro ASM_DATA name
+    .global \name
+    .type \name, %object
+\name:
+.endm
+
 #define GET_CPSR(DST) mrs DST, cpsr
 #define SET_CPSR(SRC) msr cpsr, SRC
 #define GET_SPSR(DST) mrs DST, spsr

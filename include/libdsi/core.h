@@ -170,7 +170,7 @@ namespace dsi {
         /**
          * The different ARM CPU modes.
          */
-        enum CPUMode {
+        enum CPUMode: u8 {
             MODE_USER = 0x10,
             MODE_FIQ = 0x11,
             MODE_FAST_INTERRUPT = MODE_FIQ,

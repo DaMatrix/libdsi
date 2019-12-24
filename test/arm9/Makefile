@@ -35,12 +35,12 @@ $(PROJDIR)/arm9.elf: $(OFILES) $(TOPDIR)/lib/libdsi9.a
 	$(CXX) $(LDFLAGS) $(OFILES) $(LIBS) -o $@
 
 %.c.o:
-	$(CC) -MMD -MP -MF $(CURDIR)/$*.d $(CFLAGS) -c $(subst .c.o,.c,$(subst _,/,$@)) -o $@ $(ERROR_FILTER)
+	$(CC) -MMD -MP -MF $(CURDIR)/$*.c.d $(CFLAGS) -c $(subst .c.o,.c,$(subst _,/,$@)) -o $@ $(ERROR_FILTER)
 
 %.cpp.o:
-	$(CXX) -MMD -MP -MF $(CURDIR)/$*.d $(CXXFLAGS) -c $(subst .cpp.o,.cpp,$(subst _,/,$@)) -o $@ $(ERROR_FILTER)
+	$(CXX) -MMD -MP -MF $(CURDIR)/$*.cpp.d $(CXXFLAGS) -c $(subst .cpp.o,.cpp,$(subst _,/,$@)) -o $@ $(ERROR_FILTER)
 
 %.S.o:
-	$(CC) -MMD -MP -MF $(CURDIR)/$*.d $(ASFLAGS) -c $(subst .S.o,.S,$(subst _,/,$@)) -o $@ $(ERROR_FILTER)
+	$(CC) -MMD -MP -MF $(CURDIR)/$*.S.d $(ASFLAGS) -c $(subst .S.o,.S,$(subst _,/,$@)) -o $@ $(ERROR_FILTER)
 
 endif
