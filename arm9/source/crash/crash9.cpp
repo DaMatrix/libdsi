@@ -36,8 +36,14 @@ enum DisplayMode: i32 {
 void _crash_displayPSR(const char* name, u32 val);
 
 extern "C" void _crash_doCrash() {
-    __crash_isCrashing = true;
     sys::resetSystem();
+
+    if (__crash_isCrashing) {
+        //oh god everything is broken
+        while (true);
+    } else {
+        __crash_isCrashing = true;
+    }
 
     PrintConsole topConsole, bottomConsole;
 
@@ -71,6 +77,7 @@ extern "C" void _crash_doCrash() {
     }
 
     //iprintf("DSi mode: %u\nSCFG_A9ROM: 0x%08x\n", sys::checkDSiMode(), *((u32*) 0x04004000));
+    //iprintf("0x%08x\n", except::encodeBranch((void*) 0xffff0984, (void*) 0xffff097c));
 
     iprintf(
         "\x1b[15;1HSnapshot Controls:\n"

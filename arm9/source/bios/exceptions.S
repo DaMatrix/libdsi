@@ -42,15 +42,39 @@ ASM_DATA _vector_fastInterrupt
     .section .text.hijackExceptionVectors, "ax"
 ASM_FUNC hijackExceptionVectors
     //get control register value
-    mrc p15, 0, r0, c1, c0, 0
+    mrc p15, 0, r1, c1, c0, 0
 
-    //clear bit 13 (exception vectors)
+    //modify bit 13 (exception vectors)
     //from gbatek:
     // 13 Exception Vectors     (0=00000000h, 1=FFFF0000h)
-    bic r0, r0, #(1 << 13)
+
+    //check value of parameter r0 (resetToBIOS)
+    cmp r0, #0
+
+    //if false, set vector base to 0x00000000
+    biceq r1, r1, #(1 << 13)
+
+    //if true, set vector base to 0xFFFF0000
+    orrne r1, r1, #(1 << 13)
 
     //update control register
-    mcr p15, 0, r0, c1, c0, 0
+    mcr p15, 0, r1, c1, c0, 0
+
+    //return
+    bx lr
+
+    .section .text.currentVectorBase, "ax"
+ASM_FUNC currentVectorBase
+    //get control register value
+    mrc p15, 0, r0, c1, c0, 0
+
+    //check state of bit 13
+    ands r0, r0, #(1 << 13)
+
+    //if non-zero (which is guarenteed to be 1), set r0 to 0xFFFF0000
+    ldr r0, =0xFFFF0000
+
+    //if zero, then we don't need to do anything!
 
     //return
     bx lr

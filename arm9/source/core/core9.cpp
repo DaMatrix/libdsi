@@ -34,6 +34,11 @@ namespace dsi {
 
         for (u32 i = 0; i < 4; i++) { dma::channel(0)->erase(); }
 
+        for (u32 i = 0; i < 8; i++) {
+            except::delegateToBIOS((except::Exception) i);
+        }
+        except::hijackExceptionVectors(false);
+
         sys::powerOn(sys::POWER_2D_A | sys::POWER_2D_B | sys::POWER_3D_GEMOETRY | sys::POWER_3D_RENDERING);
 
         //clear display registers for engine A
